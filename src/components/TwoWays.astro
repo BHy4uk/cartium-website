@@ -1,0 +1,130 @@
+---
+import { Picture } from 'astro:assets';
+import Phone from './Phone.astro';
+import adminMenu from '../assets/shots/admin-menu.png';
+import hub from '../assets/shots/hub-products.png';
+
+const commands = [
+  { cmd: '/orders', text: 'нові замовлення' },
+  { cmd: '/markpaid', text: 'позначити оплату' },
+  { cmd: '/addproduct', text: 'швидко додати товар' },
+];
+---
+<section class="section ways" aria-labelledby="ways-title">
+  <div class="container">
+    <div class="section-head is-center">
+      <h2 id="ways-title" class="display h2">Один магазин, два входи</h2>
+      <p class="lead">Одну дію швидко робіть у боті. Сідаєте працювати з каталогом, клієнтами чи аналітикою, відкривайте WebApp.</p>
+    </div>
+
+    <div class="ways-grid">
+      <article class="way way--bot">
+        <div class="way-media">
+          <Picture
+            src={adminMenu}
+            alt="Адмін-меню бота: Товари, Категорії, Замовлення, Статистика, Кампанії, Налаштування"
+            widths={[560, 1100]}
+            sizes="(max-width: 860px) 92vw, 560px"
+            formats={['avif', 'webp']}
+            quality={78}
+            loading="lazy"
+            class="way-img"
+          />
+        </div>
+        <div class="way-body">
+          <h3 class="h3">Telegram-бот для швидких дій</h3>
+          <p class="body-muted">Підтвердити оплату, створити ТТН чи додати товар можна просто в чаті, між іншими справами.</p>
+          <ul class="cmds">
+            {commands.map((c) => (
+              <li><span class="cmd">{c.cmd}</span> {c.text}</li>
+            ))}
+          </ul>
+        </div>
+      </article>
+
+      <article class="way way--app">
+        <div class="way-body">
+          <h3 class="h3">WebApp для системної роботи</h3>
+          <p class="body-muted">Повний кабінет усередині Telegram: товари, налаштування, аналітика, клієнти, імпорт, промокоди і розсилки.</p>
+        </div>
+        <div class="way-phone">
+          <Phone src={hub} alt="Розділ «Керування» у WebApp: список товарів" width={280} />
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ways-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 20px;
+  }
+  .way {
+    position: relative;
+    display: grid;
+    gap: 28px;
+    padding: clamp(24px, 3vw, 40px);
+    border-radius: var(--r-card);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
+  }
+  .way-body {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+  .way-media {
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .way-media :global(img) {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+  }
+  .cmds {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .cmds li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .way--app {
+    grid-template-rows: auto 1fr;
+    background:
+      radial-gradient(90% 70% at 50% 100%, var(--accent-soft), transparent 70%),
+      var(--surface);
+  }
+  .way-phone {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: calc(clamp(24px, 3vw, 40px) * -1 - 180px);
+    transition: transform 0.8s var(--ease-spring);
+  }
+  .way--app:hover .way-phone {
+    transform: translateY(-16px);
+  }
+
+  @media (max-width: 860px) {
+    .ways-grid {
+      grid-template-columns: 1fr;
+    }
+    .way-phone {
+      margin-bottom: -200px;
+    }
+    .way--app {
+      max-height: 640px;
+    }
+  }
+</style>

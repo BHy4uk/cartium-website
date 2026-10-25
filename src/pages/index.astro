@@ -1,0 +1,38 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Hero from '../components/Hero.astro';
+import Rails from '../components/Rails.astro';
+import ChatStory from '../components/ChatStory.astro';
+import Launch from '../components/Launch.astro';
+import Gallery from '../components/Gallery.astro';
+import Growth from '../components/Growth.astro';
+import TwoWays from '../components/TwoWays.astro';
+import Pricing from '../components/Pricing.astro';
+import Faq from '../components/Faq.astro';
+import FinalCta from '../components/FinalCta.astro';
+import Footer from '../components/Footer.astro';
+
+const title = 'Cartium: магазин у Telegram, готовий за вечір';
+const description =
+  'Каталог, кошик, оплата LiqPay і plata by mono, ТТН Нової пошти, аналітика й розсилки в одному Telegram-боті. 14 днів безкоштовно.';
+---
+<Base title={title} description={description}>
+  <Nav />
+  <main id="main">
+    <Hero />
+    <Rails />
+    <ChatStory />
+    <Launch />
+    <Gallery />
+    <Growth />
+    <TwoWays />
+    <Pricing />
+    <Faq />
+    <FinalCta />
+  </main>
+  <Footer />
+  <script>
+    import '../scripts/main';
+  </script>
+</Base>

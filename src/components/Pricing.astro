@@ -1,0 +1,240 @@
+---
+import Icon from './Icon.astro';
+import { BOT_URL, PLANS, TRIAL_DAYS, YEARLY_DISCOUNT } from '../config';
+
+const perMonthYearly = (yearly: number) => yearly / 12;
+---
+<section class="section pricing" id="pricing" aria-labelledby="pricing-title" data-pricing>
+  <div class="container">
+    <div class="section-head is-center">
+      <h2 id="pricing-title" class="display h2">Фіксована ціна без відсотка з продажів</h2>
+      <p class="lead">
+        Гроші покупців надходять на ваш рахунок LiqPay чи monobank напряму. Перші {TRIAL_DAYS} днів безкоштовно, далі оплата в гривнях за поточним курсом.
+      </p>
+      <div class="period" role="radiogroup" aria-label="Період оплати">
+        <button type="button" class="period-opt" role="radio" aria-checked="true" data-period="monthly">Щомісяця</button>
+        <button type="button" class="period-opt" role="radio" aria-checked="false" data-period="yearly">
+          За рік <span class="period-save">−{YEARLY_DISCOUNT}%</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="plans">
+      {PLANS.map((p) => (
+        <article class:list={['plan', { 'plan--featured on-panel': p.badge }]} aria-labelledby={`plan-${p.id}`}>
+          <header class="plan-head">
+            <div class="plan-title-row">
+              <h3 id={`plan-${p.id}`} class="plan-name">{p.name}</h3>
+              {p.badge && <span class="plan-badge">{p.badge}</span>}
+            </div>
+            <p class="plan-tagline">{p.tagline}</p>
+          </header>
+
+          <div class="plan-price">
+            <span class="price-cur">$</span>
+            <span
+              class="price-num"
+              data-price
+              data-monthly={p.monthly}
+              data-yearly={perMonthYearly(p.yearly)}
+            >{p.monthly}</span>
+            <span class="price-per">/ міс</span>
+          </div>
+          <p class="plan-billed" data-billed data-monthly-text="оплата щомісяця" data-yearly-text={`$${p.yearly} одним платежем за рік`}>
+            оплата щомісяця
+          </p>
+
+          <a class:list={['btn', p.badge ? 'btn-primary' : 'btn-ghost', 'plan-cta']} href={BOT_URL} target="_blank" rel="noopener">
+            Створити магазин
+            {p.badge && <span class="btn-icon"><Icon name="paper-plane-tilt" /></span>}
+          </a>
+
+          {p.includes && <p class="plan-includes">{p.includes}</p>}
+          <ul class="plan-features">
+            {p.features.map((f) => (
+              <li><Icon name="check" /> {f}</li>
+            ))}
+          </ul>
+        </article>
+      ))}
+    </div>
+    <p class="pricing-note">
+      Пробний період відкриває можливості Basic. Тариф можна змінити будь-коли в розділі «Налаштування → Підписка».
+    </p>
+  </div>
+</section>
+
+<style>
+  .period {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    margin-top: 8px;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .period-opt {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 20px;
+    border-radius: var(--r-pill);
+    font-weight: 600;
+    color: var(--muted);
+    transition: background-color 0.4s var(--ease-out), color 0.3s var(--ease-out);
+  }
+  .period-opt[aria-checked='true'] {
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .period-save {
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+    background: var(--ok-soft);
+    color: var(--ok);
+    font-size: 0.8rem;
+  }
+  .period-opt[aria-checked='true'] .period-save {
+    background: rgba(255, 255, 255, 0.16);
+    color: inherit;
+  }
+
+  .plans {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    align-items: stretch;
+  }
+  .plan {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: clamp(24px, 2.6vw, 36px);
+    border-radius: var(--r-card);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .plan--featured {
+    background: var(--panel);
+    color: var(--on-panel);
+    box-shadow: var(--shadow-lift);
+    transform: translateY(-12px);
+  }
+  .plan-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .plan-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.6rem;
+    letter-spacing: -0.03em;
+  }
+  .plan-badge {
+    padding: 4px 12px;
+    border-radius: var(--r-pill);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .plan-tagline {
+    color: var(--muted);
+  }
+  .plan--featured .plan-tagline,
+  .plan--featured .plan-billed,
+  .plan--featured .plan-includes {
+    color: var(--on-panel-muted);
+  }
+  .plan-price {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-top: 6px;
+    font-family: var(--font-display);
+  }
+  .price-cur {
+    font-size: 1.6rem;
+    font-weight: 600;
+    align-self: flex-start;
+    margin-top: 0.35em;
+  }
+  .price-num {
+    font-size: clamp(3.4rem, 2.8rem + 2vw, 4.4rem);
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    min-width: 2ch;
+  }
+  .price-per {
+    color: var(--muted);
+    font-family: var(--font-text);
+    font-weight: 500;
+  }
+  .plan--featured .price-per {
+    color: var(--on-panel-muted);
+  }
+  .plan-billed {
+    margin-top: -10px;
+    font-size: 0.92rem;
+    color: var(--muted);
+    min-height: 1.5em;
+  }
+  .plan-cta {
+    justify-content: center;
+    width: 100%;
+  }
+  .plan-cta.btn-primary {
+    padding-right: 8px;
+    justify-content: space-between;
+  }
+  .plan--featured .btn-ghost {
+    color: var(--on-panel);
+  }
+  .plan-includes {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--ink-2);
+    margin-top: 6px;
+  }
+  .plan-features {
+    display: grid;
+    gap: 12px;
+  }
+  .plan-features li {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: 10px;
+    align-items: start;
+    font-size: 0.97rem;
+    line-height: 1.45;
+  }
+  .plan-features :global(.icon) {
+    margin-top: 2px;
+    font-size: 1.1rem;
+    color: var(--accent-text);
+  }
+  .plan--featured .plan-features :global(.icon) {
+    color: var(--on-panel);
+  }
+  .pricing-note {
+    margin-top: 40px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 960px) {
+    .plans {
+      grid-template-columns: 1fr;
+      max-width: 520px;
+      margin-inline: auto;
+    }
+    .plan--featured {
+      transform: none;
+    }
+  }
+</style>

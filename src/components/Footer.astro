@@ -1,0 +1,130 @@
+---
+import Logo from './Logo.astro';
+import { BOT_HANDLE, BOT_URL, CHANNEL_URL, DOCS_LINKS, DOCS_URL, LEGAL_LINKS } from '../config';
+
+const year = new Date().getFullYear();
+type FooterLink = { href: string; label: string; ext?: boolean };
+const cols: { title: string; links: FooterLink[] }[] = [
+  {
+    title: 'Продукт',
+    links: [
+      { href: '#how', label: 'Як це працює' },
+      { href: '#features', label: 'Можливості' },
+      { href: '#pricing', label: 'Тарифи' },
+      { href: '#faq', label: 'Питання' },
+    ],
+  },
+  {
+    title: 'Власникам',
+    links: [
+      { href: DOCS_URL, label: 'Документація', ext: true },
+      { href: DOCS_LINKS.launch, label: 'Чекліст запуску', ext: true },
+      { href: DOCS_LINKS.payments, label: 'Підключення оплат', ext: true },
+      { href: DOCS_LINKS.novaPoshta, label: 'Нова пошта', ext: true },
+    ],
+  },
+  {
+    title: 'Звʼязок',
+    links: [
+      { href: BOT_URL, label: `@${BOT_HANDLE}`, ext: true },
+      { href: CHANNEL_URL, label: 'Канал Cartium', ext: true },
+    ],
+  },
+  {
+    title: 'Документи',
+    links: [
+      { href: LEGAL_LINKS.terms, label: 'Публічна оферта', ext: true },
+      { href: LEGAL_LINKS.privacy, label: 'Політика конфіденційності', ext: true },
+    ],
+  },
+];
+---
+<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <Logo />
+        <p class="footer-tag">Магазини в Telegram для малого бізнесу.</p>
+      </div>
+      <nav class="footer-cols" aria-label="Посилання в підвалі">
+        {cols.map((c) => (
+          <div class="footer-col">
+            <p class="footer-title">{c.title}</p>
+            <ul>
+              {c.links.map((l) => (
+                <li>
+                  <a href={l.href} {...(l.ext ? { target: '_blank', rel: 'noopener' } : {})}>{l.label}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <p>© {year} Cartium</p>
+      <p>Telegram є торговою маркою Telegram FZ-LLC. Cartium не повʼязаний з Telegram.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    padding-block: 56px 40px;
+    border-top: 1px solid var(--line);
+  }
+  .footer-top {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 2fr);
+    gap: 48px;
+  }
+  .footer-brand {
+    display: grid;
+    gap: 14px;
+    align-content: start;
+  }
+  .footer-tag {
+    color: var(--muted);
+    max-width: 24ch;
+  }
+  .footer-cols {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 32px;
+  }
+  .footer-title {
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .footer-col ul {
+    display: grid;
+    gap: 8px;
+  }
+  .footer-col a {
+    color: var(--muted);
+    font-size: 0.95rem;
+    transition: color 0.2s var(--ease-out);
+  }
+  .footer-col a:hover {
+    color: var(--ink);
+  }
+  .footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px 32px;
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.86rem;
+  }
+  @media (max-width: 860px) {
+    .footer-top {
+      grid-template-columns: 1fr;
+    }
+    .footer-cols {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

@@ -1,0 +1,368 @@
+---
+import Phone from './Phone.astro';
+import Icon from './Icon.astro';
+import { BOT_URL, TRIAL_DAYS } from '../config';
+import catalog from '../assets/shots/shell-catalog.png';
+import orders from '../assets/shots/orders-list.png';
+import analytics from '../assets/shots/analytics.png';
+
+// Split at build time so the headline animates in with CSS alone: it paints on the
+// first frame instead of waiting for the script.
+const titleWords = ['Магазин', 'у', 'Telegram,', 'готовий', 'за\u00A0вечір'];
+
+// Order numbers continue the demo data on the orders screenshot (#51 to #54).
+const notifications = [
+  { n: 55, sum: '1 500 грн', what: 'Футболка, M', where: 'Київ, відділення №12', pay: 'Оплачено через LiqPay' },
+  { n: 56, sum: '2 750 грн', what: 'Джинси, 30', where: 'Львів, поштомат №5207', pay: 'Оплачено через plata by mono' },
+  { n: 57, sum: '4 199 грн', what: '3 товари', where: 'Одеса, відділення №41', pay: 'Накладений платіж' },
+];
+---
+<section class="hero" id="top">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <h1 class="display h1 hero-title">
+        {titleWords.map((w, i) => (
+          <Fragment>
+            <span class="hero-word"><span style={`--w:${i}`}>{w}</span></span>{i < titleWords.length - 1 && ' '}
+          </Fragment>
+        ))}
+      </h1>
+      <p class="lead hero-lead hero-in hero-in--soft" style="--d:300ms">
+        Каталог, кошик, оплата карткою і ТТН Нової пошти в одному боті. Покупцям не треба нікуди переходити.
+      </p>
+      <div class="hero-ctas hero-in" style="--d:480ms">
+        <a class="btn btn-primary" href={BOT_URL} target="_blank" rel="noopener" data-magnetic>
+          Створити магазин
+          <span class="btn-icon"><Icon name="paper-plane-tilt" /></span>
+        </a>
+        <a class="btn btn-ghost" href="#how">Як це працює</a>
+      </div>
+      <p class="hero-note hero-in" style="--d:580ms">
+        <Icon name="seal-check" />
+        {TRIAL_DAYS} днів безкоштовно, картка не потрібна
+      </p>
+    </div>
+
+    <div class="hero-stage" data-hero-stage>
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="hero-tilt" data-tilt>
+        <div class="hero-slot hero-slot--left">
+          <Phone src={orders} alt="Список замовлень з фільтрами в адмінці Cartium" width={300} sizes="(max-width: 560px) 216px, 300px" eager class="hero-phone" />
+        </div>
+        <div class="hero-slot hero-slot--right">
+          <Phone src={analytics} alt="Аналітика магазину: виторг, замовлення, середній чек" width={300} sizes="(max-width: 560px) 216px, 300px" eager class="hero-phone" />
+        </div>
+        <div class="hero-slot hero-slot--center">
+          <Phone src={catalog} alt="Вітрина магазину в Telegram з категоріями та кошиком" width={320} sizes="(max-width: 560px) 236px, 320px" priority class="hero-phone" />
+        </div>
+      </div>
+
+      <div class="notif" data-notif aria-hidden="true">
+        <div class="notif-head">
+          <span class="notif-avatar"><Icon name="storefront" /></span>
+          <span class="notif-from">urbanstyle_bot</span>
+          <span class="notif-time">щойно</span>
+        </div>
+        <div class="notif-body" data-notif-body>
+          {notifications.map((o, i) => (
+            <div class:list={['notif-item', { 'is-active': i === 0 }]} data-notif-item>
+              <p class="notif-title">📦 Нове замовлення #{o.n}</p>
+              <p class="notif-line"><strong>{o.sum}</strong> · {o.what}</p>
+              <p class="notif-line">{o.where}</p>
+              <p class="notif-pay"><Icon name="check-circle-fill" /> {o.pay}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    padding-top: calc(var(--nav-h) + clamp(56px, 8vw, 96px));
+    padding-bottom: clamp(40px, 6vw, 80px);
+    overflow: clip;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(32px, 5vw, 72px);
+    min-height: min(760px, calc(100dvh - var(--nav-h) - 40px));
+  }
+  .hero-copy {
+    display: grid;
+    gap: 28px;
+    justify-items: start;
+    position: relative;
+    z-index: 2;
+  }
+  .hero-title {
+    font-size: clamp(2.5rem, 1.1rem + 3.2vw, 3.8rem);
+    max-width: 660px;
+  }
+  .hero-lead {
+    max-width: 28em;
+  }
+  .hero-word {
+    display: inline-block;
+    overflow: clip;
+    vertical-align: top;
+    padding-bottom: 0.14em;
+    margin-bottom: -0.14em;
+  }
+  .hero-word > span {
+    display: inline-block;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-word > span {
+      animation: hero-rise 1.1s var(--ease-out) backwards;
+      animation-delay: calc(var(--w) * 60ms + 60ms);
+    }
+    .hero-in {
+      animation: hero-fade 1s var(--ease-out) backwards;
+      animation-delay: var(--d, 0ms);
+    }
+    .hero-slot :global(.hero-phone) {
+      animation: hero-phone 1.5s var(--ease-out) backwards;
+    }
+    .hero-slot--left :global(.hero-phone) {
+      animation-delay: 200ms;
+    }
+    .hero-slot--right :global(.hero-phone) {
+      animation-delay: 320ms;
+    }
+    .hero-slot--center :global(.hero-phone) {
+      animation-delay: 120ms;
+    }
+    .notif {
+      animation: hero-notif 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 1.15s backwards;
+    }
+  }
+  @keyframes hero-rise {
+    from {
+      transform: translateY(108%);
+    }
+  }
+  /* The lead is the mobile LCP element: it moves in but is never transparent. */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-in--soft {
+      animation-name: hero-slide;
+    }
+  }
+  @keyframes hero-slide {
+    from {
+      transform: translateY(14px);
+    }
+  }
+  @keyframes hero-fade {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+  }
+  @keyframes hero-phone {
+    from {
+      opacity: 0;
+      transform: translateY(120px);
+    }
+  }
+  @keyframes hero-notif {
+    from {
+      opacity: 0;
+      transform: translateY(-16px) scale(0.94);
+    }
+  }
+  .hero-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 6px;
+  }
+  .hero-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+  .hero-note :global(.icon) {
+    font-size: 1.15rem;
+    color: var(--ok);
+  }
+
+  .hero-stage {
+    position: relative;
+    height: clamp(520px, 52vw, 680px);
+    perspective: 1400px;
+  }
+  .hero-glow {
+    position: absolute;
+    inset: 8% 4% 4%;
+    border-radius: 50%;
+    background:
+      radial-gradient(closest-side, rgba(47, 75, 255, 0.16), transparent 70%),
+      radial-gradient(closest-side at 70% 60%, rgba(255, 255, 255, 0.9), transparent 70%);
+    filter: blur(10px);
+  }
+  .hero-tilt {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+  }
+  .hero-slot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    transform-style: preserve-3d;
+  }
+  .hero-slot--center {
+    width: 320px;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+  }
+  .hero-slot--left {
+    transform: translate(-106%, -47%) rotate(-6deg) scale(0.88);
+    z-index: 1;
+  }
+  .hero-slot--right {
+    transform: translate(6%, -53%) rotate(6deg) scale(0.88);
+    z-index: 2;
+  }
+
+  .notif {
+    position: absolute;
+    z-index: 5;
+    right: max(-12px, calc(50% - 340px));
+    top: 3%;
+    width: 268px;
+    padding: 14px 16px 16px;
+    border-radius: 22px;
+    background: var(--glass);
+    backdrop-filter: blur(16px) saturate(1.5);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-lift);
+    font-size: 0.88rem;
+    line-height: 1.4;
+  }
+  .notif-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  .notif-avatar {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 13px;
+  }
+  .notif-from {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .notif-time {
+    margin-left: auto;
+  }
+  .notif-body {
+    display: grid;
+  }
+  .notif-item {
+    grid-area: 1 / 1;
+    display: grid;
+    gap: 2px;
+    opacity: 0;
+    visibility: hidden;
+  }
+  .notif-item.is-active {
+    opacity: 1;
+    visibility: visible;
+  }
+  .notif-title {
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .notif-line {
+    color: var(--ink-2);
+  }
+  .notif-line strong {
+    font-weight: 600;
+  }
+  .notif-pay {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    justify-self: start;
+    padding: 4px 10px 4px 8px;
+    border-radius: var(--r-pill);
+    background: var(--ok-soft);
+    color: var(--ok);
+    font-weight: 600;
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 1024px) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+      min-height: 0;
+      gap: 24px;
+    }
+    .hero-copy {
+      justify-items: center;
+      text-align: center;
+    }
+    .hero-title {
+      max-width: 15ch;
+    }
+    .hero-ctas {
+      justify-content: center;
+    }
+    .hero-stage {
+      height: clamp(460px, 110vw, 640px);
+      margin-top: 8px;
+    }
+    .notif {
+      right: auto;
+      left: 50%;
+      top: auto;
+      bottom: 2%;
+      translate: -50% 0;
+    }
+  }
+  @media (max-width: 560px) {
+    .hero-stage {
+      height: 520px;
+    }
+    .hero-slot--center {
+      width: 236px;
+    }
+    .hero-slot--left,
+    .hero-slot--right {
+      width: 216px;
+    }
+    .hero-slot--left {
+      transform: translate(-96%, -47%) rotate(-7deg) scale(0.86);
+    }
+    .hero-slot--right {
+      transform: translate(-4%, -53%) rotate(7deg) scale(0.86);
+    }
+    .notif {
+      width: min(300px, calc(100vw - 48px));
+    }
+  }
+</style>

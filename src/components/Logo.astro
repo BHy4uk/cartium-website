@@ -1,0 +1,33 @@
+---
+import logo from '../assets/logos/logo.svg?raw';
+
+interface Props {
+  class?: string;
+  wordmark?: boolean;
+}
+const { class: className, wordmark = true } = Astro.props;
+const mark = logo.replace('<svg ', '<svg aria-hidden="true" focusable="false" class="logo-mark" ').replace('fill="#16233b"', 'fill="currentColor"');
+---
+<span class:list={['logo', className]}>
+  <Fragment set:html={mark} />
+  {wordmark && <span class="logo-word">Cartium</span>}
+</span>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+  }
+  .logo :global(.logo-mark) {
+    height: 26px;
+    width: auto;
+  }
+  .logo-word {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.28rem;
+    letter-spacing: -0.03em;
+  }
+</style>

@@ -1,0 +1,200 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { BOT_URL } from '../config';
+
+const links = [
+  { href: '#how', label: 'Як це працює' },
+  { href: '#features', label: 'Можливості' },
+  { href: '#pricing', label: 'Тарифи' },
+  { href: '#faq', label: 'Питання' },
+];
+---
+<header class="nav-wrap" data-nav>
+  <nav class="nav" aria-label="Головна навігація">
+    <a href="#top" class="nav-logo" aria-label="Cartium, на початок сторінки"><Logo /></a>
+    <ul class="nav-links">
+      {links.map((l) => <li><a href={l.href} class="nav-link">{l.label}</a></li>)}
+    </ul>
+    <div class="nav-actions">
+      <a class="btn btn-primary btn-sm nav-cta" href={BOT_URL} target="_blank" rel="noopener">
+        <span>Створити<span class="cta-more"> магазин</span></span>
+        <span class="btn-icon"><Icon name="paper-plane-tilt" /></span>
+      </a>
+      <button class="nav-burger" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
+        <span class="sr-only">Меню</span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<div class="menu" id="mobile-menu" data-menu hidden>
+  <ul class="menu-links">
+    {links.map((l, i) => (
+      <li style={`--i:${i}`}><a href={l.href} class="menu-link" data-menu-link>{l.label}</a></li>
+    ))}
+  </ul>
+  <a class="btn btn-primary menu-cta" href={BOT_URL} target="_blank" rel="noopener" style="--i:4">
+    Створити магазин
+    <span class="btn-icon"><Icon name="paper-plane-tilt" /></span>
+  </a>
+</div>
+
+<style>
+  .nav-wrap {
+    position: fixed;
+    inset: 14px 0 auto;
+    z-index: var(--z-nav);
+    display: flex;
+    justify-content: center;
+    padding-inline: 12px;
+    pointer-events: none;
+    transition: transform 0.6s var(--ease-spring);
+  }
+  .nav-wrap.is-hidden {
+    transform: translateY(calc(-100% - 20px));
+  }
+  .nav {
+    pointer-events: auto;
+    width: min(1120px, 100%);
+    height: var(--nav-h);
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 0 10px 0 20px;
+    border-radius: var(--r-pill);
+    background: var(--glass);
+    backdrop-filter: saturate(1.6) blur(18px);
+    -webkit-backdrop-filter: saturate(1.6) blur(18px);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      0 12px 40px -24px rgba(14, 26, 46, 0.35);
+  }
+  .nav-logo {
+    display: inline-flex;
+    border-radius: 12px;
+  }
+  .nav-links {
+    display: flex;
+    gap: 4px;
+    margin-inline: auto;
+  }
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 14px;
+    border-radius: var(--r-pill);
+    font-weight: 500;
+    font-size: 0.96rem;
+    color: var(--ink-2);
+    transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out);
+  }
+  .nav-link:hover {
+    background: var(--accent-soft);
+    color: var(--ink);
+  }
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-burger {
+    display: none;
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .burger-line {
+    position: absolute;
+    top: calc(50% - 0.875px);
+    left: 13px;
+    right: 13px;
+    height: 1.75px;
+    border-radius: 2px;
+    background: var(--ink);
+    transition: transform 0.5s var(--ease-spring);
+  }
+  .burger-line:first-of-type {
+    transform: translateY(-4px);
+  }
+  .burger-line:last-of-type {
+    transform: translateY(4px);
+  }
+  .nav-burger[aria-expanded='true'] .burger-line:first-of-type {
+    transform: rotate(45deg);
+  }
+  .nav-burger[aria-expanded='true'] .burger-line:last-of-type {
+    transform: rotate(-45deg);
+  }
+
+  .menu {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--z-nav) - 1);
+    display: grid;
+    align-content: center;
+    gap: 40px;
+    padding: 120px 28px 48px;
+    background: color-mix(in srgb, var(--bg) 94%, transparent);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  .menu[hidden] {
+    display: none;
+  }
+  .menu-links {
+    display: grid;
+    gap: 6px;
+  }
+  .menu-link {
+    display: block;
+    padding: 8px 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2rem, 9vw, 2.6rem);
+    letter-spacing: -0.03em;
+  }
+  .menu-links li,
+  .menu-cta {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  .menu.is-open .menu-links li,
+  .menu.is-open .menu-cta {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.6s var(--ease-out) calc(var(--i) * 60ms + 80ms),
+      transform 0.7s var(--ease-spring) calc(var(--i) * 60ms + 80ms);
+  }
+  .menu-cta {
+    justify-self: start;
+  }
+
+  @media (max-width: 960px) {
+    .nav-links {
+      display: none;
+    }
+    .nav-actions {
+      margin-left: auto;
+    }
+    .nav-burger {
+      display: block;
+    }
+  }
+  @media (max-width: 520px) {
+    .nav {
+      padding-left: 16px;
+      gap: 12px;
+    }
+    .cta-more {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,593 @@
+---
+import Icon from './Icon.astro';
+
+// Real backdrop presets of the AI photo assistant (application/ai_image_operations.py).
+const backdrops = [
+  { id: 'white', label: 'Білий', css: '#ffffff' },
+  { id: 'light_gray', label: 'Світло-сірий', css: '#e6e6e6' },
+  { id: 'beige', label: 'Бежевий', css: '#ece3d6' },
+  { id: 'dark', label: 'Темний', css: '#2b2b2b' },
+  { id: 'gradient', label: 'Градієнт', css: 'linear-gradient(180deg,#f3f3f3,#d9d9d9)' },
+];
+const operations = ['Замінити фон', 'Студійне фото', 'На людині', 'Лайфстайл'];
+const reminders = [
+  { id: '30m', label: '30 хв', long: 'через 30 хвилин' },
+  { id: '6h', label: '6 год', long: 'через 6 годин' },
+  { id: '24h', label: '24 год', long: 'через добу' },
+];
+---
+<section class="section growth" aria-labelledby="growth-title">
+  <div class="container">
+    <div class="section-head">
+      <h2 id="growth-title" class="display h2">Коли продажі пішли, вмикайте інструменти росту</h2>
+      <p class="lead">Нагадування про кошик, бонуси, імпорт і AI-фото вже вбудовані в магазин. Спробуйте прямо тут.</p>
+    </div>
+
+    <div class="bento">
+      <article class="tile tile--ai" data-ai>
+        <div class="ai-stage" data-ai-stage style={`--ai-bg:${backdrops[1].css}`}>
+          <span class="ai-product" aria-hidden="true"><Icon name="t-shirt-fill" /></span>
+          <span class="ai-badge"><Icon name="sparkle" /> AI-чернетка</span>
+        </div>
+        <div class="tile-body">
+          <h3 class="h3">Фото для каталогу без фотографа</h3>
+          <p class="body-muted">
+            Замініть фон, зробіть студійне світло або покажіть річ на людині. Результат потрапляє в товар, лише коли ви його приймете.
+          </p>
+          <fieldset class="swatches">
+            <legend class="swatches-legend">Фон</legend>
+            {backdrops.map((b, i) => (
+              <label class="swatch" title={b.label}>
+                <input type="radio" name="ai-bg" value={b.css} checked={i === 1} data-ai-swatch />
+                <span class="swatch-dot" style={`background:${b.css}`}></span>
+                <span class="sr-only">{b.label}</span>
+              </label>
+            ))}
+          </fieldset>
+          <ul class="ops" aria-label="Дії AI-асистента">
+            {operations.map((o) => <li class="pill">{o}</li>)}
+          </ul>
+          <p class="tile-foot">20, 100 або 300 AI-кредитів на місяць залежно від тарифу</p>
+        </div>
+      </article>
+
+      <article class="tile tile--cart" data-reminder>
+        <div class="tile-body">
+          <h3 class="h3">Повертає тих, хто не дооформив</h3>
+          <p class="body-muted">Бот сам нагадає про залишений кошик. Текст пишете ви, час обираєте теж ви.</p>
+        </div>
+        <div class="remind-chips" role="radiogroup" aria-label="Коли надіслати нагадування">
+          {reminders.map((r, i) => (
+            <button type="button" class="remind-chip" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-remind={r.long}>
+              {r.label}
+            </button>
+          ))}
+        </div>
+        <div class="remind-msg">
+          <p class="remind-when"><Icon name="bell-ringing" /> <span>Надійде <span data-remind-label>{reminders[0].long}</span></span></p>
+          <p>Ви залишили в кошику Джинси, 30. Розмір ще є, повернутися до оформлення?</p>
+          <span class="remind-btn">Оформити замовлення</span>
+        </div>
+      </article>
+
+      <article class="tile tile--import">
+        <p class="import-num">2 000</p>
+        <div class="tile-body">
+          <h3 class="h3">товарів одним файлом</h3>
+          <p class="import-text">
+            CSV або XLSX з категоріями, варіантами і фото за посиланнями. Спершу перевірка, потім імпорт, а скасувати можна протягом 7 днів.
+          </p>
+        </div>
+        <ul class="import-files" aria-hidden="true">
+          <li><Icon name="file-csv" /> products.csv</li>
+          <li><Icon name="file-xls" /> products.xlsx</li>
+        </ul>
+      </article>
+
+      <article class="tile tile--pause" data-pause>
+        <div class="tile-body">
+          <h3 class="h3">Поїхали у відпустку?</h3>
+          <p class="body-muted">Поставте паузу: покупці бачать каталог, але нові замовлення не оформлюються, поки ви не повернетесь.</p>
+        </div>
+        <div class="pause-demo">
+          <button type="button" class="switch" role="switch" aria-checked="false" data-pause-switch>
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+            <span>Пауза checkout</span>
+          </button>
+          <div class="mini-shop" data-pause-shop>
+            <div class="mini-banner" data-pause-banner>
+              <span class="mini-state mini-state--on"><Icon name="check" /> Оформлення відкрите</span>
+              <span class="mini-state mini-state--off"><Icon name="pause" /> Оформлення на паузі, каталог відкритий</span>
+            </div>
+            <div class="mini-item">
+              <span class="mini-thumb"><Icon name="t-shirt-fill" /></span>
+              <div>
+                <p class="mini-name">Футболка</p>
+                <p class="mini-price">1 500 грн</p>
+              </div>
+              <span class="mini-add" data-pause-add><Icon name="plus" /></span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="tile tile--account">
+        <div class="tile-body">
+          <h3 class="h3">Кабінет покупця з бонусами</h3>
+          <p class="body-muted">
+            Покупець входить через Telegram або e-mail, бачить історію замовлень і свої промокоди. Бонуси ви призначаєте сегменту: VIP, новим чи тим, хто давно не купував.
+          </p>
+        </div>
+        <ul class="coupons" aria-label="Приклади бонусів у кабінеті">
+          <li class="coupon">
+            <span class="coupon-code">VIP10</span>
+            <span class="coupon-val">−10%</span>
+            <span class="coupon-who">для VIP</span>
+          </li>
+          <li class="coupon">
+            <span class="coupon-code">COMEBACK</span>
+            <span class="coupon-val">−150 грн</span>
+            <span class="coupon-who">повернення сплячих</span>
+          </li>
+          <li class="coupon">
+            <span class="coupon-code">FIRST</span>
+            <span class="coupon-val">−5%</span>
+            <span class="coupon-who">нові клієнти</span>
+          </li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<style>
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .tile {
+    position: relative;
+    min-width: 0;
+    display: grid;
+    gap: 24px;
+    align-content: start;
+    padding: clamp(24px, 3vw, 36px);
+    border-radius: var(--r-card);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
+  }
+  .tile-body {
+    display: grid;
+    gap: 10px;
+  }
+  .tile-foot {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  /* AI photo */
+  .tile--ai {
+    grid-column: span 7;
+    grid-row: span 2;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    align-content: stretch;
+  }
+  .tile--ai .tile-body {
+    align-content: center;
+  }
+  .ai-stage {
+    position: relative;
+    min-height: 420px;
+    border-radius: 22px;
+    background: var(--ai-bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    transition: background 0.6s var(--ease-out);
+  }
+  .ai-product {
+    position: relative;
+    z-index: 1;
+    font-size: clamp(120px, 14vw, 190px);
+    color: #1d1f24;
+    transition: transform 0.7s var(--ease-spring);
+  }
+  .ai-stage.is-dark .ai-product {
+    color: #f4f5f7;
+  }
+  .tile--ai:hover .ai-product {
+    transform: translateY(-6px) scale(1.03);
+  }
+  .ai-product::after {
+    content: '';
+    position: absolute;
+    left: 14%;
+    right: 14%;
+    bottom: -0.02em;
+    height: 0.1em;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(0, 0, 0, 0.3), transparent);
+    z-index: -1;
+  }
+  .ai-badge {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--r-pill);
+    background: rgba(255, 255, 255, 0.86);
+    color: #0e1a2e;
+    font-size: 0.8rem;
+    font-weight: 600;
+    backdrop-filter: blur(8px);
+  }
+  .swatches {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    margin: 6px 0 0;
+    padding: 0;
+    border: 0;
+  }
+  .swatches-legend {
+    width: 100%;
+    margin-bottom: 2px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .swatch {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .swatch input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  .swatch-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgba(14, 26, 46, 0.18);
+    transition: transform 0.4s var(--ease-spring), box-shadow 0.3s var(--ease-out);
+  }
+  .swatch:hover .swatch-dot {
+    transform: scale(1.1);
+  }
+  .swatch input:checked + .swatch-dot {
+    box-shadow:
+      inset 0 0 0 1px rgba(14, 26, 46, 0.18),
+      0 0 0 3px var(--bg),
+      0 0 0 5px var(--accent);
+  }
+  .swatch input:focus-visible + .swatch-dot {
+    outline: 2px solid var(--accent-text);
+    outline-offset: 5px;
+  }
+  .ops {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Cart reminder */
+  .tile--cart {
+    grid-column: span 5;
+    background: linear-gradient(160deg, var(--accent-soft), transparent 70%), var(--surface);
+  }
+  .remind-chips {
+    display: flex;
+    gap: 8px;
+  }
+  .remind-chip {
+    height: 44px;
+    padding: 0 18px;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out), transform 0.4s var(--ease-spring);
+  }
+  .remind-chip:active {
+    transform: scale(0.96);
+  }
+  .remind-chip[aria-checked='true'] {
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: none;
+  }
+  .remind-msg {
+    display: grid;
+    gap: 8px;
+    padding: 16px 18px;
+    border-radius: 20px 20px 20px 6px;
+    background: var(--surface);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    font-size: 0.95rem;
+  }
+  .remind-when {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--accent-text);
+  }
+  .remind-btn {
+    justify-self: start;
+    margin-top: 4px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font-weight: 600;
+    font-size: 0.88rem;
+  }
+
+  /* Import */
+  .tile--import {
+    grid-column: span 5;
+    background: var(--panel);
+    color: var(--on-panel);
+    box-shadow: none;
+  }
+  .import-num {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(3.4rem, 2.4rem + 3vw, 5.2rem);
+    letter-spacing: -0.045em;
+    line-height: 0.95;
+    background: var(--chrome);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .tile--import .tile-body {
+    margin-top: -12px;
+  }
+  .import-text {
+    color: var(--on-panel-muted);
+  }
+  .import-files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .import-files li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: var(--r-pill);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .import-files :global(.icon) {
+    font-size: 1.1rem;
+  }
+
+  /* Pause checkout */
+  .tile--pause {
+    grid-column: span 5;
+  }
+  .pause-demo {
+    display: grid;
+    gap: 16px;
+  }
+  .switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    justify-self: start;
+    min-height: 44px;
+    font-weight: 600;
+  }
+  .switch-track {
+    position: relative;
+    width: 52px;
+    height: 32px;
+    border-radius: var(--r-pill);
+    background: var(--line-strong);
+    transition: background-color 0.3s var(--ease-out);
+  }
+  .switch-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(14, 26, 46, 0.25);
+    transition: transform 0.5s var(--ease-spring);
+  }
+  .switch[aria-checked='true'] .switch-track {
+    background: var(--accent);
+  }
+  .switch[aria-checked='true'] .switch-thumb {
+    transform: translateX(20px);
+  }
+  .mini-shop {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 20px;
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .mini-banner {
+    display: grid;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: var(--ok-soft);
+    color: var(--ok);
+    font-size: 0.86rem;
+    font-weight: 600;
+    transition: background-color 0.4s var(--ease-out), color 0.4s var(--ease-out);
+  }
+  .mini-state {
+    grid-area: 1 / 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity 0.35s var(--ease-out), transform 0.5s var(--ease-spring);
+  }
+  .mini-state--off {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  .mini-shop.is-paused .mini-banner {
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .mini-shop.is-paused .mini-state--on {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  .mini-shop.is-paused .mini-state--off {
+    opacity: 1;
+    transform: none;
+  }
+  .mini-item {
+    display: grid;
+    grid-template-columns: 52px 1fr auto;
+    align-items: center;
+    gap: 12px;
+  }
+  .mini-thumb {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: var(--surface);
+    font-size: 28px;
+    color: var(--ink);
+  }
+  .mini-name {
+    font-weight: 600;
+  }
+  .mini-price {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .mini-add {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--bg);
+    transition: opacity 0.3s var(--ease-out), background-color 0.3s var(--ease-out);
+  }
+  .mini-shop.is-paused .mini-add {
+    background: var(--line-strong);
+    opacity: 0.5;
+  }
+
+  /* Customer account */
+  .tile--account {
+    grid-column: span 7;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+    align-items: center;
+    background:
+      radial-gradient(120% 120% at 100% 0%, rgba(160, 172, 190, 0.22), transparent 60%),
+      var(--surface);
+  }
+  .coupons {
+    display: grid;
+    gap: 10px;
+  }
+  .coupon {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 12px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: var(--surface);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    transition: transform 0.6s var(--ease-spring);
+  }
+  .coupon:nth-child(2) {
+    margin-left: 18px;
+  }
+  .coupon:nth-child(3) {
+    margin-left: 36px;
+  }
+  .tile--account:hover .coupon {
+    transform: translateX(-6px);
+  }
+  .tile--account:hover .coupon:nth-child(2) {
+    transform: translateX(-12px);
+  }
+  .tile--account:hover .coupon:nth-child(3) {
+    transform: translateX(-18px);
+  }
+  .coupon-code {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .coupon-val {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--accent-text);
+  }
+  .coupon-who {
+    grid-column: 1 / -1;
+    font-size: 0.84rem;
+    color: var(--muted);
+  }
+
+  @media (max-width: 1080px) {
+    .tile--ai,
+    .tile--account {
+      grid-template-columns: 1fr;
+    }
+    .ai-stage {
+      aspect-ratio: 4 / 3;
+    }
+  }
+  @media (max-width: 860px) {
+    .bento {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .ai-stage {
+      min-height: 0;
+      aspect-ratio: 1 / 1;
+    }
+    .tile--ai,
+    .tile--cart,
+    .tile--import,
+    .tile--pause,
+    .tile--account {
+      grid-column: auto;
+      grid-row: auto;
+    }
+  }
+</style>
