@@ -1,7 +1,7 @@
 ---
 import Phone from './Phone.astro';
 import Icon from './Icon.astro';
-import { BOT_URL, TRIAL_DAYS } from '../config';
+import { SIGNUP_URL, TRIAL_DAYS } from '../config';
 import catalog from '../assets/shots/shell-catalog.png';
 import orders from '../assets/shots/orders-list.png';
 import analytics from '../assets/shots/analytics.png';
@@ -17,25 +17,28 @@ const notifications = [
   { n: 57, sum: '4 199 грн', what: '3 товари', where: 'Одеса, відділення №41', pay: 'Накладений платіж' },
 ];
 ---
-<section class="hero" id="top">
+<section class="hero" id="top" data-hero>
   <div class="container hero-grid">
     <div class="hero-copy">
+      <p class="hero-tag hero-in" style="--d:0ms">
+        <Icon name="telegram-logo" /> Для тих, хто продає в Instagram і Telegram
+      </p>
       <h1 class="display h1 hero-title">
         {titleWords.map((w, i) => (
           <Fragment>
-            <span class="hero-word"><span style={`--w:${i}`}>{w}</span></span>{i < titleWords.length - 1 && ' '}
+            <span class="hero-word"><span class="chrome-text" style={`--w:${i}`}>{w}</span></span>{i < titleWords.length - 1 && ' '}
           </Fragment>
         ))}
       </h1>
       <p class="lead hero-lead hero-in hero-in--soft" style="--d:300ms">
-        Каталог, кошик, оплата карткою і ТТН Нової пошти в одному боті. Покупцям не треба нікуди переходити.
+        Покупці замовляють і платять, не виходячи з Telegram. Ви отримуєте оплачене замовлення і створюєте ТТН однією кнопкою.
       </p>
       <div class="hero-ctas hero-in" style="--d:480ms">
-        <a class="btn btn-primary" href={BOT_URL} target="_blank" rel="noopener" data-magnetic>
+        <a class="btn btn-primary" href={SIGNUP_URL} target="_blank" rel="noopener" data-magnetic>
           Створити магазин
           <span class="btn-icon"><Icon name="paper-plane-tilt" /></span>
         </a>
-        <a class="btn btn-ghost" href="#how">Як це працює</a>
+        <a class="btn btn-ghost" href="#demo"><Icon name="storefront" /> Спробувати демо</a>
       </div>
       <p class="hero-note hero-in" style="--d:580ms">
         <Icon name="seal-check" />
@@ -81,6 +84,8 @@ const notifications = [
 <style>
   .hero {
     position: relative;
+    --hx: 70%;
+    --hy: 40%;
     padding-top: calc(var(--nav-h) + clamp(56px, 8vw, 96px));
     padding-bottom: clamp(40px, 6vw, 80px);
     overflow: clip;
@@ -91,6 +96,31 @@ const notifications = [
     align-items: center;
     gap: clamp(32px, 5vw, 72px);
     min-height: min(760px, calc(100dvh - var(--nav-h) - 40px));
+  }
+  /* A soft light that follows the pointer across the hero. */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(700px circle at var(--hx) var(--hy), rgba(120, 140, 255, 0.12), transparent 60%);
+    transition: background-position 0.6s var(--ease-out);
+  }
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px 7px 10px;
+    border-radius: var(--r-pill);
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    color: var(--ink-2);
+    font-size: 0.92rem;
+    font-weight: 500;
+  }
+  .hero-tag :global(.icon) {
+    font-size: 1.1rem;
+    color: #5fb6ff;
   }
   .hero-copy {
     display: grid;
@@ -202,12 +232,22 @@ const notifications = [
   }
   .hero-glow {
     position: absolute;
-    inset: 8% 4% 4%;
+    inset: 4% -6% 0;
     border-radius: 50%;
     background:
-      radial-gradient(closest-side, rgba(47, 75, 255, 0.16), transparent 70%),
-      radial-gradient(closest-side at 70% 60%, rgba(255, 255, 255, 0.9), transparent 70%);
-    filter: blur(10px);
+      radial-gradient(closest-side, rgba(63, 91, 255, 0.42), transparent 72%),
+      radial-gradient(closest-side at 62% 70%, rgba(200, 212, 236, 0.16), transparent 70%);
+    filter: blur(24px);
+  }
+  /* A chrome floor line the phones stand on. */
+  .hero-stage::after {
+    content: '';
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    bottom: 2%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(214, 224, 240, 0.45), transparent);
   }
   .hero-tilt {
     position: absolute;

@@ -3,6 +3,9 @@
 
 export const BOT_HANDLE = 'cartium_support_bot';
 export const BOT_URL = `https://t.me/${BOT_HANDLE}`;
+// Deep link straight into "Створити мій магазин" (bot/shop_signup_ui.py: start=connect),
+// so a visitor lands on step 1 instead of the bot's start menu.
+export const SIGNUP_URL = `${BOT_URL}?start=connect`;
 
 // TODO: replace with the Cartium Telegram channel link.
 export const CHANNEL_URL = 'https://t.me/your_cartium_channel';

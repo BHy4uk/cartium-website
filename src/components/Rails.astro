@@ -1,11 +1,8 @@
 ---
 import Icon from './Icon.astro';
 import liqpay from '../assets/logos/liqpay-mark.svg?raw';
-import monoLight from '../assets/logos/plata-by-mono-light.svg?raw';
 import monoDark from '../assets/logos/plata-by-mono-dark.svg?raw';
 import appleLight from '../assets/logos/apple-pay-light.svg?raw';
-import appleDark from '../assets/logos/apple-pay-dark.svg?raw';
-import googleLight from '../assets/logos/google-pay-light.svg?raw';
 import googleDark from '../assets/logos/google-pay-dark.svg?raw';
 
 const hide = (svg: string) => svg.replace('<svg ', '<svg aria-hidden="true" focusable="false" ');
@@ -19,16 +16,13 @@ const hide = (svg: string) => svg.replace('<svg ', '<svg aria-hidden="true" focu
         <span class="rail-name">LiqPay</span>
       </li>
       <li class="rail rail--mono" aria-label="plata by mono">
-        <span class="rail-logo theme-light" set:html={hide(monoLight)} />
-        <span class="rail-logo theme-dark" set:html={hide(monoDark)} />
+        <span class="rail-logo" set:html={hide(monoDark)} />
       </li>
       <li class="rail rail--apple" aria-label="Apple Pay">
-        <span class="rail-logo theme-light" set:html={hide(appleLight)} />
-        <span class="rail-logo theme-dark" set:html={hide(appleDark)} />
+        <span class="rail-logo rail-logo--invert" set:html={hide(appleLight)} />
       </li>
       <li class="rail rail--google" aria-label="Google Pay">
-        <span class="rail-logo theme-light" set:html={hide(googleLight)} />
-        <span class="rail-logo theme-dark" set:html={hide(googleDark)} />
+        <span class="rail-logo" set:html={hide(googleDark)} />
       </li>
       <li class="rail rail--text"><Icon name="truck" /> Нова пошта</li>
       <li class="rail rail--text"><Icon name="bank" /> Реквізити IBAN</li>
@@ -94,21 +88,8 @@ const hide = (svg: string) => svg.replace('<svg ', '<svg aria-hidden="true" focu
   .rail--text :global(.icon) {
     font-size: 1.35rem;
   }
-  .theme-dark {
-    display: none;
-  }
-  @media (prefers-color-scheme: dark) {
-    :global(:root:not([data-theme='light'])) .theme-dark {
-      display: inline-flex;
-    }
-    :global(:root:not([data-theme='light'])) .theme-light {
-      display: none;
-    }
-  }
-  :global(:root[data-theme='dark']) .theme-dark {
-    display: inline-flex;
-  }
-  :global(:root[data-theme='dark']) .theme-light {
-    display: none;
+  /* The one-colour Apple Pay mark, turned white for the dark page. */
+  .rail-logo--invert {
+    filter: invert(1);
   }
 </style>

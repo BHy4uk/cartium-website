@@ -31,32 +31,40 @@
 }
 
 /* ---------- Tokens ---------- */
+/* "Chrome night": the Cartium mark is polished chrome on black, so the page is a
+   midnight canvas, chrome type and frames, real product screens as the light source,
+   and one cobalt accent for actions. One deliberate theme. */
 :root {
-  color-scheme: light;
-  --bg: #eef1f5;
-  --bg-deep: #e3e8ef;
-  --surface: #ffffff;
-  --surface-2: #f5f7fa;
-  --ink: #0e1a2e;
-  --ink-2: #26334d;
-  --muted: #566177;
-  --line: rgba(14, 26, 46, 0.1);
-  --line-strong: rgba(14, 26, 46, 0.18);
-  --accent: #2f4bff;
-  --accent-text: #2a43e6;
+  color-scheme: dark;
+  --bg: #070a12;
+  --bg-deep: #04060b;
+  --bg-raise: #0b101b;
+  --surface: #0f1522;
+  --surface-2: #151c2c;
+  --surface-3: #1c2537;
+  --ink: #eef2f8;
+  --ink-2: #c6cfde;
+  --muted: #8d98ad;
+  --line: rgba(214, 224, 240, 0.09);
+  --line-strong: rgba(214, 224, 240, 0.18);
+  --accent: #3f5bff;
+  --accent-text: #9db0ff;
   --on-accent: #ffffff;
-  --accent-soft: rgba(47, 75, 255, 0.09);
-  --ok: #0e7744;
-  --ok-soft: rgba(19, 138, 82, 0.12);
-  --panel: #0e1a2e;
-  --on-panel: #e9eef7;
-  --on-panel-muted: #9eabc2;
-  --chrome: linear-gradient(145deg, #fbfcfd 0%, #c4cbd6 18%, #f4f6f9 38%, #9ea8b6 62%, #e7ebf0 82%, #b9c1cc 100%);
-  --chrome-edge: rgba(255, 255, 255, 0.85);
-  --shadow-soft: 0 1px 2px rgba(14, 26, 46, 0.05), 0 12px 32px -16px rgba(14, 26, 46, 0.22);
-  --shadow-lift: 0 2px 4px rgba(14, 26, 46, 0.06), 0 30px 60px -28px rgba(14, 26, 46, 0.35);
-  --shadow-phone: 0 50px 80px -40px rgba(14, 26, 46, 0.55), 0 24px 40px -24px rgba(14, 26, 46, 0.35);
-  --glass: rgba(255, 255, 255, 0.72);
+  --accent-soft: rgba(110, 134, 255, 0.14);
+  --accent-glow: rgba(63, 91, 255, 0.5);
+  --ok: #4fd18f;
+  --ok-soft: rgba(79, 209, 143, 0.14);
+  --panel: #0c1220;
+  --on-panel: #eef2f8;
+  --on-panel-muted: #9aa6bc;
+  --chrome-text: linear-gradient(180deg, #ffffff 0%, #eef2f8 28%, #a3adc0 50%, #dfe5ee 68%, #ffffff 100%);
+  --chrome: linear-gradient(145deg, #eef1f6 0%, #6d7586 16%, #c9d0da 34%, #3b4250 58%, #aeb6c3 80%, #5a6270 100%);
+  --chrome-edge: rgba(255, 255, 255, 0.4);
+  --chrome-border: linear-gradient(140deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.06) 30%, rgba(157, 176, 255, 0.35) 60%, rgba(255, 255, 255, 0.08) 85%, rgba(255, 255, 255, 0.4));
+  --shadow-soft: 0 24px 48px -28px rgba(0, 0, 0, 0.85);
+  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.4), 0 40px 80px -40px rgba(0, 0, 0, 0.9);
+  --shadow-phone: 0 60px 100px -50px rgba(0, 0, 0, 0.95), 0 40px 120px -60px rgba(63, 91, 255, 0.45);
+  --glass: rgba(12, 17, 29, 0.72);
 
   --font-display: 'Fixel Display', 'Fixel Text', ui-sans-serif, system-ui, sans-serif;
   --font-text: 'Fixel Text', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -75,64 +83,8 @@
 
   --z-nav: 40;
   --z-menu: 50;
+  --z-sticky-cta: 45;
   --z-grain: 60;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    color-scheme: dark;
-    --bg: #0a0f1c;
-    --bg-deep: #070b15;
-    --surface: #121a2c;
-    --surface-2: #172036;
-    --ink: #e8edf6;
-    --ink-2: #c9d2e3;
-    --muted: #9aa6bc;
-    --line: rgba(232, 237, 246, 0.1);
-    --line-strong: rgba(232, 237, 246, 0.2);
-    --accent: #3d59ff;
-    --accent-text: #93a5ff;
-    --on-accent: #ffffff;
-    --accent-soft: rgba(110, 134, 255, 0.14);
-    --ok: #4cc98a;
-    --ok-soft: rgba(76, 201, 138, 0.14);
-    --panel: #172036;
-    --on-panel: #e8edf6;
-    --on-panel-muted: #9aa6bc;
-    --chrome: linear-gradient(145deg, #59606c 0%, #252b36 20%, #6c7482 42%, #1d222c 64%, #4a515d 84%, #2a303b 100%);
-    --chrome-edge: rgba(255, 255, 255, 0.18);
-    --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px -16px rgba(0, 0, 0, 0.6);
-    --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.3), 0 30px 60px -28px rgba(0, 0, 0, 0.75);
-    --shadow-phone: 0 50px 80px -40px rgba(0, 0, 0, 0.85), 0 24px 40px -24px rgba(0, 0, 0, 0.6);
-    --glass: rgba(18, 26, 44, 0.72);
-  }
-}
-:root[data-theme='dark'] {
-  color-scheme: dark;
-  --bg: #0a0f1c;
-  --bg-deep: #070b15;
-  --surface: #121a2c;
-  --surface-2: #172036;
-  --ink: #e8edf6;
-  --ink-2: #c9d2e3;
-  --muted: #9aa6bc;
-  --line: rgba(232, 237, 246, 0.1);
-  --line-strong: rgba(232, 237, 246, 0.2);
-  --accent: #3d59ff;
-  --accent-text: #93a5ff;
-  --on-accent: #ffffff;
-  --accent-soft: rgba(110, 134, 255, 0.14);
-  --ok: #4cc98a;
-  --ok-soft: rgba(76, 201, 138, 0.14);
-  --panel: #172036;
-  --on-panel: #e8edf6;
-  --on-panel-muted: #9aa6bc;
-  --chrome: linear-gradient(145deg, #59606c 0%, #252b36 20%, #6c7482 42%, #1d222c 64%, #4a515d 84%, #2a303b 100%);
-  --chrome-edge: rgba(255, 255, 255, 0.18);
-  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px -16px rgba(0, 0, 0, 0.6);
-  --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.3), 0 30px 60px -28px rgba(0, 0, 0, 0.75);
-  --shadow-phone: 0 50px 80px -40px rgba(0, 0, 0, 0.85), 0 24px 40px -24px rgba(0, 0, 0, 0.6);
-  --glass: rgba(18, 26, 44, 0.72);
 }
 
 /* ---------- Base ---------- */
@@ -151,7 +103,11 @@ html {
 body {
   margin: 0;
   min-height: 100dvh;
-  background: var(--bg);
+  background:
+    radial-gradient(1100px 620px at 72% -8%, rgba(63, 91, 255, 0.2), transparent 62%),
+    radial-gradient(900px 520px at 8% 4%, rgba(160, 172, 196, 0.08), transparent 60%),
+    var(--bg);
+  background-repeat: no-repeat;
   color: var(--ink);
   font-family: var(--font-text);
   font-size: 17px;
@@ -209,6 +165,65 @@ ol {
 ::selection {
   background: var(--accent);
   color: var(--on-accent);
+}
+
+/* Film grain: fixed and non-interactive, so it never repaints while scrolling. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-grain);
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Chrome lettering. The bright band follows the pointer through --shine. */
+.chrome-text {
+  background: var(--chrome-text);
+  background-size: 100% 240%;
+  background-position: 50% var(--shine, 32%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  transition: background-position 0.9s var(--ease-out);
+}
+
+/* Cursor spotlight for cards: main.ts writes --mx / --my on pointer move. */
+.spot {
+  position: relative;
+  isolation: isolate;
+}
+.spot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, -20%), rgba(157, 176, 255, 0.1), transparent 45%);
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-out);
+  pointer-events: none;
+}
+.spot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, -20%), rgba(190, 204, 255, 0.55), transparent 60%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-out);
+  pointer-events: none;
+}
+.spot:hover::before,
+.spot:hover::after {
+  opacity: 1;
 }
 
 .sr-only {

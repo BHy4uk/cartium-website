@@ -2,10 +2,10 @@
 import QRCode from 'qrcode';
 import Icon from './Icon.astro';
 import Logo from './Logo.astro';
-import { BOT_HANDLE, BOT_URL, CHANNEL_URL, TRIAL_DAYS } from '../config';
+import { BOT_HANDLE, SIGNUP_URL, CHANNEL_URL, TRIAL_DAYS } from '../config';
 
 // Desktop visitors usually have Telegram on their phone: give them a code to scan.
-const qr = await QRCode.toString(BOT_URL, {
+const qr = await QRCode.toString(SIGNUP_URL, {
   type: 'svg',
   margin: 0,
   errorCorrectionLevel: 'M',
@@ -18,12 +18,12 @@ const qrSvg = qr.replace('<svg ', '<svg aria-hidden="true" focusable="false" ');
     <div class="final-panel on-panel" data-final>
       <div class="final-mark" aria-hidden="true"><Logo wordmark={false} /></div>
       <div class="final-copy">
-        <h2 id="final-title" class="display h2">Запустіть магазин сьогодні ввечері</h2>
+        <h2 id="final-title" class="display h2"><span class="chrome-text">Запустіть магазин сьогодні ввечері</span></h2>
         <p class="final-lead">
           Відкрийте бота, натисніть «Створити мій магазин» і через кілька хвилин отримаєте свою адмінку. {TRIAL_DAYS} днів безкоштовно.
         </p>
         <div class="final-ctas">
-          <a class="btn btn-primary" href={BOT_URL} target="_blank" rel="noopener" data-magnetic>
+          <a class="btn btn-primary" href={SIGNUP_URL} target="_blank" rel="noopener" data-magnetic>
             Створити магазин
             <span class="btn-icon"><Icon name="paper-plane-tilt" /></span>
           </a>
@@ -54,7 +54,11 @@ const qrSvg = qr.replace('<svg ', '<svg aria-hidden="true" focusable="false" ');
     gap: clamp(32px, 5vw, 72px);
     padding: clamp(32px, 6vw, 88px);
     border-radius: calc(var(--r-card) + 12px);
-    background: var(--panel);
+    border: 1px solid transparent;
+    background:
+      radial-gradient(80% 120% at 0% 0%, rgba(63, 91, 255, 0.32), transparent 60%) padding-box,
+      linear-gradient(var(--panel), var(--panel)) padding-box,
+      var(--chrome-border) border-box;
     color: var(--on-panel);
     overflow: hidden;
     isolation: isolate;

@@ -1,10 +1,11 @@
 ---
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
-import { BOT_URL } from '../config';
+import { SIGNUP_URL } from '../config';
 
 const links = [
-  { href: '#how', label: 'Як це працює' },
+  { href: '#demo', label: 'Демо' },
+  { href: '#how', label: 'Запуск' },
   { href: '#features', label: 'Можливості' },
   { href: '#pricing', label: 'Тарифи' },
   { href: '#faq', label: 'Питання' },
@@ -17,7 +18,7 @@ const links = [
       {links.map((l) => <li><a href={l.href} class="nav-link">{l.label}</a></li>)}
     </ul>
     <div class="nav-actions">
-      <a class="btn btn-primary btn-sm nav-cta" href={BOT_URL} target="_blank" rel="noopener">
+      <a class="btn btn-primary btn-sm nav-cta" href={SIGNUP_URL} target="_blank" rel="noopener">
         <span>Створити<span class="cta-more"> магазин</span></span>
         <span class="btn-icon"><Icon name="paper-plane-tilt" /></span>
       </a>
@@ -36,7 +37,7 @@ const links = [
       <li style={`--i:${i}`}><a href={l.href} class="menu-link" data-menu-link>{l.label}</a></li>
     ))}
   </ul>
-  <a class="btn btn-primary menu-cta" href={BOT_URL} target="_blank" rel="noopener" style="--i:4">
+  <a class="btn btn-primary menu-cta" href={SIGNUP_URL} target="_blank" rel="noopener" style="--i:4">
     Створити магазин
     <span class="btn-icon"><Icon name="paper-plane-tilt" /></span>
   </a>

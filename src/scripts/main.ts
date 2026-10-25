@@ -2,6 +2,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
+import { initDemo } from './demo';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -147,8 +148,15 @@ function heroTilt() {
   const ry = gsap.quickTo(tilt, 'rotationY', { duration: 0.9, ease: 'power3.out' });
   const nx = notif ? gsap.quickTo(notif, 'x', { duration: 1.1, ease: 'power3.out' }) : null;
   const ny = notif ? gsap.quickTo(notif, 'y', { duration: 1.1, ease: 'power3.out' }) : null;
-  const hero = stage.closest('section') ?? stage;
+  const hero = stage.closest<HTMLElement>('section') ?? stage;
   hero.addEventListener('pointermove', (e) => {
+    // Light: a soft spotlight under the pointer and the chrome band of the headline.
+    const hr = hero.getBoundingClientRect();
+    const fx = (e.clientX - hr.left) / hr.width;
+    const fy = (e.clientY - hr.top) / hr.height;
+    hero.style.setProperty('--hx', `${(fx * 100).toFixed(1)}%`);
+    hero.style.setProperty('--hy', `${(fy * 100).toFixed(1)}%`);
+    hero.style.setProperty('--shine', `${(12 + fy * 52).toFixed(1)}%`);
     const r = stage.getBoundingClientRect();
     const px = (e.clientX - (r.left + r.width / 2)) / r.width;
     const py = (e.clientY - (r.top + r.height / 2)) / r.height;
@@ -485,6 +493,56 @@ function reveals() {
   }
 }
 
+/* ---------- Card spotlight ---------- */
+// One delegated listener writes the pointer position into the hovered .spot card.
+function spotlight() {
+  if (!finePointer || reduceMotion) return;
+  let raf = 0;
+  let last: PointerEvent | null = null;
+  document.addEventListener(
+    'pointermove',
+    (e) => {
+      last = e;
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const el = (last?.target as Element | null)?.closest?.<HTMLElement>('.spot');
+        if (!el || !last) return;
+        const r = el.getBoundingClientRect();
+        el.style.setProperty('--mx', `${last.clientX - r.left}px`);
+        el.style.setProperty('--my', `${last.clientY - r.top}px`);
+      });
+    },
+    { passive: true },
+  );
+}
+
+/* ---------- Sticky phone CTA ---------- */
+function stickyCta() {
+  const bar = $('[data-sticky-cta]');
+  const hero = $('[data-hero]');
+  const final = $('[data-final]');
+  if (!bar || !hero) return;
+  let heroVisible = true;
+  let finalVisible = false;
+  const link = bar.querySelector('a');
+  const sync = () => {
+    const show = !heroVisible && !finalVisible && !menuOpen;
+    bar.classList.toggle('is-visible', show);
+    bar.setAttribute('aria-hidden', String(!show));
+    link?.setAttribute('tabindex', show ? '0' : '-1');
+  };
+  new IntersectionObserver(([e]) => {
+    heroVisible = e.isIntersecting;
+    sync();
+  }).observe(hero);
+  if (final)
+    new IntersectionObserver(([e]) => {
+      finalVisible = e.isIntersecting;
+      sync();
+    }).observe(final);
+}
+
 /* ---------- Boot ---------- */
 // The hero intro is pure CSS. Everything below the fold is wired once the browser is idle,
 // which keeps the first render and input free of ScrollTrigger measurement work.
@@ -495,11 +553,14 @@ const idle = (fn: () => void) => {
 
 heroTilt();
 magnetic();
-growth();
-pricing();
+spotlight();
 window.setTimeout(startNotifCycle, 2200);
 
 idle(() => {
+  initDemo();
+  stickyCta();
+  growth();
+  pricing();
   const mm = gsap.matchMedia();
   story(mm);
   launch(mm);

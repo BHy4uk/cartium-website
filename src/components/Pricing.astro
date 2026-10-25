@@ -1,6 +1,6 @@
 ---
 import Icon from './Icon.astro';
-import { BOT_URL, PLANS, TRIAL_DAYS, YEARLY_DISCOUNT } from '../config';
+import { SIGNUP_URL, PLANS, TRIAL_DAYS, YEARLY_DISCOUNT } from '../config';
 
 const perMonthYearly = (yearly: number) => yearly / 12;
 ---
@@ -21,7 +21,7 @@ const perMonthYearly = (yearly: number) => yearly / 12;
 
     <div class="plans">
       {PLANS.map((p) => (
-        <article class:list={['plan', { 'plan--featured on-panel': p.badge }]} aria-labelledby={`plan-${p.id}`}>
+        <article class:list={['plan spot', { 'plan--featured on-panel': p.badge }]} aria-labelledby={`plan-${p.id}`}>
           <header class="plan-head">
             <div class="plan-title-row">
               <h3 id={`plan-${p.id}`} class="plan-name">{p.name}</h3>
@@ -40,11 +40,11 @@ const perMonthYearly = (yearly: number) => yearly / 12;
             >{p.monthly}</span>
             <span class="price-per">/ міс</span>
           </div>
-          <p class="plan-billed" data-billed data-monthly-text="оплата щомісяця" data-yearly-text={`$${p.yearly} одним платежем за рік`}>
+          <p class="plan-billed" data-billed data-monthly-text="оплата щомісяця" data-yearly-text={`$${p.yearly} за рік, економія $${p.monthly * 12 - p.yearly}`}>
             оплата щомісяця
           </p>
 
-          <a class:list={['btn', p.badge ? 'btn-primary' : 'btn-ghost', 'plan-cta']} href={BOT_URL} target="_blank" rel="noopener">
+          <a class:list={['btn', p.badge ? 'btn-primary' : 'btn-ghost', 'plan-cta']} href={SIGNUP_URL} target="_blank" rel="noopener">
             Створити магазин
             {p.badge && <span class="btn-icon"><Icon name="paper-plane-tilt" /></span>}
           </a>
@@ -71,7 +71,7 @@ const perMonthYearly = (yearly: number) => yearly / 12;
     padding: 4px;
     margin-top: 8px;
     border-radius: var(--r-pill);
-    background: var(--surface);
+    background: rgba(255, 255, 255, 0.04);
     box-shadow: inset 0 0 0 1px var(--line);
   }
   .period-opt {
@@ -113,13 +113,17 @@ const perMonthYearly = (yearly: number) => yearly / 12;
     gap: 18px;
     padding: clamp(24px, 2.6vw, 36px);
     border-radius: var(--r-card);
-    background: var(--surface);
+    background: linear-gradient(180deg, var(--surface-2), var(--surface));
     box-shadow: inset 0 0 0 1px var(--line);
   }
   .plan--featured {
-    background: var(--panel);
     color: var(--on-panel);
-    box-shadow: var(--shadow-lift);
+    border: 1px solid transparent;
+    background:
+      radial-gradient(120% 70% at 50% 0%, rgba(63, 91, 255, 0.3), transparent 65%) padding-box,
+      linear-gradient(var(--panel), var(--panel)) padding-box,
+      var(--chrome-border) border-box;
+    box-shadow: var(--shadow-lift), 0 50px 140px -60px var(--accent-glow);
     transform: translateY(-12px);
   }
   .plan-title-row {
