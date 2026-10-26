@@ -1,0 +1,61 @@
+---
+import Icon from './Icon.astro';
+import { SIGNUP_URL, TRIAL_DAYS } from '../config';
+---
+<div class="sticky-cta" data-sticky-cta aria-hidden="true">
+  <div class="sticky-inner">
+    <p class="sticky-note"><strong>{TRIAL_DAYS} днів</strong> безкоштовно</p>
+    <a class="btn btn-primary btn-sm" href={SIGNUP_URL} target="_blank" rel="noopener" tabindex="-1">
+      Створити магазин
+      <span class="btn-icon"><Icon name="paper-plane-tilt" /></span>
+    </a>
+  </div>
+</div>
+
+<style>
+  /* Phones only: the main action stays one thumb away once the hero has scrolled off. */
+  .sticky-cta {
+    display: none;
+  }
+  @media (max-width: 760px) {
+    .sticky-cta {
+      display: block;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: var(--z-sticky-cta);
+      padding: 10px max(12px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
+      transform: translateY(110%);
+      transition: transform 0.5s var(--ease-spring);
+      pointer-events: none;
+    }
+    .sticky-cta.is-visible {
+      transform: none;
+      pointer-events: auto;
+    }
+    .sticky-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 8px 8px 18px;
+      border-radius: var(--r-pill);
+      background: var(--glass);
+      backdrop-filter: blur(18px) saturate(1.4);
+      -webkit-backdrop-filter: blur(18px) saturate(1.4);
+      box-shadow:
+        inset 0 0 0 1px var(--line-strong),
+        0 20px 40px -20px rgba(0, 0, 0, 0.8);
+    }
+    .sticky-note {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.25;
+    }
+    .sticky-note strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+  }
+</style>

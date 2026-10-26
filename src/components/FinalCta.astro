@@ -1,0 +1,159 @@
+---
+import QRCode from 'qrcode';
+import Icon from './Icon.astro';
+import Logo from './Logo.astro';
+import { BOT_HANDLE, SIGNUP_URL, CHANNEL_URL, TRIAL_DAYS } from '../config';
+
+// Desktop visitors usually have Telegram on their phone: give them a code to scan.
+const qr = await QRCode.toString(SIGNUP_URL, {
+  type: 'svg',
+  margin: 0,
+  errorCorrectionLevel: 'M',
+  color: { dark: '#0a0a0b', light: '#ffffff' },
+});
+const qrSvg = qr.replace('<svg ', '<svg aria-hidden="true" focusable="false" ');
+---
+<section class="final" aria-labelledby="final-title">
+  <div class="container">
+    <div class="final-panel stage" data-final>
+      <div class="final-mark" aria-hidden="true"><Logo wordmark={false} /></div>
+      <div class="final-copy">
+        <h2 id="final-title" class="display h2"><span class="chrome-text">Запустіть магазин сьогодні ввечері</span></h2>
+        <p class="final-lead">
+          Відкрийте бота, натисніть «Створити мій магазин» і через кілька хвилин отримаєте свою адмінку. {TRIAL_DAYS} днів безкоштовно.
+        </p>
+        <div class="final-ctas">
+          <a class="btn btn-primary" href={SIGNUP_URL} target="_blank" rel="noopener" data-magnetic>
+            Створити магазин
+            <span class="btn-icon"><Icon name="paper-plane-tilt" /></span>
+          </a>
+          <a class="btn btn-ghost final-ghost" href={CHANNEL_URL} target="_blank" rel="noopener">
+            <Icon name="megaphone" /> Канал Cartium
+          </a>
+        </div>
+      </div>
+      <div class="final-qr">
+        <div class="qr-card">
+          <span class="qr-code" set:html={qrSvg} />
+          <p class="qr-caption">Наведіть камеру телефона, щоб відкрити <strong>@{BOT_HANDLE}</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .final {
+    padding-block: clamp(40px, 6vw, 80px) clamp(56px, 7vw, 96px);
+  }
+  .final-panel {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.6fr);
+    align-items: center;
+    gap: clamp(32px, 5vw, 72px);
+    padding: clamp(32px, 6vw, 88px);
+    border-radius: calc(var(--r-card) + 12px);
+    border: 1px solid transparent;
+    background:
+      radial-gradient(80% 120% at 0% 0%, rgba(255, 255, 255, 0.13), transparent 60%) padding-box,
+      linear-gradient(var(--stage-bg), var(--stage-bg)) padding-box,
+      var(--chrome-border) border-box;
+    color: var(--ink);
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .final-mark {
+    position: absolute;
+    right: -14%;
+    top: 50%;
+    margin-top: -26%;
+    z-index: -1;
+    width: 78%;
+    color: rgba(255, 255, 255, 0.045);
+    pointer-events: none;
+  }
+  .final-mark :global(.logo) {
+    color: inherit;
+  }
+  .final-mark :global(.logo-mark) {
+    width: 100%;
+    height: auto;
+  }
+  .final-copy {
+    display: grid;
+    gap: 24px;
+    justify-items: start;
+  }
+  .final-copy .h2 {
+    max-width: 13ch;
+  }
+  .final-lead {
+    color: var(--muted);
+    font-size: clamp(1.05rem, 1rem + 0.3vw, 1.22rem);
+    max-width: 34em;
+  }
+  .final-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .final-ghost {
+    gap: 10px;
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+  }
+  .final-ghost:hover {
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+  }
+  .final-ghost :global(.icon) {
+    font-size: 1.2rem;
+  }
+  .final-qr {
+    display: flex;
+    justify-content: center;
+  }
+  .qr-card {
+    display: grid;
+    gap: 16px;
+    width: 220px;
+    padding: 18px 18px 20px;
+    border-radius: 26px;
+    background: #ffffff;
+    color: #0a0a0b;
+    box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.6);
+    transform: rotate(3deg);
+    transition: transform 0.8s var(--ease-spring);
+  }
+  .final-panel:hover .qr-card {
+    transform: rotate(0deg) translateY(-6px);
+  }
+  .qr-code :global(svg) {
+    width: 100%;
+    height: auto;
+  }
+  .qr-caption {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #66666d;
+  }
+  .qr-caption strong {
+    color: #0a0a0b;
+    font-weight: 600;
+  }
+
+  @media (max-width: 860px) {
+    .final-panel {
+      grid-template-columns: 1fr;
+    }
+    .final-qr {
+      display: none;
+    }
+    .final-mark {
+      width: 120%;
+      bottom: -12%;
+    }
+  }
+</style>

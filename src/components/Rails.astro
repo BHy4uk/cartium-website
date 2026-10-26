@@ -1,0 +1,101 @@
+---
+import Icon from './Icon.astro';
+import liqpay from '../assets/logos/liqpay-mark.svg?raw';
+import monoDark from '../assets/logos/plata-by-mono-dark.svg?raw';
+import appleLight from '../assets/logos/apple-pay-light.svg?raw';
+import googleDark from '../assets/logos/google-pay-dark.svg?raw';
+
+const hide = (svg: string) => svg.replace('<svg ', '<svg aria-hidden="true" focusable="false" ');
+---
+<section class="rails" aria-labelledby="rails-title">
+  <div class="container rails-inner">
+    <p id="rails-title" class="rails-title">Оплата й доставка, якими вже користуються ваші покупці</p>
+    <ul class="rails-list">
+      <li class="rail rail--liqpay">
+        <span class="rail-logo" set:html={hide(liqpay)} />
+        <span class="rail-name">LiqPay</span>
+      </li>
+      <li class="rail rail--mono" aria-label="plata by mono">
+        <span class="rail-logo rail-logo--invert" set:html={hide(monoDark)} />
+      </li>
+      <li class="rail rail--apple" aria-label="Apple Pay">
+        <span class="rail-logo rail-logo--glyph" set:html={hide(appleLight)} />
+      </li>
+      <li class="rail rail--google" aria-label="Google Pay">
+        <span class="rail-logo rail-logo--invert" set:html={hide(googleDark)} />
+      </li>
+      <li class="rail rail--text"><Icon name="truck" /> Нова пошта</li>
+      <li class="rail rail--text"><Icon name="bank" /> Реквізити IBAN</li>
+      <li class="rail rail--text"><Icon name="hand-coins" /> Післяплата</li>
+    </ul>
+  </div>
+</section>
+
+<style>
+  .rails {
+    padding-block: clamp(32px, 5vw, 56px);
+  }
+  .rails-inner {
+    display: grid;
+    gap: 22px;
+    justify-items: center;
+    text-align: center;
+  }
+  .rails-title {
+    color: var(--muted);
+    font-size: 0.98rem;
+    font-weight: 500;
+  }
+  .rails-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 14px 40px;
+  }
+  .rail {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 40px;
+    color: var(--ink-2);
+    opacity: 0.86;
+    transition: opacity 0.3s var(--ease-out);
+  }
+  .rail:hover {
+    opacity: 1;
+  }
+  /* Brand marks in greyscale, so the strip reads as one monochrome line. */
+  .rail-logo {
+    display: inline-flex;
+    filter: grayscale(1);
+  }
+  .rail-logo :global(svg) {
+    height: 26px;
+    width: auto;
+  }
+  .rail--liqpay .rail-logo :global(svg) {
+    height: 22px;
+  }
+  .rail--mono .rail-logo :global(svg) {
+    height: 22px;
+  }
+  .rail-name,
+  .rail--text {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.08rem;
+    letter-spacing: -0.02em;
+  }
+  .rail--text :global(.icon) {
+    font-size: 1.35rem;
+  }
+  /* plata by mono and Google Pay ship white-on-dark artwork: invert it for the light page. */
+  .rail-logo--invert {
+    filter: grayscale(1) invert(var(--logo-invert));
+  }
+  /* Apple Pay's single black glyph: inverted only on the dark theme. */
+  .rail-logo--glyph {
+    filter: grayscale(1) invert(calc(1 - var(--logo-invert)));
+  }
+</style>

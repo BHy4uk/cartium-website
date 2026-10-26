@@ -1,0 +1,923 @@
+---
+import { getImage } from 'astro:assets';
+import Icon from './Icon.astro';
+import ringPhoto from '../assets/products/ring.png';
+import ringCutout from '../assets/products/ring-cutout.png';
+import teePhoto from '../assets/products/tee.png';
+
+const ringSrc = (await getImage({ src: ringPhoto, format: 'webp', quality: 85 })).src;
+const ringCutSrc = (await getImage({ src: ringCutout, format: 'webp', quality: 90 })).src;
+const teeThumb = (await getImage({ src: teePhoto, width: 120, format: 'webp' })).src;
+
+// Real backdrop presets of the AI photo assistant (application/ai_image_operations.py).
+const backdrops = [
+  { id: 'white', label: 'Білий', css: '#ffffff' },
+  { id: 'light_gray', label: 'Світло-сірий', css: '#e6e6e6' },
+  { id: 'beige', label: 'Бежевий', css: '#ece3d6' },
+  { id: 'dark', label: 'Темний', css: '#2b2b2b' },
+  { id: 'gradient', label: 'Градієнт', css: 'linear-gradient(180deg,#f3f3f3,#d9d9d9)' },
+];
+// Four of the ten real operations, with their own hints; the demo imitates the result on a cut-out.
+const operations = [
+  { id: 'replace_background', label: 'Замінити фон', hint: 'Товар без змін, новий фон' },
+  { id: 'studio', label: 'Студійне фото', hint: 'Чистий фон і м\'яке світло' },
+  { id: 'catalog_ready', label: 'Для каталогу', hint: 'По центру, однакові відступи' },
+  { id: 'lifestyle', label: 'Лайфстайл', hint: 'Товар у живій сцені' },
+];
+const scenes = [
+  { id: 'home', label: 'Затишний дім' },
+  { id: 'desk', label: 'Робочий стіл' },
+  { id: 'cafe', label: "Кав'ярня" },
+];
+const reminders = [
+  { id: '30m', label: '30 хв', long: 'через 30 хвилин' },
+  { id: '6h', label: '6 год', long: 'через 6 годин' },
+  { id: '24h', label: '24 год', long: 'через добу' },
+];
+---
+<section class="section growth" aria-labelledby="growth-title">
+  <div class="container">
+    <div class="section-head">
+      <h2 id="growth-title" class="display h2">Коли продажі пішли, вмикайте інструменти росту</h2>
+      <p class="lead">Нагадування про кошик, бонуси, імпорт і AI-фото вже вбудовані в магазин. Спробуйте прямо тут.</p>
+    </div>
+
+    <div class="bento">
+      <article class="tile spot tile--ai" data-ai>
+        <div class="ai-compare" data-ai-compare style="--split:50%">
+          <div class="ai-before">
+            <img src={ringSrc} alt="Оригінальне фото кільця на темному тлі" width="248" height="316" loading="lazy" decoding="async" />
+          </div>
+          <div class="ai-after" data-ai-after data-op="replace_background" data-scene="home" style={`--ai-bg:${backdrops[1].css}`}>
+            <span class="ai-scene" aria-hidden="true"></span>
+            <span class="ai-frame" aria-hidden="true"></span>
+            <span class="ai-shadow" aria-hidden="true"></span>
+            <img class="ai-reflect" src={ringCutSrc} alt="" aria-hidden="true" />
+            <img class="ai-cut" src={ringCutSrc} alt="AI-чернетка: кільце на новому фоні" />
+          </div>
+          <span class="ai-tag" aria-hidden="true">Ваше фото</span>
+          <span class="ai-tag ai-tag--after" aria-hidden="true"><Icon name="sparkle" /> AI-чернетка</span>
+          <span class="ai-handle" aria-hidden="true"><Icon name="caret-left" /><Icon name="caret-right" /></span>
+          <input class="ai-range" type="range" min="0" max="100" value="50" aria-label="Порівняти ваше фото й AI-чернетку" data-ai-range />
+        </div>
+        <div class="tile-body">
+          <h3 class="h3">Фото для каталогу без фотографа</h3>
+          <p class="body-muted">Оберіть дію і потягніть повзунок: ліворуч ваше фото, праворуч AI-чернетка. У товар вона потрапить, лише коли ви її приймете.</p>
+          <div class="ops" role="radiogroup" aria-label="Що зробити з фото">
+            {operations.map((o, i) => (
+              <button type="button" class="op" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-ai-op={o.id} title={o.hint}>{o.label}</button>
+            ))}
+          </div>
+          <p class="ops-hint" data-ai-hint>{operations[0].hint}</p>
+          <fieldset class="swatches" data-ai-backgrounds>
+            <legend class="swatches-legend">Фон</legend>
+            {backdrops.map((b, i) => (
+              <label class="swatch" title={b.label}>
+                <input type="radio" name="ai-bg" value={b.css} checked={i === 1} data-ai-swatch />
+                <span class="swatch-dot" style={`background:${b.css}`}></span>
+                <span class="sr-only">{b.label}</span>
+              </label>
+            ))}
+          </fieldset>
+          <fieldset class="scenes" data-ai-scenes hidden>
+            <legend class="swatches-legend">Сцена</legend>
+            {scenes.map((sc, i) => (
+              <label class="scene">
+                <input type="radio" name="ai-scene" value={sc.id} checked={i === 0} data-ai-scene />
+                <span>{sc.label}</span>
+              </label>
+            ))}
+          </fieldset>
+          <div class="ai-actions">
+            <button type="button" class="ai-accept" data-ai-accept><Icon name="check" /> Прийняти в товар</button>
+            <span class="ai-status" data-ai-status role="status" aria-live="polite"></span>
+          </div>
+          <p class="tile-foot">Ще 6 дій: Покращити фото, Без манекена, На вішаку, На людині, Преміум-реклама, Своє завдання. 20, 100 або 300 AI-кредитів на місяць залежно від тарифу. У демо результат імітовано, у магазині його створює AI з вашого фото.</p>
+        </div>
+      </article>
+
+      <article class="tile spot tile--cart" data-reminder>
+        <div class="tile-body">
+          <h3 class="h3">Повертає тих, хто не дооформив</h3>
+          <p class="body-muted">Бот сам нагадає про залишений кошик. Текст пишете ви, час обираєте теж ви.</p>
+        </div>
+        <div class="remind-chips" role="radiogroup" aria-label="Коли надіслати нагадування">
+          {reminders.map((r, i) => (
+            <button type="button" class="remind-chip" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-remind={r.long}>
+              {r.label}
+            </button>
+          ))}
+        </div>
+        <div class="remind-msg">
+          <p class="remind-when"><Icon name="bell-ringing" /> <span>Надійде <span data-remind-label>{reminders[0].long}</span></span></p>
+          <p>Ви залишили в кошику Джинси, 30. Розмір ще є, повернутися до оформлення?</p>
+          <span class="remind-btn">Оформити замовлення</span>
+        </div>
+      </article>
+
+      <article class="tile spot tile--import">
+        <p class="import-num">2 000</p>
+        <div class="tile-body">
+          <h3 class="h3">товарів одним файлом</h3>
+          <p class="import-text">
+            CSV або XLSX з категоріями, варіантами і фото за посиланнями. Спершу перевірка, потім імпорт, а скасувати можна протягом 7 днів.
+          </p>
+        </div>
+        <ul class="import-files" aria-hidden="true">
+          <li><Icon name="file-csv" /> products.csv</li>
+          <li><Icon name="file-xls" /> products.xlsx</li>
+        </ul>
+      </article>
+
+      <article class="tile spot tile--pause" data-pause>
+        <div class="tile-body">
+          <h3 class="h3">Поїхали у відпустку?</h3>
+          <p class="body-muted">Поставте паузу: покупці бачать каталог, але нові замовлення не оформлюються, поки ви не повернетесь.</p>
+        </div>
+        <div class="pause-demo">
+          <button type="button" class="switch" role="switch" aria-checked="false" data-pause-switch>
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+            <span>Пауза checkout</span>
+          </button>
+          <div class="mini-shop" data-pause-shop>
+            <div class="mini-banner" data-pause-banner>
+              <span class="mini-state mini-state--on"><Icon name="check" /> Оформлення відкрите</span>
+              <span class="mini-state mini-state--off"><Icon name="pause" /> Оформлення на паузі, каталог відкритий</span>
+            </div>
+            <div class="mini-item">
+              <span class="mini-thumb"><img src={teeThumb} alt="" loading="lazy" decoding="async" /></span>
+              <div>
+                <p class="mini-name">Футболка</p>
+                <p class="mini-price">1 500 грн</p>
+              </div>
+              <span class="mini-add" data-pause-add><Icon name="plus" /></span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="tile spot tile--account">
+        <div class="tile-body">
+          <h3 class="h3">Кабінет покупця з бонусами</h3>
+          <p class="body-muted">
+            Покупець входить через Telegram або e-mail, бачить історію замовлень і свої промокоди. Бонуси ви призначаєте сегменту: VIP, новим чи тим, хто давно не купував.
+          </p>
+        </div>
+        <ul class="coupons" aria-label="Приклади бонусів у кабінеті">
+          <li class="coupon">
+            <span class="coupon-code">VIP10</span>
+            <span class="coupon-val">−10%</span>
+            <span class="coupon-who">для VIP</span>
+          </li>
+          <li class="coupon">
+            <span class="coupon-code">COMEBACK</span>
+            <span class="coupon-val">−150 грн</span>
+            <span class="coupon-who">повернення сплячих</span>
+          </li>
+          <li class="coupon">
+            <span class="coupon-code">FIRST</span>
+            <span class="coupon-val">−5%</span>
+            <span class="coupon-who">нові клієнти</span>
+          </li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<style>
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .tile {
+    position: relative;
+    min-width: 0;
+    display: grid;
+    gap: 24px;
+    align-content: start;
+    padding: clamp(24px, 3vw, 36px);
+    border-radius: var(--r-card);
+    background: linear-gradient(180deg, var(--surface-2), var(--surface));
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
+  }
+  .tile-body {
+    display: grid;
+    gap: 10px;
+  }
+  .tile-foot {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  /* AI photo */
+  .tile--ai {
+    grid-column: span 7;
+    grid-row: span 2;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    align-items: stretch;
+    align-content: stretch;
+  }
+  .tile--ai .tile-body {
+    align-content: center;
+  }
+  /* Before / after: the AI layer is clipped from the left at --split. */
+  /* The frame has the photo's proportions and the cut-out sits exactly where the ring is
+     in the original (crop box 38,107 to 210,234 of 248x316), so before and after line up. */
+  .ai-compare {
+    --ring-x: 15.3%;
+    --ring-y: 33.9%;
+    --ring-w: 69.4%;
+    --ring-h: 40.2%;
+    position: relative;
+    align-self: center;
+    aspect-ratio: 248 / 316;
+    border-radius: 22px;
+    overflow: hidden;
+    background: #2a2a2a;
+    box-shadow: inset 0 0 0 1px var(--line);
+    isolation: isolate;
+  }
+  .ai-before,
+  .ai-after {
+    position: absolute;
+    inset: 0;
+  }
+  .ai-before img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .ai-after {
+    clip-path: inset(0 0 0 var(--split));
+    overflow: hidden;
+  }
+  .ai-scene {
+    position: absolute;
+    inset: 0;
+    background: var(--ai-bg);
+    transition: background 0.6s var(--ease-out);
+  }
+  .ai-cut,
+  .ai-reflect {
+    position: absolute;
+    left: var(--ring-x);
+    top: var(--ring-y);
+    width: var(--ring-w);
+    transform-origin: 50% 100%;
+    transition: transform 0.6s var(--ease-spring), opacity 0.4s var(--ease-out), filter 0.4s var(--ease-out);
+  }
+  .ai-cut {
+    z-index: 2;
+    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.14));
+  }
+  .ai-reflect {
+    z-index: 1;
+    top: calc(var(--ring-y) + var(--ring-h) - 1%);
+    transform: scaleY(-1);
+    transform-origin: 50% 0;
+    opacity: 0;
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.32), transparent 60%);
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.32), transparent 60%);
+  }
+  .ai-shadow {
+    position: absolute;
+    z-index: 1;
+    left: calc(var(--ring-x) + var(--ring-w) * 0.1);
+    width: calc(var(--ring-w) * 0.8);
+    top: calc(var(--ring-y) + var(--ring-h) - 4%);
+    height: 7%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(0, 0, 0, 0.3), transparent);
+    transform-origin: 50% 0;
+    transition: transform 0.6s var(--ease-spring);
+  }
+  .ai-frame {
+    position: absolute;
+    z-index: 3;
+    left: 9%;
+    right: 9%;
+    top: 50%;
+    aspect-ratio: 1;
+    translate: 0 -50%;
+    border: 1.5px dashed rgba(10, 10, 11, 0.28);
+    border-radius: 12px;
+    opacity: 0;
+    transition: opacity 0.4s var(--ease-out);
+  }
+
+  /* Studio: soft key light from above and a floor reflection. */
+  .ai-after[data-op='studio'] .ai-scene {
+    background:
+      radial-gradient(90% 60% at 50% 18%, rgba(255, 255, 255, 0.7), transparent 70%),
+      linear-gradient(to top, rgba(0, 0, 0, 0.1), transparent 34%),
+      var(--ai-bg);
+  }
+  .ai-after[data-op='studio'] .ai-reflect {
+    opacity: 1;
+  }
+  .ai-after[data-op='studio'] .ai-shadow {
+    opacity: 0.6;
+  }
+  /* Catalog: centred, even margins. */
+  .ai-after[data-op='catalog_ready'] .ai-cut,
+  .ai-after[data-op='catalog_ready'] .ai-shadow {
+    transform: translateY(-6%) scale(1.06);
+  }
+  .ai-after[data-op='catalog_ready'] .ai-frame {
+    opacity: 1;
+  }
+  /* Lifestyle scenes: a wall, a surface and the light of the room. */
+  .ai-after[data-op='lifestyle'] .ai-cut,
+  .ai-after[data-op='lifestyle'] .ai-shadow {
+    transform: translateY(32%) scale(0.72);
+  }
+  .ai-after[data-op='lifestyle'][data-scene='home'] .ai-scene {
+    background:
+      linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.45) 38%, transparent 46%, transparent 52%, rgba(255, 255, 255, 0.3) 58%, transparent 66%),
+      linear-gradient(to bottom, #e8e0d4 0 62%, #b99f80 62% 64%, #c8b293 64%, #a98f70);
+  }
+  .ai-after[data-op='lifestyle'][data-scene='desk'] .ai-scene {
+    background:
+      linear-gradient(to bottom, transparent 62%, rgba(0, 0, 0, 0.06) 62% 63%, transparent 63%),
+      linear-gradient(6deg, transparent 12%, #ffffff 12% 28%, transparent 28%),
+      linear-gradient(to bottom, #e4e7ea 0 62%, #f2f2f0 62%);
+  }
+  .ai-after[data-op='lifestyle'][data-scene='cafe'] .ai-scene {
+    background:
+      radial-gradient(circle at 18% 20%, rgba(255, 206, 140, 0.5), transparent 9%),
+      radial-gradient(circle at 74% 12%, rgba(255, 220, 160, 0.4), transparent 8%),
+      radial-gradient(circle at 88% 34%, rgba(255, 196, 120, 0.35), transparent 7%),
+      radial-gradient(circle at 36% 38%, rgba(255, 230, 180, 0.25), transparent 6%),
+      linear-gradient(to bottom, #3e3029 0 62%, #6e5443 62%, #4f3b2f);
+  }
+
+  /* "Generating": a light sweep over the AI side. */
+  .ai-after::after {
+    content: '';
+    position: absolute;
+    z-index: 4;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%);
+    background-size: 250% 100%;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .ai-after.is-busy::after {
+    opacity: 1;
+    animation: ai-sweep 0.8s ease-in-out;
+  }
+  .ai-after.is-busy .ai-cut {
+    filter: blur(6px) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.14));
+  }
+  @keyframes ai-sweep {
+    from {
+      background-position: 120% 0;
+    }
+    to {
+      background-position: -40% 0;
+    }
+  }
+
+  .ai-tag {
+    position: absolute;
+    z-index: 5;
+    top: 12px;
+    left: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--r-pill);
+    background: rgba(10, 10, 11, 0.6);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    backdrop-filter: blur(8px);
+  }
+  .ai-tag--after {
+    left: auto;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.88);
+    color: #0a0a0b;
+  }
+  .ai-handle {
+    position: absolute;
+    z-index: 6;
+    top: 0;
+    bottom: 0;
+    left: var(--split);
+    width: 2px;
+    translate: -1px 0;
+    background: #fff;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+  }
+  .ai-handle::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  }
+  .ai-handle :global(.icon) {
+    position: absolute;
+    top: 50%;
+    z-index: 1;
+    translate: 0 -50%;
+    color: #0a0a0b;
+    font-size: 15px;
+  }
+  .ai-handle :global(.icon:first-child) {
+    right: 3px;
+  }
+  .ai-handle :global(.icon:last-child) {
+    left: 3px;
+  }
+  .ai-range {
+    position: absolute;
+    z-index: 7;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: ew-resize;
+  }
+  .ai-compare:has(.ai-range:focus-visible) .ai-handle::before {
+    outline: 2px solid var(--accent-text);
+    outline-offset: 3px;
+  }
+
+  .op {
+    height: 40px;
+    padding: 0 16px;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    color: var(--ink-2);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
+  }
+  .op:hover {
+    background: var(--surface-3);
+  }
+  .op[aria-checked='true'] {
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: none;
+  }
+  .ops-hint {
+    margin-top: -2px;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+  .scenes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+    margin: 6px 0 0;
+    padding: 0;
+    border: 0;
+  }
+  .scenes[hidden],
+  .swatches[hidden] {
+    display: none;
+  }
+  .scene {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    height: 38px;
+    padding: 0 14px;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .scene input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .scene:has(input:checked) {
+    background: var(--surface-3);
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+    color: var(--ink);
+  }
+  .scene:has(input:focus-visible) {
+    outline: 2px solid var(--accent-text);
+    outline-offset: 2px;
+  }
+  .ai-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  .ai-accept {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 18px;
+    border-radius: var(--r-pill);
+    background: var(--ink);
+    color: var(--bg);
+    font-weight: 600;
+    font-size: 0.92rem;
+    transition: transform 0.4s var(--ease-spring);
+  }
+  .ai-accept:active {
+    transform: scale(0.97);
+  }
+  .ai-status {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .swatches {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    margin: 6px 0 0;
+    padding: 0;
+    border: 0;
+  }
+  .swatches-legend {
+    width: 100%;
+    margin-bottom: 2px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .swatch {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .swatch input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  .swatch-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgba(10, 10, 11, 0.18);
+    transition: transform 0.4s var(--ease-spring), box-shadow 0.3s var(--ease-out);
+  }
+  .swatch:hover .swatch-dot {
+    transform: scale(1.1);
+  }
+  .swatch input:checked + .swatch-dot {
+    box-shadow:
+      inset 0 0 0 1px rgba(10, 10, 11, 0.18),
+      0 0 0 3px var(--bg),
+      0 0 0 5px var(--accent);
+  }
+  .swatch input:focus-visible + .swatch-dot {
+    outline: 2px solid var(--accent-text);
+    outline-offset: 5px;
+  }
+  .ops {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Cart reminder */
+  .tile--cart {
+    grid-column: span 5;
+    background: linear-gradient(160deg, var(--accent-soft), transparent 70%), linear-gradient(180deg, var(--surface-2), var(--surface));
+  }
+  .remind-chips {
+    display: flex;
+    gap: 8px;
+  }
+  .remind-chip {
+    height: 44px;
+    padding: 0 18px;
+    border-radius: var(--r-pill);
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out), transform 0.4s var(--ease-spring);
+  }
+  .remind-chip:active {
+    transform: scale(0.96);
+  }
+  .remind-chip[aria-checked='true'] {
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: none;
+  }
+  .remind-msg {
+    display: grid;
+    gap: 8px;
+    padding: 16px 18px;
+    border-radius: 20px 20px 20px 6px;
+    background: var(--surface-3);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    font-size: 0.95rem;
+  }
+  .remind-when {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--accent-text);
+  }
+  .remind-btn {
+    justify-self: start;
+    margin-top: 4px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font-weight: 600;
+    font-size: 0.88rem;
+  }
+
+  /* Import */
+  .tile--import {
+    grid-column: span 5;
+    color: var(--on-panel);
+    border: 1px solid transparent;
+    background:
+      radial-gradient(120% 90% at 100% 0%, rgba(255, 255, 255, 0.14), transparent 60%) padding-box,
+      linear-gradient(var(--panel), var(--panel)) padding-box,
+      var(--chrome-border) border-box;
+    box-shadow: none;
+  }
+  .import-num {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(3.4rem, 2.4rem + 3vw, 5.2rem);
+    letter-spacing: -0.045em;
+    line-height: 0.95;
+    background: var(--chrome);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .tile--import .tile-body {
+    margin-top: -12px;
+  }
+  .import-text {
+    color: var(--on-panel-muted);
+  }
+  .import-files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .import-files li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: var(--r-pill);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .import-files :global(.icon) {
+    font-size: 1.1rem;
+  }
+
+  /* Pause checkout */
+  .tile--pause {
+    grid-column: span 5;
+  }
+  .pause-demo {
+    display: grid;
+    gap: 16px;
+  }
+  .switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    justify-self: start;
+    min-height: 44px;
+    font-weight: 600;
+  }
+  .switch-track {
+    position: relative;
+    width: 52px;
+    height: 32px;
+    border-radius: var(--r-pill);
+    background: var(--line-strong);
+    transition: background-color 0.3s var(--ease-out);
+  }
+  .switch-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(10, 10, 11, 0.25);
+    transition: transform 0.5s var(--ease-spring);
+  }
+  .switch[aria-checked='true'] .switch-track {
+    background: var(--accent);
+  }
+  .switch[aria-checked='true'] .switch-thumb {
+    transform: translateX(20px);
+  }
+  .mini-shop {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 20px;
+    background: var(--bg-raise);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .mini-banner {
+    display: grid;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: var(--ok-soft);
+    color: var(--ok);
+    font-size: 0.86rem;
+    font-weight: 600;
+    transition: background-color 0.4s var(--ease-out), color 0.4s var(--ease-out);
+  }
+  .mini-state {
+    grid-area: 1 / 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity 0.35s var(--ease-out), transform 0.5s var(--ease-spring);
+  }
+  .mini-state--off {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  .mini-shop.is-paused .mini-banner {
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .mini-shop.is-paused .mini-state--on {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  .mini-shop.is-paused .mini-state--off {
+    opacity: 1;
+    transform: none;
+  }
+  .mini-item {
+    display: grid;
+    grid-template-columns: 52px 1fr auto;
+    align-items: center;
+    gap: 12px;
+  }
+  .mini-thumb {
+    display: block;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: #2a2a2a;
+    overflow: hidden;
+  }
+  .mini-thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .mini-name {
+    font-weight: 600;
+  }
+  .mini-price {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .mini-add {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--bg);
+    transition: opacity 0.3s var(--ease-out), background-color 0.3s var(--ease-out);
+  }
+  .mini-shop.is-paused .mini-add {
+    background: var(--line-strong);
+    opacity: 0.5;
+  }
+
+  /* Customer account */
+  .tile--account {
+    grid-column: span 7;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+    align-items: center;
+    background:
+      radial-gradient(120% 120% at 100% 0%, rgba(160, 172, 190, 0.14), transparent 60%),
+      linear-gradient(180deg, var(--surface-2), var(--surface));
+  }
+  .coupons {
+    display: grid;
+    gap: 10px;
+  }
+  .coupon {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 12px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: var(--surface-3);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    transition: transform 0.6s var(--ease-spring);
+  }
+  .coupon:nth-child(2) {
+    margin-left: 18px;
+  }
+  .coupon:nth-child(3) {
+    margin-left: 36px;
+  }
+  .tile--account:hover .coupon {
+    transform: translateX(-6px);
+  }
+  .tile--account:hover .coupon:nth-child(2) {
+    transform: translateX(-12px);
+  }
+  .tile--account:hover .coupon:nth-child(3) {
+    transform: translateX(-18px);
+  }
+  .coupon-code {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .coupon-val {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--accent-text);
+  }
+  .coupon-who {
+    grid-column: 1 / -1;
+    font-size: 0.84rem;
+    color: var(--muted);
+  }
+
+  @media (max-width: 1080px) {
+    .tile--ai,
+    .tile--account {
+      grid-template-columns: 1fr;
+    }
+    .ai-compare {
+      width: min(100%, 420px);
+      justify-self: center;
+    }
+  }
+  @media (max-width: 860px) {
+    .bento {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .ai-compare {
+      width: 100%;
+    }
+    .tile--ai,
+    .tile--cart,
+    .tile--import,
+    .tile--pause,
+    .tile--account {
+      grid-column: auto;
+      grid-row: auto;
+    }
+  }
+</style>

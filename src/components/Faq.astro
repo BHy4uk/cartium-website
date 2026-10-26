@@ -1,0 +1,166 @@
+---
+import Icon from './Icon.astro';
+import { BOT_HANDLE, BOT_URL, DOCS_LINKS, TRIAL_DAYS } from '../config';
+
+const faq = [
+  {
+    q: 'Потрібен сайт або програміст?',
+    a: 'Ні. Магазин працює всередині Telegram, а налаштовується кнопками в боті та у WebApp. Знадобиться лише власний бот від @BotFather, це кілька хвилин.',
+  },
+  {
+    q: 'Як покупці знайдуть мій магазин?',
+    a: 'У вас буде власний бот з адресою на кшталт t.me/urbanstyle_bot. Поставте посилання в шапку Instagram, закріпіть у каналі чи надішліть клієнтам, яким раніше відповідали в директі.',
+  },
+  {
+    q: 'Куди надходять гроші від покупців?',
+    a: 'Напряму на ваш рахунок LiqPay або monobank: ви підключаєте власні ключі. Cartium не бере відсоток із продажів, ви платите лише за тариф. Також можна приймати оплату за реквізитами, за посиланням або післяплатою.',
+  },
+  {
+    q: `Що буде після ${TRIAL_DAYS} днів?`,
+    a: 'Оберіть тариф у розділі «Налаштування → Підписка». Якщо не встигнете, буде 5 днів пільгового періоду, потім вітрина закриється для покупців. Товари, замовлення і налаштування збережуться, а магазин відкриється одразу після оплати.',
+  },
+  {
+    q: 'У мене вже є сотні товарів. Переносити вручну?',
+    a: 'Ні, завантажте файл CSV або XLSX до 2 000 рядків. Система спершу покаже, що буде додано, а фото підтягне за прямими посиланнями. Імпорт можна скасувати протягом 7 днів.',
+    link: { href: DOCS_LINKS.import, label: 'Як підготувати файл' },
+  },
+  {
+    q: 'Чи безпечно надсилати токен бота?',
+    a: 'Бот Cartium одразу видаляє повідомлення з токеном, а зберігає його лише в зашифрованому вигляді. Ключі LiqPay, monobank і Нової пошти теж зберігаються лише зашифрованими.',
+  },
+  {
+    q: 'Чи можуть працювати кілька людей?',
+    a: 'Так. Додайте адміністраторів за Telegram ID: одного на Basic, до трьох на Pro і до десяти на Business.',
+  },
+  {
+    q: 'Де отримати допомогу з налаштуванням?',
+    a: `У документації є покроковий гайд з екранами, а в боті магазину працює команда /guide. Питання пишіть у @${BOT_HANDLE}.`,
+    link: { href: DOCS_LINKS.guide, label: 'Відкрити документацію' },
+  },
+];
+---
+<section class="section faq" id="faq" aria-labelledby="faq-title">
+  <div class="container faq-grid">
+    <div class="faq-aside">
+      <h2 id="faq-title" class="display h2">Часті питання</h2>
+      <p class="lead">Не знайшли відповідь? Напишіть нам у Telegram.</p>
+      <a class="btn btn-ghost" href={BOT_URL} target="_blank" rel="noopener">Написати @{BOT_HANDLE}</a>
+    </div>
+    <div class="faq-list">
+      {faq.map((f, i) => (
+        <details class="qa" name="faq" open={i === 0}>
+          <summary class="qa-q">
+            <span>{f.q}</span>
+            <span class="qa-icon" aria-hidden="true"><Icon name="plus" /></span>
+          </summary>
+          <div class="qa-a">
+            <p>{f.a}</p>
+            {f.link && (
+              <a class="qa-link" href={f.link.href} target="_blank" rel="noopener">{f.link.label}</a>
+            )}
+          </div>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: clamp(32px, 6vw, 96px);
+    align-items: start;
+  }
+  .faq-aside {
+    position: sticky;
+    top: calc(var(--nav-h) + 48px);
+    display: grid;
+    gap: 22px;
+    justify-items: start;
+  }
+  .faq-list {
+    display: grid;
+    gap: 10px;
+  }
+  .qa {
+    border-radius: 22px;
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+    transition: box-shadow 0.3s var(--ease-out);
+  }
+  .qa[open] {
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+  }
+  .qa::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size 0.5s var(--ease-out),
+      content-visibility 0.5s allow-discrete;
+  }
+  .qa[open]::details-content {
+    block-size: auto;
+  }
+  .qa-q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 22px 20px 26px;
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.12rem;
+    letter-spacing: -0.015em;
+    border-radius: 22px;
+  }
+  .qa-q::-webkit-details-marker {
+    display: none;
+  }
+  .qa-icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-size: 1.1rem;
+    transition: transform 0.5s var(--ease-spring), background-color 0.3s var(--ease-out), color 0.3s var(--ease-out);
+  }
+  .qa[open] .qa-icon {
+    transform: rotate(45deg);
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: none;
+  }
+  .qa-a {
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+    padding: 0 26px 24px;
+    color: var(--muted);
+    max-width: 62ch;
+  }
+  .qa-link {
+    color: var(--accent-text);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+
+  @media (max-width: 960px) {
+    .faq-grid {
+      grid-template-columns: 1fr;
+    }
+    .faq-aside {
+      position: static;
+    }
+  }
+</style>

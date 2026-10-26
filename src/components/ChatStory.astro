@@ -1,0 +1,514 @@
+---
+import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
+import teePhoto from '../assets/products/tee.png';
+
+// One sale told twice and played side by side: a typical Instagram-direct sale on the left,
+// the same sale through Cartium on the right. The counters are read off this script
+// (14 messages, 10:02 to 12:49 versus 10:02 to 10:05), not a statistic.
+type Msg = { from: 'them' | 'me'; text?: string; time: string; kind?: 'shot' };
+const chat: Msg[] = [
+  { from: 'them', text: 'Добрий день! Скільки коштує футболка з фото?', time: '10:02' },
+  { from: 'me', text: 'Добрий! 1 500 грн', time: '10:16' },
+  { from: 'them', text: 'А розмір M є?', time: '10:17' },
+  { from: 'me', text: 'Зараз гляну на складі 🙏', time: '10:31' },
+  { from: 'me', text: 'Є, чорна і біла', time: '10:44' },
+  { from: 'them', text: 'Чорну. Як оплатити?', time: '10:46' },
+  { from: 'me', text: 'IBAN UA•• •••• •••• 4821, у призначенні вкажіть імʼя', time: '10:58' },
+  { from: 'them', time: '11:20', kind: 'shot' },
+  { from: 'me', text: 'Дякую, перевірю і напишу', time: '11:41' },
+  { from: 'me', text: 'Оплату бачу ✅', time: '12:05' },
+  { from: 'me', text: 'Напишіть ПІБ, телефон і відділення НП', time: '12:06' },
+  { from: 'them', text: 'Олена Мельник, 097 ••• •• 67, Київ, №12', time: '12:31' },
+  { from: 'me', text: 'Відправлю завтра, ТТН скину сюди', time: '12:40' },
+  { from: 'me', text: 'ТТН 20451386942762', time: '12:49' },
+];
+const steps = [
+  { time: '10:02', text: 'Олена відкриває каталог і обирає футболку, чорну, M' },
+  { time: '10:03', text: 'Платить через LiqPay, адреса Нової пошти вже у формі' },
+  { time: '10:04', text: 'Вам приходить оплачене замовлення' },
+  { time: '10:05', text: 'Ви натискаєте «Створити ТТН»' },
+];
+---
+<section class="story stage" id="story" aria-labelledby="story-title" data-story data-stage>
+  <div class="container">
+    <div class="story-head">
+      <h2 id="story-title" class="display h2">Один і той самий продаж. У директі і в&nbsp;Cartium.</h2>
+      <p class="lead">Покупниця пише о 10:02. Подивіться, коли посилка буде готова до відправки.</p>
+      <button type="button" class="story-replay" data-story-replay>
+        <Icon name="arrow-counter-clockwise" /> Програти ще раз
+      </button>
+    </div>
+
+    <div class="race">
+      <!-- Direct -->
+      <article class="lane" data-lane="direct" aria-labelledby="lane-direct">
+        <header class="lane-head">
+          <p class="lane-name" id="lane-direct">У директі</p>
+          <p class="lane-done" data-lane-done>Готово о 12:49</p>
+        </header>
+        <dl class="lane-stats">
+          <div><dt>Ваших повідомлень</dt><dd data-count-mine>9</dd></div>
+          <div><dt>До ТТН</dt><dd data-count-time>2 год 47 хв</dd></div>
+        </dl>
+        <div class="chat">
+          <div class="chat-head">
+            <span class="chat-avatar" aria-hidden="true">О</span>
+            <div>
+              <p class="chat-name">olena.melnyk</p>
+              <p class="chat-sub">Директ</p>
+            </div>
+            <time class="chat-clock" data-chat-clock>12:49</time>
+          </div>
+          <div class="chat-window" data-chat-window data-lenis-prevent>
+            <ol class="chat-list">
+              {chat.map((m) => (
+                <li class:list={['msg', `msg--${m.from}`, m.kind && `msg--${m.kind}`]} data-msg data-from={m.from}>
+                  {m.kind === 'shot' ? (
+                    <span class="msg-shot" aria-label="Скріншот оплати">
+                      <span class="shot-lines" aria-hidden="true"><i></i><i></i><i></i></span>
+                      <span class="shot-label">Скрін оплати.jpg</span>
+                    </span>
+                  ) : (
+                    <span class="msg-text">{m.text}</span>
+                  )}
+                  <time class="msg-time">{m.time}</time>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      </article>
+
+      <!-- Cartium -->
+      <article class="lane lane--cartium" data-lane="cartium" aria-labelledby="lane-cartium">
+        <header class="lane-head">
+          <p class="lane-name" id="lane-cartium">У Cartium</p>
+          <p class="lane-done" data-lane-done>Готово о 10:05</p>
+        </header>
+        <dl class="lane-stats">
+          <div><dt>Ваших повідомлень</dt><dd>0</dd></div>
+          <div><dt>До ТТН</dt><dd data-cartium-time>3 хв</dd></div>
+        </dl>
+        <ol class="flow">
+          {steps.map((s) => (
+            <li class="flow-step" data-flow-step>
+              <time>{s.time}</time>
+              <span>{s.text}</span>
+            </li>
+          ))}
+        </ol>
+        <article class="order paper" data-order aria-label="Замовлення в Cartium">
+          <header class="order-head">
+            <span class="order-num">#55</span>
+            <span class="order-status"><Icon name="check-circle-fill" /> Оплачено</span>
+            <span class="order-time">10:04</span>
+          </header>
+          <div class="order-row">
+            <span class="order-thumb"><Image src={teePhoto} alt="" width={112} quality={82} /></span>
+            <div class="order-item">
+              <p class="order-title">Футболка, чорна</p>
+              <p class="order-meta">Розмір M, 1 шт. · Нова пошта, Київ, №12</p>
+            </div>
+            <p class="order-sum">1 500 грн</p>
+          </div>
+          <span class="order-btn is-done" data-ttn-btn><Icon name="truck" /> <span data-ttn-label>ТТН 20451386942762</span></span>
+        </article>
+      </article>
+    </div>
+
+    <p class="race-summary" data-race-summary>
+      Поки в директі ви пишете 9 повідомлень і чекаєте відповіді, у Cartium покупець сам обирає розмір, платить, а ТТН створюється однією кнопкою.
+    </p>
+  </div>
+</section>
+
+<style>
+  .story {
+    padding-block: clamp(72px, 9vw, 128px);
+  }
+  .story-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    align-items: end;
+    gap: 16px 48px;
+    margin-bottom: clamp(24px, 3vw, 40px);
+  }
+  .story-head .h2 {
+    grid-row: 1 / span 2;
+    max-width: 18ch;
+    font-size: clamp(2rem, 1.2rem + 2.4vw, 3.2rem);
+  }
+  .story-head .lead {
+    grid-column: 2;
+    font-size: 1.08rem;
+  }
+  .story-replay {
+    grid-column: 2;
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 18px;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background-color 0.25s var(--ease-out);
+  }
+  .story-replay:hover {
+    background: var(--surface-2);
+  }
+
+  .race {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(16px, 2.4vw, 32px);
+    align-items: start;
+  }
+  .lane {
+    display: grid;
+    gap: 12px;
+    padding: clamp(16px, 1.6vw, 22px);
+    border-radius: calc(var(--r-card) + 4px);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .lane-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .lane-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.35rem;
+    letter-spacing: -0.02em;
+  }
+  .lane-done {
+    padding: 5px 12px;
+    border-radius: var(--r-pill);
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: opacity 0.4s var(--ease-out), transform 0.5s var(--ease-spring);
+  }
+  .lane-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .lane-stats div {
+    padding: 8px 14px;
+    border-radius: 16px;
+    background: var(--surface-2);
+  }
+  .lane-stats dt {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  .lane-stats dd {
+    margin: 2px 0 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.35rem, 1.1rem + 0.7vw, 1.75rem);
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+  }
+
+  /* Direct chat */
+  .chat {
+    border-radius: 22px;
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
+  }
+  .chat-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .chat-avatar {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--chrome);
+    color: #0a0a0b;
+    font-weight: 600;
+  }
+  .chat-name {
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .chat-sub {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .chat-clock {
+    margin-left: auto;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--ink-2);
+  }
+  .chat-window {
+    height: 330px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    padding: 14px 12px;
+  }
+  .chat-window::-webkit-scrollbar {
+    display: none;
+  }
+  .chat-list {
+    display: grid;
+    gap: 6px;
+  }
+  .msg {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    max-width: 86%;
+    padding: 8px 12px;
+    border-radius: 18px;
+    font-size: 0.92rem;
+    line-height: 1.35;
+  }
+  .msg--them {
+    justify-self: start;
+    background: var(--surface-3);
+    border-bottom-left-radius: 6px;
+  }
+  .msg--me {
+    justify-self: end;
+    background: var(--ink);
+    color: var(--bg);
+    border-bottom-right-radius: 6px;
+  }
+  .msg-time {
+    flex: none;
+    font-size: 0.7rem;
+    opacity: 0.6;
+  }
+  .msg--shot {
+    padding: 6px 10px 6px 6px;
+  }
+  .msg-shot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .shot-lines {
+    display: grid;
+    gap: 4px;
+    align-content: center;
+    width: 44px;
+    height: 54px;
+    padding: 8px;
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .shot-lines i {
+    display: block;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line-strong);
+  }
+  .shot-lines i:nth-child(2) {
+    width: 70%;
+    background: var(--ink);
+  }
+  .shot-label {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  /* Cartium side */
+  .flow {
+    display: grid;
+    gap: 2px;
+  }
+  .flow-step {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    gap: 12px;
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-2);
+  }
+  .flow-step time {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .order {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 22px;
+    box-shadow: 0 40px 100px -40px rgba(255, 255, 255, 0.22);
+  }
+  .order-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .order-num {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.4rem;
+    letter-spacing: -0.03em;
+  }
+  .order-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px 5px 9px;
+    border-radius: var(--r-pill);
+    background: var(--ok-soft);
+    color: var(--ok);
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+  .order-time {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .order-row {
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    align-items: center;
+    gap: 14px;
+  }
+  .order-thumb {
+    display: block;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: #2a2a2a;
+    overflow: hidden;
+  }
+  .order-thumb :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .order-title {
+    font-weight: 600;
+  }
+  .order-meta {
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+  .order-sum {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.15rem;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+  .order-btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    height: 46px;
+    border-radius: var(--r-pill);
+    background: var(--ink);
+    color: var(--bg);
+    font-weight: 600;
+    transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out);
+  }
+  .order-btn.is-done {
+    background: var(--ok-soft);
+    color: var(--ok);
+  }
+
+  .race-summary {
+    max-width: 46rem;
+    margin: clamp(28px, 3vw, 44px) auto 0;
+    text-align: center;
+    color: var(--ink-2);
+    font-size: clamp(1.05rem, 1rem + 0.35vw, 1.25rem);
+    line-height: 1.5;
+    text-wrap: balance;
+  }
+
+  /* Before the race starts (set by main.ts only when motion is allowed). */
+  :global(.race-ready) [data-msg],
+  :global(.race-ready) [data-flow-step],
+  :global(.race-ready) [data-order],
+  :global(.race-ready) [data-lane-done],
+  :global(.race-ready) .race-summary {
+    opacity: 0;
+  }
+  /* Unsent messages take no room, so the chat window scrolls to the newest real one. */
+  :global(.race-ready) [data-msg]:not(.is-in) {
+    display: none;
+  }
+  :global(.race-ready) [data-msg].is-in {
+    animation: msg-in 0.45s var(--ease-spring) both;
+  }
+  @keyframes msg-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.97);
+    }
+  }
+  :global(.race-ready) [data-flow-step] {
+    transform: translateY(10px);
+  }
+  :global(.race-ready) [data-order] {
+    transform: translateY(24px) scale(0.97);
+  }
+  :global(.race-ready) [data-lane-done] {
+    transform: scale(0.8);
+  }
+  :global(.race-ready) [data-msg].is-in,
+  :global(.race-ready) [data-flow-step].is-in,
+  :global(.race-ready) [data-order].is-in,
+  :global(.race-ready) [data-lane-done].is-in,
+  :global(.race-ready) .race-summary.is-in {
+    opacity: 1;
+    transform: none;
+  }
+  [data-msg],
+  [data-flow-step],
+  [data-order],
+  .race-summary {
+    transition:
+      opacity 0.45s var(--ease-out),
+      transform 0.6s var(--ease-spring);
+  }
+
+  @media (max-width: 900px) {
+    .story-head {
+      grid-template-columns: 1fr;
+    }
+    .story-head .h2,
+    .story-head .lead,
+    .story-replay {
+      grid-column: 1;
+      grid-row: auto;
+    }
+    .race {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .chat-window {
+      height: 340px;
+    }
+  }
+</style>

@@ -1,0 +1,175 @@
+---
+import Icon from './Icon.astro';
+import { BOT_HANDLE, DOCS_LINKS } from '../config';
+
+// Durations from tgshop-docs/index.md ("Скільки часу займе налаштування").
+const steps = [
+  {
+    time: '5 хв',
+    title: 'Створіть магазин у боті',
+    text: `У @${BOT_HANDLE} натисніть «Створити мій магазин», введіть назву і токен бота з @BotFather.`,
+    icon: 'storefront',
+  },
+  {
+    time: '15 хв',
+    title: 'Додайте товари',
+    text: 'Категорії, фото, ціни та розміри. Великий каталог завантажте одним файлом CSV або XLSX.',
+    icon: 'tag',
+  },
+  {
+    time: '10 хв',
+    title: 'Увімкніть оплату й доставку',
+    text: 'LiqPay, plata by mono, реквізити чи післяплата. Для Нової пошти: API ключ і дані відправника.',
+    icon: 'credit-card',
+  },
+  {
+    time: '5 хв',
+    title: 'Пройдіть тестове замовлення',
+    text: 'Купіть щось у себе як покупець, а потім поставте посилання на бота в Instagram чи канал.',
+    icon: 'paper-plane-tilt',
+  },
+];
+---
+<section class="section launch" id="how" aria-labelledby="launch-title" data-launch>
+  <div class="container">
+    <div class="section-head">
+      <h2 id="launch-title" class="display h2">Від ідеї до першого замовлення за&nbsp;вечір</h2>
+      <p class="lead">
+        Усе налаштовується з телефона кнопками в Telegram. Покрокова інструкція є{' '}<a class="text-link" href={DOCS_LINKS.guide} target="_blank" rel="noopener">у документації</a>{' '}і в самому боті: команда <span class="cmd">/guide</span>.
+      </p>
+    </div>
+
+    <div class="steps-wrap">
+    <div class="steps-line" aria-hidden="true"><span class="steps-fill" data-steps-fill></span></div>
+    <ol class="steps">
+      {steps.map((s, i) => (
+        <li class="step" data-step>
+          <div class="step-top">
+            <span class="step-num" aria-hidden="true">{i + 1}</span>
+            <span class="step-time"><Icon name="timer" /> {s.time}</span>
+          </div>
+          <h3 class="h3">{s.title}</h3>
+          <p class="body-muted">{s.text}</p>
+        </li>
+      ))}
+    </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .launch {
+    padding-bottom: calc(var(--section-y) * 0.55);
+  }
+  .text-link {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+  .text-link:hover {
+    text-decoration-thickness: 2px;
+  }
+  .steps-wrap {
+    position: relative;
+  }
+  .steps {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(20px, 3vw, 40px);
+  }
+  .steps-line {
+    position: absolute;
+    left: 28px;
+    right: 28px;
+    top: 27px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--line-strong);
+    overflow: hidden;
+  }
+  .steps-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform-origin: left center;
+    transform: scaleX(1);
+  }
+  .step {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 14px;
+  }
+  .step-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+  .step-num {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.35rem;
+    position: relative;
+    z-index: 1;
+    transition: background-color 0.4s var(--ease-out), color 0.4s var(--ease-out);
+  }
+  .step.is-active .step-num {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+  .step-time {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--r-pill);
+    background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+    box-shadow: 0 0 0 6px var(--bg);
+    color: var(--accent-text);
+    font-weight: 600;
+    font-size: 0.88rem;
+  }
+
+  @media (max-width: 960px) {
+    .steps-wrap {
+      padding-left: 76px;
+    }
+    .steps {
+      grid-template-columns: 1fr;
+      gap: 36px;
+    }
+    .steps-line {
+      left: 27px;
+      right: auto;
+      top: 28px;
+      bottom: 28px;
+      width: 2px;
+      height: auto;
+    }
+    .steps-fill {
+      transform-origin: center top;
+    }
+    .step-top {
+      margin-bottom: 0;
+    }
+    .step-num {
+      position: absolute;
+      left: -76px;
+      top: -10px;
+    }
+  }
+</style>

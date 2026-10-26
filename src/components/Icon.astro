@@ -1,0 +1,22 @@
+---
+import { iconSvg } from '../data/icons';
+
+interface Props {
+  name: string;
+  class?: string;
+}
+const { name, class: className } = Astro.props;
+---
+<span class:list={['icon', className]} set:html={iconSvg(name)} />
+
+<style>
+  .icon {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+  }
+  .icon :global(svg) {
+    width: 1em;
+    height: 1em;
+  }
+</style>

@@ -1,0 +1,339 @@
+---
+import { Picture } from 'astro:assets';
+import Device from './Device.astro';
+import catalog from '../assets/shots/shell-catalog.png';
+import variants from '../assets/shots/product-create-variants.png';
+import payments from '../assets/shots/payments-list.png';
+import orders from '../assets/shots/orders-list.png';
+import ttn from '../assets/shots/order-ttn.png';
+import analytics from '../assets/shots/analytics.png';
+import customers from '../assets/shots/customers.png';
+import promos from '../assets/shots/promos.png';
+import campaigns from '../assets/shots/campaigns.png';
+import appearance from '../assets/shots/appearance.png';
+
+// Real product screens (docshots demo data), shown as a feature switcher that fits one
+// screen: pick a feature (or let it advance on its own) and the phone shows that screen.
+const cards = [
+  { img: catalog, who: 'Покупець', title: 'Вітрина як у застосунку', text: 'Категорії, пошук, фото, знижки й кошик відкриваються прямо в Telegram.', alt: 'Каталог магазину з категоріями і кнопками додавання в кошик' },
+  { img: variants, who: 'Ви', title: 'Розміри й кольори варіантами', text: 'Залишок по кожному варіанту і до 10 фото. Стара ціна закреслюється сама.', alt: 'Форма товару з варіантами розмірів і фото' },
+  { img: payments, who: 'Ви', title: 'П’ять способів оплати', text: 'LiqPay і plata by mono з автопідтвердженням, а також реквізити, посилання і післяплата.', alt: 'Налаштування способів оплати: LiqPay, plata by mono, оплата за посиланням' },
+  { img: orders, who: 'Ви', title: 'Видно, що чекає на вас', text: 'Фільтри «Очікують», «На перевірці», «До відправки», «У дорозі» з лічильниками.', alt: 'Список замовлень з фільтрами за статусом' },
+  { img: ttn, who: 'Ви', title: 'ТТН з картки замовлення', text: 'Дані покупця вже в замовленні. Створіть накладну, оновіть статус і відстежте посилку.', alt: 'Картка замовлення зі створеною ТТН Нової пошти' },
+  { img: analytics, who: 'Ви', title: 'Виторг, чек і конверсія', text: 'Порівняння з попереднім періодом, топ товарів і підказки, що перевірити.', alt: 'Аналітика: виторг, замовлення, середній чек, конверсія' },
+  { img: customers, who: 'Ви', title: 'Клієнти й сегменти', text: 'Нові, повторні, VIP і ті, хто давно не купував. Напишіть клієнту з його картки.', alt: 'База клієнтів з пошуком і сегментами' },
+  { img: promos, who: 'Ви', title: 'Промокоди для своїх', text: 'Відсоток або сума, ліміт використань і аудиторія: лише нові, повторні чи VIP.', alt: 'Список промокодів зі статусами' },
+  { img: campaigns, who: 'Ви', title: 'Розсилки від вашого бота', text: 'Повідомлення сегменту клієнтів і звіт: скільки доставлено, скільки помилок.', alt: 'Історія розсилок з показниками доставки' },
+  { img: appearance, who: 'Ви', title: 'Магазин у вашому стилі', text: 'Шаблон, кольори, шрифт, банер і біжучий рядок. Зміни видно у вітрині одразу.', alt: 'Редактор вигляду магазину' },
+];
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+<section class="section showcase" id="features" aria-labelledby="showcase-title" data-showcase>
+  <div class="container">
+    <div class="sc-head">
+      <h2 id="showcase-title" class="display h2">Від вітрини до аналітики. В одному боті.</h2>
+      <p class="lead">Справжні екрани Cartium, без макетів. Оберіть функцію, щоб побачити її.</p>
+    </div>
+
+    <div class="sc-grid">
+      <div class="sc-tabs" role="tablist" aria-label="Можливості Cartium" aria-orientation="vertical" data-sc-tabs>
+        {cards.map((c, i) => (
+          <button
+            type="button"
+            role="tab"
+            class:list={['sc-tab', { 'is-active': i === 0 }]}
+            id={`sc-tab-${i}`}
+            aria-selected={i === 0 ? 'true' : 'false'}
+            aria-controls="sc-screen"
+            tabindex={i === 0 ? 0 : -1}
+            data-sc-tab={i}
+          >
+            <span class="sc-tab-row">
+              <span class="sc-num">{pad(i + 1)}</span>
+              <span class="sc-title">{c.title}</span>
+              <span class:list={['sc-who', { 'is-buyer': c.who === 'Покупець' }]}>{c.who}</span>
+            </span>
+            <span class="sc-text">{c.text}</span>
+            <span class="sc-progress" aria-hidden="true"><span></span></span>
+          </button>
+        ))}
+      </div>
+
+      <div class="sc-stage" id="sc-screen" role="tabpanel" aria-labelledby="sc-tab-0" aria-live="polite" data-sc-panel>
+        <Device width="var(--dw)" class="sc-device">
+          <div class="sc-stack">
+            {cards.map((c, i) => (
+              <div class:list={['sc-shot', { 'is-on': i === 0 }]} data-sc-shot={i} aria-hidden={i === 0 ? 'false' : 'true'}>
+                <Picture
+                  src={c.img}
+                  alt={c.alt}
+                  widths={[290, 435, 580]}
+                  sizes="(max-width: 960px) 260px, 300px"
+                  formats={['avif', 'webp']}
+                  quality={80}
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
+                />
+              </div>
+            ))}
+          </div>
+        </Device>
+      </div>
+      <p class="sc-caption" data-sc-caption>{cards[0].text}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .showcase {
+    overflow-x: clip;
+  }
+  .sc-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: end;
+    gap: 16px 48px;
+    margin-bottom: clamp(24px, 3vw, 40px);
+  }
+  .sc-head .h2 {
+    max-width: 20ch;
+    font-size: clamp(2rem, 1.2rem + 2.4vw, 3.2rem);
+  }
+
+  .sc-grid {
+    --dw: min(300px, calc((100dvh - 220px) * 0.491));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: clamp(32px, 6vw, 96px);
+  }
+
+  /* Feature list: one row each; the active one opens with its text and a progress line. */
+  .sc-tabs {
+    display: grid;
+    align-content: start;
+  }
+  .sc-tab {
+    position: relative;
+    display: grid;
+    gap: 0;
+    padding: 11px 4px;
+    border-top: 1px solid var(--line);
+    text-align: left;
+    color: var(--muted);
+    transition: color 0.3s var(--ease-out);
+  }
+  .sc-tab:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+  .sc-tab:hover,
+  .sc-tab.is-active {
+    color: var(--ink);
+  }
+  .sc-tab-row {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+  }
+  .sc-num {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .sc-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.02rem, 0.95rem + 0.3vw, 1.2rem);
+    letter-spacing: -0.02em;
+  }
+  .sc-who {
+    padding: 3px 10px;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    color: var(--ink-2);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .sc-who.is-buyer {
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: none;
+  }
+  .sc-text {
+    display: block;
+    max-height: 0;
+    overflow: hidden;
+    padding-left: 46px;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.5;
+    opacity: 0;
+    transition: max-height 0.5s var(--ease-out), opacity 0.4s var(--ease-out), margin 0.5s var(--ease-out);
+  }
+  .sc-tab.is-active .sc-text {
+    max-height: 6em;
+    margin-top: 6px;
+    opacity: 1;
+  }
+  .sc-progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -1px;
+    height: 2px;
+    overflow: hidden;
+  }
+  .sc-progress span {
+    display: block;
+    height: 100%;
+    background: var(--ink);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  .sc-tab.is-active .sc-progress span {
+    transform: scaleX(1);
+  }
+  /* While autoplaying, the line fills over the slide's time. */
+  .sc-tabs.is-auto .sc-tab.is-active .sc-progress span {
+    animation: sc-fill var(--sc-time, 5s) linear both;
+  }
+  .sc-tabs.is-paused .sc-tab.is-active .sc-progress span {
+    animation-play-state: paused;
+  }
+  @keyframes sc-fill {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  /* The phone: screens change with a wipe from below. */
+  .sc-stage {
+    position: relative;
+    display: grid;
+    justify-items: center;
+  }
+  .sc-stage::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    top: 8%;
+    left: 50%;
+    width: calc(var(--dw) * 2);
+    aspect-ratio: 1;
+    translate: -50% 0;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--ink) 9%, transparent), transparent 70%);
+  }
+  /* Explicit width: the phone sits in an auto-sized column, where a percentage would collapse. */
+  .sc-stage :global(.sc-device) {
+    width: var(--dw);
+  }
+  .sc-stack {
+    position: relative;
+    aspect-ratio: 780 / 1492;
+  }
+  .sc-shot {
+    position: absolute;
+    inset: 0;
+    background: #f6f6f6;
+    clip-path: inset(100% 0 0 0);
+    transition: clip-path 0.7s var(--ease-out);
+  }
+  .sc-shot.is-on {
+    z-index: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  .sc-shot.is-leaving {
+    z-index: 0;
+    clip-path: inset(0 0 0 0);
+  }
+  .sc-shot :global(picture),
+  .sc-shot :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .sc-shot :global(img) {
+    object-fit: cover;
+    object-position: top;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sc-shot,
+    .sc-text {
+      transition: none;
+    }
+  }
+
+  /* Small screens: features become a swipeable row of chips above the phone. */
+  @media (max-width: 960px) {
+    .sc-head {
+      grid-template-columns: 1fr;
+    }
+    .sc-grid {
+      --dw: min(270px, 72vw);
+      grid-template-columns: minmax(0, 1fr);
+      gap: 20px;
+    }
+    .sc-tabs {
+      display: flex;
+      gap: 8px;
+      margin-inline: calc(var(--gutter) * -1);
+      padding: 4px var(--gutter) 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      scroll-snap-type: x proximity;
+    }
+    .sc-tabs::-webkit-scrollbar {
+      display: none;
+    }
+    .sc-tab,
+    .sc-tab:last-child {
+      flex: none;
+      padding: 10px 16px;
+      border: 0;
+      border-radius: var(--r-pill);
+      box-shadow: inset 0 0 0 1px var(--line-strong);
+      scroll-snap-align: start;
+    }
+    .sc-tab.is-active {
+      background: var(--ink);
+      color: var(--bg);
+      box-shadow: none;
+    }
+    .sc-tab-row {
+      display: block;
+    }
+    .sc-num,
+    .sc-who,
+    .sc-progress {
+      display: none;
+    }
+    .sc-title {
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+    /* The open feature's text moves under the phone (sc-caption, filled by main.ts). */
+    .sc-text {
+      display: none;
+    }
+    .sc-stage {
+      order: 2;
+    }
+  }
+  .sc-caption {
+    display: none;
+  }
+  @media (max-width: 960px) {
+    .sc-caption {
+      display: block;
+      order: 3;
+      min-height: 3em;
+      text-align: center;
+      color: var(--muted);
+      text-wrap: balance;
+    }
+  }
+</style>
