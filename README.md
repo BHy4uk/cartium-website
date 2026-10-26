@@ -78,14 +78,9 @@ npm run preview   # локальный просмотр сборки
 
 Workflow `.github/workflows/site.yml` на каждый PR и push собирает сайт и проверяет типы.
 
-Публикация на GitHub Pages включается вручную:
-
-1. Settings → Pages → Source: **GitHub Actions**.
-2. Settings → Secrets and variables → Actions → Variables:
-   - `DEPLOY_TO_PAGES` = `true`;
-   - `BASE_PATH` = `/cartium-website` (если сайт открывается по адресу `<user>.github.io/cartium-website/`);
-   - `SITE_URL` = полный адрес сайта, например `https://bhy4uk.github.io` или собственный домен.
-3. Push в `main` опубликует сайт.
+Публикация на GitHub Pages: каждый push в `main` публикует сайт на `https://<owner>.github.io/<repo>/`
+(Settings → Pages → Source: **GitHub Actions**). Для собственного домена задайте repository variables
+(не environment variables) `SITE_URL` = `https://ваш-домен` и `BASE_PATH` = `/`.
 
 GitHub Pages для приватного репозитория требует платный план. Альтернатива: любой статический
 хостинг (Cloudflare Pages, Netlify, Vercel) с командой сборки `npm run build` и папкой `dist`.
