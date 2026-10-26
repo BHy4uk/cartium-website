@@ -455,7 +455,19 @@ const steps = [
   :global(.race-ready) .race-summary {
     opacity: 0;
   }
-  :global(.race-ready) [data-msg],
+  /* Unsent messages take no room, so the chat window scrolls to the newest real one. */
+  :global(.race-ready) [data-msg]:not(.is-in) {
+    display: none;
+  }
+  :global(.race-ready) [data-msg].is-in {
+    animation: msg-in 0.45s var(--ease-spring) both;
+  }
+  @keyframes msg-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.97);
+    }
+  }
   :global(.race-ready) [data-flow-step] {
     transform: translateY(10px);
   }

@@ -19,7 +19,7 @@ const hide = (svg: string) => svg.replace('<svg ', '<svg aria-hidden="true" focu
         <span class="rail-logo rail-logo--invert" set:html={hide(monoDark)} />
       </li>
       <li class="rail rail--apple" aria-label="Apple Pay">
-        <span class="rail-logo" set:html={hide(appleLight)} />
+        <span class="rail-logo rail-logo--glyph" set:html={hide(appleLight)} />
       </li>
       <li class="rail rail--google" aria-label="Google Pay">
         <span class="rail-logo rail-logo--invert" set:html={hide(googleDark)} />
@@ -92,6 +92,10 @@ const hide = (svg: string) => svg.replace('<svg ', '<svg aria-hidden="true" focu
   }
   /* plata by mono and Google Pay ship white-on-dark artwork: invert it for the light page. */
   .rail-logo--invert {
-    filter: grayscale(1) invert(1);
+    filter: grayscale(1) invert(var(--logo-invert));
+  }
+  /* Apple Pay's single black glyph: inverted only on the dark theme. */
+  .rail-logo--glyph {
+    filter: grayscale(1) invert(calc(1 - var(--logo-invert)));
   }
 </style>

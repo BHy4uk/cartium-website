@@ -91,6 +91,32 @@ if (navWrap) {
   });
 }
 
+/* ---------- Theme ---------- */
+// Base.astro sets data-theme before paint; here the toggle flips it and remembers the choice.
+// Without a stored choice the page keeps following the system setting.
+const themeToggle = $<HTMLButtonElement>('[data-theme-toggle]');
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+function applyTheme(theme: 'light' | 'dark') {
+  root.dataset.theme = theme;
+  $<HTMLMetaElement>('meta[name="theme-color"]')!.content = theme === 'dark' ? '#111113' : '#f4f4f5';
+  themeToggle?.setAttribute('aria-pressed', String(theme === 'dark'));
+}
+applyTheme(root.dataset.theme === 'dark' ? 'dark' : 'light');
+themeToggle?.addEventListener('click', () => {
+  const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try {
+    localStorage.setItem('cartium-theme', next);
+  } catch {}
+});
+systemDark.addEventListener('change', (e) => {
+  let stored: string | null = null;
+  try {
+    stored = localStorage.getItem('cartium-theme');
+  } catch {}
+  if (!stored) applyTheme(e.matches ? 'dark' : 'light');
+});
+
 /* ---------- Accessible radio groups built from buttons ---------- */
 function radioGroup(group: HTMLElement, onSelect: (btn: HTMLButtonElement) => void) {
   const radios = $$<HTMLButtonElement>('[role="radio"]', group);
@@ -363,27 +389,96 @@ function launch(mm: gsap.MatchMedia) {
 }
 
 /* ---------- Showcase ---------- */
-// The feature in the middle of the viewport decides which screen the pinned phone shows.
+// A feature switcher: tabs on the left, the phone on the right. It advances by itself while
+// in view and untouched; a click, a key or hovering it hands control to the visitor.
 function showcase() {
   const section = $('[data-showcase]');
   if (!section) return;
-  const items = $$('[data-sc-item]', section);
+  const list = $('[data-sc-tabs]', section)!;
+  const tabs = $$<HTMLButtonElement>('[data-sc-tab]', section);
   const shots = $$('[data-sc-shot]', section);
-  const count = $('[data-sc-count]', section);
-  const bar = $('[data-sc-bar]', section);
-  const set = (n: number) => {
-    items.forEach((el, i) => el.classList.toggle('is-active', i === n));
-    shots.forEach((el, i) => el.classList.toggle('is-on', i <= n));
-    if (count) count.textContent = String(n + 1).padStart(2, '0');
-    if (bar) bar.style.transform = `scaleX(${(n + 1) / items.length})`;
+  const panel = $('[data-sc-panel]', section)!;
+  const caption = $('[data-sc-caption]', section);
+  const texts = tabs.map((t) => t.querySelector('.sc-text')?.textContent ?? '');
+  const TIME = 5000;
+  let current = 0;
+  let timer = 0;
+  let inView = false;
+  let auto = !reduceMotion;
+
+  const select = (n: number, focus = false) => {
+    if (n === current) return;
+    shots[current].classList.add('is-leaving');
+    const prev = current;
+    window.setTimeout(() => shots[prev].classList.remove('is-leaving'), 700);
+    current = n;
+    tabs.forEach((t, i) => {
+      const on = i === n;
+      t.classList.toggle('is-active', on);
+      t.setAttribute('aria-selected', String(on));
+      t.tabIndex = on ? 0 : -1;
+    });
+    shots.forEach((el, i) => {
+      el.classList.toggle('is-on', i === n);
+      el.setAttribute('aria-hidden', String(i !== n));
+    });
+    panel.setAttribute('aria-labelledby', tabs[n].id);
+    if (caption) caption.textContent = texts[n];
+    if (focus) tabs[n].focus();
+    // Keep the chip in view on the mobile row without scrolling the page.
+    if (list.scrollWidth > list.clientWidth) {
+      list.scrollTo({ left: tabs[n].offsetLeft - 16, behavior: reduceMotion ? 'auto' : 'smooth' });
+    }
+    restart();
   };
-  const io = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((e) => e.isIntersecting && set(Number((e.target as HTMLElement).dataset.scItem)));
+  const restart = () => {
+    window.clearTimeout(timer);
+    // Restart the CSS progress animation for the new active tab.
+    list.classList.remove('is-auto');
+    if (!auto || !inView) return;
+    void list.offsetWidth;
+    list.classList.add('is-auto');
+    timer = window.setTimeout(() => select((current + 1) % tabs.length), TIME);
+  };
+  const stopAuto = () => {
+    auto = false;
+    window.clearTimeout(timer);
+    list.classList.remove('is-auto');
+  };
+
+  list.style.setProperty('--sc-time', `${TIME}ms`);
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => {
+      stopAuto();
+      select(i);
+    });
+    t.addEventListener('keydown', (e) => {
+      const step = ['ArrowDown', 'ArrowRight'].includes(e.key) ? 1 : ['ArrowUp', 'ArrowLeft'].includes(e.key) ? -1 : 0;
+      if (!step) return;
+      e.preventDefault();
+      stopAuto();
+      select((i + step + tabs.length) % tabs.length, true);
+    });
+  });
+  // Hover pauses (the line stops where it is); leaving resumes the remaining time.
+  section.querySelector('.sc-grid')?.addEventListener('pointerenter', (e) => {
+    if ((e as PointerEvent).pointerType !== 'mouse' || !auto) return;
+    window.clearTimeout(timer);
+    list.classList.add('is-paused');
+  });
+  section.querySelector('.sc-grid')?.addEventListener('pointerleave', (e) => {
+    if ((e as PointerEvent).pointerType !== 'mouse' || !auto) return;
+    list.classList.remove('is-paused');
+    restart();
+  });
+  new IntersectionObserver(
+    ([e]) => {
+      inView = e.isIntersecting;
+      if (inView) restart();
+      else window.clearTimeout(timer);
     },
-    { rootMargin: '-48% 0px -48% 0px' },
-  );
-  items.forEach((el) => io.observe(el));
+    { threshold: 0.4 },
+  ).observe(panel);
 }
 
 /* ---------- Black stages ---------- */

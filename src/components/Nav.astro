@@ -18,6 +18,10 @@ const links = [
       {links.map((l) => <li><a href={l.href} class="nav-link">{l.label}</a></li>)}
     </ul>
     <div class="nav-actions">
+      <button class="theme-toggle" type="button" aria-label="Темна тема" aria-pressed="false" data-theme-toggle>
+        <span class="theme-icon theme-icon--moon"><Icon name="moon" /></span>
+        <span class="theme-icon theme-icon--sun"><Icon name="sun" /></span>
+      </button>
       <a class="btn btn-primary btn-sm nav-cta" href={SIGNUP_URL} target="_blank" rel="noopener">
         <span>Створити<span class="cta-more"> магазин</span></span>
         <span class="btn-icon"><Icon name="paper-plane-tilt" /></span>
@@ -71,7 +75,35 @@ const links = [
     -webkit-backdrop-filter: saturate(1.6) blur(18px);
     box-shadow:
       inset 0 0 0 1px var(--line),
-      0 12px 40px -24px rgba(10, 10, 11, 0.3);
+      0 12px 40px -24px rgba(24, 24, 27, 0.3);
+  }
+  .theme-toggle {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    color: var(--ink);
+    transition: background-color 0.3s var(--ease-out);
+  }
+  .theme-toggle:hover {
+    background: var(--accent-soft);
+  }
+  .theme-icon {
+    grid-area: 1 / 1;
+    display: grid;
+    font-size: 1.25rem;
+    transition: transform 0.5s var(--ease-spring), opacity 0.3s var(--ease-out);
+  }
+  .theme-icon--sun,
+  :global([data-theme='dark']) .theme-icon--moon {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.6);
+  }
+  :global([data-theme='dark']) .theme-icon--sun {
+    opacity: 1;
+    transform: none;
   }
   .nav-logo {
     display: inline-flex;

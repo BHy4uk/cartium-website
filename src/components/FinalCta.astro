@@ -57,7 +57,7 @@ const qrSvg = qr.replace('<svg ', '<svg aria-hidden="true" focusable="false" ');
     border: 1px solid transparent;
     background:
       radial-gradient(80% 120% at 0% 0%, rgba(255, 255, 255, 0.13), transparent 60%) padding-box,
-      linear-gradient(#0a0a0b, #0a0a0b) padding-box,
+      linear-gradient(var(--stage-bg), var(--stage-bg)) padding-box,
       var(--chrome-border) border-box;
     color: var(--ink);
     overflow: hidden;

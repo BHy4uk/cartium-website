@@ -127,7 +127,7 @@ export function initDemo() {
     orderNo: FIRST_ORDER,
     orders: 0,
     revenue: 0,
-    name: 'Urban Style',
+    name: 'Cartium',
     opener: null as HTMLElement | null,
     logoUrl: '',
   };
@@ -247,11 +247,11 @@ export function initDemo() {
 
   const logoInput = q<HTMLInputElement>('[data-demo-logo-input]');
   const logoPreview = q('[data-demo-logo-preview]');
-  const dsLogo = q('[data-ds-logo]');
+  const dsLogos = qa('[data-ds-logo]');
   const setLogo = (url: string) => {
     if (state.logoUrl) URL.revokeObjectURL(state.logoUrl);
     state.logoUrl = url;
-    [logoPreview, dsLogo].forEach((el) => {
+    [logoPreview, ...dsLogos].forEach((el) => {
       el.hidden = !url;
       el.style.backgroundImage = url ? `url("${url}")` : '';
     });
@@ -306,7 +306,7 @@ export function initDemo() {
   /* ----- Shuffle and reset ----- */
   q('[data-demo-shuffle]').addEventListener('click', () => {
     const accents = qa('[data-set="accent"]').map((el) => el.dataset.value!);
-    look.template = pick(['classic', 'minimal', 'grid_focus', 'editorial'].filter((t) => t !== look.template));
+    look.template = pick(qa('[data-set="template"]').map((el) => el.dataset.value!).filter((t) => t !== look.template));
     look.mode = pick(['light', 'dark']);
     look.accent = pick(accents);
     look.buttons = pick(['filled', 'outline']);
@@ -351,7 +351,7 @@ export function initDemo() {
       scrollToGrid();
     }),
   );
-  q('[data-scroll-grid]').addEventListener('click', scrollToGrid);
+  qa('[data-scroll-grid]').forEach((el) => el.addEventListener('click', scrollToGrid));
 
   /* ----- Product sheet ----- */
   const sizesBox = q('[data-sheet-sizes]');
@@ -583,8 +583,8 @@ export function initDemo() {
     Object.assign(look, DEFAULT_LOOK);
     lastPromoMode = look.promo;
     promoToggle.setAttribute('aria-checked', 'true');
-    nameInput.value = 'Urban Style';
-    promoInput.value = 'Безкоштовна доставка від 2 000 грн';
+    nameInput.value = 'Cartium';
+    promoInput.value = 'SS2026 // NEW SEASON // OUT NOW';
     customColor.value = '#1d1d1f';
     logoInput.value = '';
     setLogo('');

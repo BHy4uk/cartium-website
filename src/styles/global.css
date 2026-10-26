@@ -31,42 +31,44 @@
 }
 
 /* ---------- Tokens ---------- */
-/* Monochrome, like the Cartium product itself (its default accent is neutral ink):
-   white and graphite for reading, black "stages" for the moments that should glow,
-   and the chrome of the logo as the only material. No hue anywhere in the site chrome;
-   colour appears only inside real product screens.
-   .paper puts the light tokens back inside a stage (product cards on black). */
+/* "Soft graphite": a light grey page, white cards and graphite ink, with graphite stages in
+   only a few places; the dark theme is the same family lifted off pure black. The chrome of
+   the logo is the only material and colour appears only inside real product screens.
+   .paper keeps the light tokens for product cards wherever they sit. */
 :root,
 .paper {
   color-scheme: light;
   --bg: #f4f4f5;
-  --bg-raise: #ececee;
+  --bg-raise: #ebebed;
   --surface: #ffffff;
-  --surface-2: #f7f7f8;
-  --surface-3: #ececee;
-  --ink: #0a0a0b;
-  --ink-2: #2a2a2e;
+  --surface-2: #f8f8f9;
+  --surface-3: #ebebed;
+  --ink: #18181b;
+  --ink-2: #2e2e33;
   --muted: #66666d;
-  --line: rgba(10, 10, 11, 0.08);
-  --line-strong: rgba(10, 10, 11, 0.16);
-  --accent: #0a0a0b;
-  --accent-text: #0a0a0b;
+  --line: rgba(24, 24, 27, 0.08);
+  --line-strong: rgba(24, 24, 27, 0.16);
+  --accent: #18181b;
+  --accent-text: #18181b;
   --on-accent: #ffffff;
-  --accent-soft: rgba(10, 10, 11, 0.06);
-  --accent-glow: rgba(10, 10, 11, 0.25);
-  --ok: #0a0a0b;
-  --ok-soft: rgba(10, 10, 11, 0.07);
-  --panel: #0a0a0b;
+  --accent-soft: rgba(24, 24, 27, 0.06);
+  --accent-glow: rgba(24, 24, 27, 0.25);
+  --ok: #18181b;
+  --ok-soft: rgba(24, 24, 27, 0.07);
+  --stage-bg: #2a2a2e;
+  --panel: #2a2a2e;
   --on-panel: #f4f4f5;
-  --on-panel-muted: #a1a1aa;
+  --on-panel-muted: #b4b4bb;
   --chrome-text: linear-gradient(180deg, #ffffff 0%, #f1f1f3 26%, #9a9aa3 50%, #e4e4e8 68%, #ffffff 100%);
   --chrome: linear-gradient(145deg, #f5f5f7 0%, #8a8a93 16%, #d9d9de 34%, #4a4a50 58%, #bdbdc4 80%, #6a6a72 100%);
   --chrome-edge: rgba(255, 255, 255, 0.7);
   --chrome-border: linear-gradient(140deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.06) 30%, rgba(255, 255, 255, 0.28) 60%, rgba(255, 255, 255, 0.06) 85%, rgba(255, 255, 255, 0.45));
-  --shadow-soft: 0 1px 2px rgba(10, 10, 11, 0.04), 0 18px 40px -24px rgba(10, 10, 11, 0.22);
-  --shadow-lift: 0 2px 4px rgba(10, 10, 11, 0.05), 0 40px 80px -40px rgba(10, 10, 11, 0.35);
-  --shadow-phone: 0 70px 100px -60px rgba(10, 10, 11, 0.55), 0 30px 50px -30px rgba(10, 10, 11, 0.3);
-  --glass: rgba(250, 250, 250, 0.74);
+  --shadow-soft: 0 1px 2px rgba(24, 24, 27, 0.04), 0 18px 40px -24px rgba(24, 24, 27, 0.22);
+  --shadow-lift: 0 2px 4px rgba(24, 24, 27, 0.05), 0 40px 80px -40px rgba(24, 24, 27, 0.35);
+  --shadow-phone: 0 70px 100px -60px rgba(24, 24, 27, 0.55), 0 30px 50px -30px rgba(24, 24, 27, 0.3);
+  --glass: rgba(250, 250, 250, 0.76);
+  --grain-blend: multiply;
+  --logo-invert: 1;
 
   --font-display: 'Fixel Display', 'Fixel Text', ui-sans-serif, system-ui, sans-serif;
   --font-text: 'Fixel Text', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -89,36 +91,76 @@
   --z-grain: 60;
 }
 
-/* Black stage: the same tokens, inverted. Any section with .stage reads them. */
-.stage {
+/* Dark theme: set on <html> by the inline script in Base.astro (system preference, or the
+   visitor's choice from the toggle). Same graphite family, lifted off pure black. */
+:root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #0a0a0b;
-  --bg-raise: #121214;
-  --surface: #141416;
-  --surface-2: #1b1b1e;
-  --surface-3: #252529;
+  --bg: #111113;
+  --bg-raise: #18181b;
+  --surface: #1c1c1f;
+  --surface-2: #18181b;
+  --surface-3: #2a2a2e;
   --ink: #f4f4f5;
   --ink-2: #d4d4d8;
   --muted: #a1a1aa;
-  --line: rgba(255, 255, 255, 0.09);
-  --line-strong: rgba(255, 255, 255, 0.18);
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
   --accent: #f4f4f5;
   --accent-text: #f4f4f5;
-  --on-accent: #0a0a0b;
+  --on-accent: #18181b;
   --accent-soft: rgba(255, 255, 255, 0.08);
-  --accent-glow: rgba(255, 255, 255, 0.18);
+  --accent-glow: rgba(255, 255, 255, 0.14);
   --ok: #f4f4f5;
   --ok-soft: rgba(255, 255, 255, 0.1);
-  --panel: #f4f4f5;
-  --on-panel: #0a0a0b;
-  --on-panel-muted: #52525b;
+  --stage-bg: #1c1c1f;
+  --panel: #1c1c1f;
+  --on-panel: #f4f4f5;
+  --on-panel-muted: #a1a1aa;
   --chrome-edge: rgba(255, 255, 255, 0.35);
-  --shadow-soft: 0 24px 48px -28px rgba(0, 0, 0, 0.85);
-  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.4), 0 40px 80px -40px rgba(0, 0, 0, 0.9);
-  --shadow-phone: 0 70px 120px -50px rgba(0, 0, 0, 0.95), 0 0 120px -40px rgba(255, 255, 255, 0.16);
-  --glass: rgba(20, 20, 22, 0.72);
+  --shadow-soft: 0 24px 48px -28px rgba(0, 0, 0, 0.8);
+  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.4), 0 40px 80px -40px rgba(0, 0, 0, 0.85);
+  --shadow-phone: 0 70px 120px -50px rgba(0, 0, 0, 0.9), 0 0 120px -40px rgba(255, 255, 255, 0.12);
+  --glass: rgba(28, 28, 31, 0.76);
+  --grain-blend: screen;
+  --logo-invert: 0;
+}
+
+/* Graphite stage: the two moments that should stand out (the direct-vs-Cartium race and
+   the closing call), plus the Pro plan. Same tokens, inverted onto graphite. */
+.stage {
+  color-scheme: dark;
+  --bg: var(--stage-bg);
+  --bg-raise: #333338;
+  --surface: #333338;
+  --surface-2: #39393f;
+  --surface-3: #45454c;
+  --ink: #f4f4f5;
+  --ink-2: #dcdce0;
+  --muted: #b4b4bb;
+  --line: rgba(255, 255, 255, 0.1);
+  --line-strong: rgba(255, 255, 255, 0.2);
+  --accent: #f4f4f5;
+  --accent-text: #f4f4f5;
+  --on-accent: #18181b;
+  --accent-soft: rgba(255, 255, 255, 0.08);
+  --accent-glow: rgba(255, 255, 255, 0.16);
+  --ok: #f4f4f5;
+  --ok-soft: rgba(255, 255, 255, 0.1);
+  --on-panel-muted: #b4b4bb;
+  --chrome-edge: rgba(255, 255, 255, 0.35);
+  --shadow-soft: 0 24px 48px -28px rgba(0, 0, 0, 0.6);
+  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.3), 0 40px 80px -40px rgba(0, 0, 0, 0.7);
+  --shadow-phone: 0 70px 120px -50px rgba(0, 0, 0, 0.8), 0 0 120px -40px rgba(255, 255, 255, 0.14);
+  --glass: rgba(42, 42, 46, 0.76);
   background: var(--bg);
   color: var(--ink);
+}
+:root[data-theme='dark'] .stage {
+  --bg-raise: #232327;
+  --surface: #232327;
+  --surface-2: #28282d;
+  --surface-3: #313137;
+  --muted: #a1a1aa;
 }
 .paper {
   background: var(--surface);
@@ -220,7 +262,7 @@ body::after {
   z-index: var(--z-grain);
   pointer-events: none;
   opacity: 0.035;
-  mix-blend-mode: multiply;
+  mix-blend-mode: var(--grain-blend);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -318,8 +360,9 @@ body::after {
     inset 0 0 0 0.3cqw rgba(255, 255, 255, 0.22),
     var(--shadow-phone);
 }
-/* On a black stage the dark titanium would vanish: use the natural (light) finish. */
-.stage .iphone-body {
+/* On graphite or the dark theme the dark titanium would vanish: use the natural (light) finish. */
+.stage .iphone-body,
+:root[data-theme='dark'] .iphone-body {
   background: linear-gradient(150deg, #e2e2e6 0%, #8c8c93 16%, #55555b 40%, #76767d 64%, #4a4a50 84%, #c4c4ca 100%);
 }
 .iphone-glass {
