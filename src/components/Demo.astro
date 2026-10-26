@@ -2,83 +2,227 @@
 import Icon from './Icon.astro';
 import { SIGNUP_URL } from '../config';
 
-// A working miniature of the Cartium storefront (docs/ai/design/DESIGN-SYSTEM.md:
-// light surface, accent-filled selection, chips, two-column image-first cards,
-// bottom tab bar). Prices and the Нова пошта address match the docs' demo data.
+// A working miniature of a Cartium storefront. Every control below maps to a real
+// setting of Керування → Налаштування → Вигляд (webapp/shared/theme.js,
+// application/store_templates.py); prices and the Нова пошта address follow the docs' demo data.
 const products = [
-  { id: 'tee', name: 'Футболка', cat: 'tees', price: 1500, icon: 't-shirt-fill', tone: '#e7e8ec', sizes: ['S', 'M', 'L', 'XL'], soldOut: ['XL'] },
-  { id: 'hoodie', name: 'Худі oversize', cat: 'hoodies', price: 2400, icon: 'hoodie-fill', tone: '#e4e7ee', sizes: ['S', 'M', 'L'], soldOut: [] },
-  { id: 'jeans', name: 'Джинси', cat: 'jeans', price: 2750, old: 3450, icon: 'pants-fill', tone: '#e6e9ef', sizes: ['28', '30', '32'], soldOut: ['28'] },
-  { id: 'cap', name: 'Кепка', cat: 'acc', price: 690, icon: 'baseball-cap-fill', tone: '#ebe9e6', sizes: ['One size'], soldOut: [] },
+  { id: 'tee', name: 'Футболка', cat: 'tees', price: 1500, icon: 't-shirt-fill', tone: '#e9e9ec', sizes: ['S', 'M', 'L', 'XL'], soldOut: ['XL'] },
+  { id: 'hoodie', name: 'Худі oversize', cat: 'hoodies', price: 2400, icon: 'hoodie-fill', tone: '#e2e2e6', sizes: ['S', 'M', 'L'], soldOut: [] },
+  { id: 'jeans', name: 'Джинси', cat: 'jeans', price: 2750, old: 3450, icon: 'pants-fill', tone: '#e6e6ea', sizes: ['28', '30', '32'], soldOut: ['28'] },
+  { id: 'cap', name: 'Кепка', cat: 'acc', price: 690, icon: 'baseball-cap-fill', tone: '#ececee', sizes: ['One size'], soldOut: [] },
 ];
 const cats = [
   { id: 'all', label: 'Усі' },
-  { id: 'tees', label: 'Футболки' },
-  { id: 'hoodies', label: 'Худі' },
-  { id: 'jeans', label: 'Джинси' },
-  { id: 'acc', label: 'Аксесуари' },
+  { id: 'tees', label: 'Футболки', icon: 't-shirt-fill' },
+  { id: 'hoodies', label: 'Худі', icon: 'hoodie-fill' },
+  { id: 'jeans', label: 'Джинси', icon: 'pants-fill' },
+  { id: 'acc', label: 'Аксесуари', icon: 'baseball-cap-fill' },
 ];
-// Accent presets in the spirit of Вигляд → акцентний колір (default is neutral ink).
+// Four of the ten real templates; descriptions are the product's own.
+const templates = [
+  { id: 'classic', name: 'Classic', text: 'Класичний магазин з категоріями і сіткою товарів.' },
+  { id: 'minimal', name: 'Minimal', text: 'Мінімалістичний стиль. Акцент на товари.' },
+  { id: 'grid_focus', name: 'Grid Focus', text: 'Акцент на каталозі. Чиста сітка товарів.' },
+  { id: 'editorial', name: 'Editorial', text: 'Стиль онлайн-журналу. Історії, фото, колекції.' },
+];
+// "auto" is the storefront default: near-black on light, near-white on dark (DEFAULT_ACCENT).
 const accents = [
-  { id: 'ink', label: 'Графіт', value: '#1d1d1f' },
-  { id: 'cobalt', label: 'Кобальт', value: '#3f5bff' },
-  { id: 'emerald', label: 'Смарагд', value: '#0f8a5f' },
-  { id: 'coral', label: 'Корал', value: '#e5533d' },
-  { id: 'plum', label: 'Слива', value: '#7a3fd1' },
+  { id: 'auto', label: 'Як у темі', value: 'auto', paint: 'linear-gradient(135deg, #1d1d1f 50%, #f5f5f7 50%)' },
+  { id: 'graphite', label: 'Графіт', value: '#3a3a3f', paint: '#3a3a3f' },
+  { id: 'silver', label: 'Сріблястий', value: '#8e8e96', paint: '#8e8e96' },
 ];
-const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} грн`;
+// FONT_STACKS keys and labels from the appearance editor.
+const fonts = [
+  { id: 'modern', label: 'Modern', face: 'Inter' },
+  { id: 'neutral', label: 'Helvetica', face: 'Helvetica Neue' },
+  { id: 'premium', label: 'IBM Plex Sans', face: 'IBM Plex Sans' },
+  { id: 'fashion', label: 'Fashion', face: 'Space Grotesk' },
+  { id: 'system', label: 'System', face: 'рідний шрифт' },
+];
+const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')} грн`;
 ---
-<section class="section demo" id="demo" aria-labelledby="demo-title" data-demo>
+<section class="section studio" id="demo" aria-labelledby="demo-title" data-demo>
   <script type="application/json" data-demo-products set:html={JSON.stringify(products)} />
   <div class="container">
-    <div class="section-head is-center">
-      <h2 id="demo-title" class="display h2"><span class="chrome-text">Спробуйте свій магазин просто зараз</span></h2>
+    <div class="studio-head">
+      <h2 id="demo-title" class="display h2">Зберіть свою вітрину. Потім купіть у ній щось.</h2>
       <p class="lead">
-        Назвіть магазин, оберіть колір і купіть щось як покупець. Праворуч видно, що в цю секунду отримуєте ви.
+        Кожен перемикач тут повторює розділ «Вигляд» у вашому магазині. Налаштуйте, оформіть замовлення як покупець і подивіться, що в цю секунду отримуєте ви.
       </p>
     </div>
 
-    <div class="demo-controls">
-      <div class="dc-field">
-        <label for="demo-name" class="dc-label">Назва магазину</label>
-        <input id="demo-name" class="dc-input" type="text" maxlength="22" value="Urban Style" autocomplete="off" spellcheck="false" data-demo-input />
-      </div>
-      <fieldset class="dc-field dc-accents">
-        <legend class="dc-label">Колір кнопок</legend>
-        <div class="dc-swatches">
-          {accents.map((a, i) => (
-            <label class="dc-swatch" title={a.label}>
-              <input type="radio" name="demo-accent" value={a.value} checked={i === 0} data-demo-accent />
-              <span style={`background:${a.value}`}></span>
-              <span class="sr-only">{a.label}</span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
-      <button type="button" class="dc-reset" data-demo-reset><Icon name="arrow-counter-clockwise" /> Почати спочатку</button>
-    </div>
+    <ol class="studio-steps" aria-label="Кроки демо">
+      <li data-step-flag="style"><span class="sf-dot"><Icon name="check" /></span> Оформіть вітрину</li>
+      <li data-step-flag="buy"><span class="sf-dot"><Icon name="check" /></span> Купіть як покупець</li>
+      <li data-step-flag="ship"><span class="sf-dot"><Icon name="check" /></span> Прийміть замовлення і створіть ТТН</li>
+    </ol>
 
-    <div class="demo-stage">
+    <div class="studio-grid">
+      <!-- Controls -->
+      <div class="studio-panel">
+        <div class="sp-identity">
+          <label class="sp-logo" for="demo-logo" title="Завантажити логотип">
+            <input id="demo-logo" type="file" accept="image/*" data-demo-logo-input />
+            <span class="sp-logo-img" data-demo-logo-preview hidden></span>
+            <span class="sp-logo-empty"><Icon name="upload-simple" /></span>
+            <span class="sr-only">Логотип магазину</span>
+          </label>
+          <div class="sp-name">
+            <label for="demo-name" class="sp-label">Назва магазину</label>
+            <input id="demo-name" class="sp-input" type="text" maxlength="22" value="Urban Style" autocomplete="off" spellcheck="false" data-demo-input />
+          </div>
+        </div>
+
+        <div class="sp-tabs" role="tablist" aria-label="Налаштування вигляду">
+          <button type="button" role="tab" id="tab-tpl" aria-controls="pane-tpl" aria-selected="true" data-tab="tpl"><Icon name="layout" /> Шаблон</button>
+          <button type="button" role="tab" id="tab-style" aria-controls="pane-style" aria-selected="false" tabindex="-1" data-tab="style"><Icon name="paint-brush-broad" /> Стиль</button>
+          <button type="button" role="tab" id="tab-font" aria-controls="pane-font" aria-selected="false" tabindex="-1" data-tab="font"><Icon name="text-aa" /> Шрифт</button>
+          <button type="button" role="tab" id="tab-promo" aria-controls="pane-promo" aria-selected="false" tabindex="-1" data-tab="promo"><Icon name="megaphone-simple" /> Рядок</button>
+        </div>
+
+        <div class="sp-pane" role="tabpanel" id="pane-tpl" aria-labelledby="tab-tpl" data-pane="tpl">
+          <div class="tpl-grid" role="radiogroup" aria-label="Шаблон магазину">
+            {templates.map((t, i) => (
+              <button type="button" class="tpl" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-set="template" data-value={t.id}>
+                <span class:list={['tpl-thumb', `tpl-thumb--${t.id}`]} aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+                <span class="tpl-name">{t.name}</span>
+                <span class="tpl-text">{t.text}</span>
+              </button>
+            ))}
+          </div>
+          <p class="sp-note">Ще шість: Full Screen, Split Hero, Video Hero, Carousel, Masonry, Sidebar. На Basic доступний 1 шаблон, на Pro 3, на Business 10.</p>
+        </div>
+
+        <div class="sp-pane" role="tabpanel" id="pane-style" aria-labelledby="tab-style" data-pane="style" hidden>
+          <div class="sp-row">
+            <span class="sp-label">Тема</span>
+            <div class="seg" role="radiogroup" aria-label="Тема">
+              <button type="button" role="radio" aria-checked="true" data-set="mode" data-value="light">Світла</button>
+              <button type="button" role="radio" aria-checked="false" data-set="mode" data-value="dark">Темна</button>
+            </div>
+          </div>
+          <div class="sp-row">
+            <span class="sp-label">Акцент кнопок</span>
+            <div class="sp-swatches" role="radiogroup" aria-label="Акцент кнопок">
+              {accents.map((a, i) => (
+                <button type="button" class="sw" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-set="accent" data-value={a.value} title={a.label}>
+                  <span style={`background:${a.paint}`}></span><span class="sr-only">{a.label}</span>
+                </button>
+              ))}
+              <label class="sw sw--custom" title="Свій колір">
+                <input type="color" value="#1d1d1f" data-demo-color />
+                <span class="sw-custom-ring"></span>
+                <span class="sr-only">Свій колір</span>
+              </label>
+            </div>
+          </div>
+          <div class="sp-row">
+            <span class="sp-label">Кнопки</span>
+            <div class="seg" role="radiogroup" aria-label="Стиль кнопок">
+              <button type="button" role="radio" aria-checked="true" data-set="buttons" data-value="filled">Суцільні</button>
+              <button type="button" role="radio" aria-checked="false" data-set="buttons" data-value="outline">Контурні</button>
+            </div>
+          </div>
+          <div class="sp-row">
+            <span class="sp-label">Скруглення</span>
+            <div class="seg" role="radiogroup" aria-label="Скруглення">
+              <button type="button" role="radio" aria-checked="true" data-set="radius" data-value="rounded">М'яке</button>
+              <button type="button" role="radio" aria-checked="false" data-set="radius" data-value="medium">Помірне</button>
+              <button type="button" role="radio" aria-checked="false" data-set="radius" data-value="sharp">Мінімальне</button>
+            </div>
+          </div>
+          <div class="sp-row">
+            <span class="sp-label">Картки</span>
+            <div class="seg" role="radiogroup" aria-label="Стиль карток">
+              <button type="button" role="radio" aria-checked="true" data-set="cards" data-value="flat">Плаский</button>
+              <button type="button" role="radio" aria-checked="false" data-set="cards" data-value="soft">М'який</button>
+              <button type="button" role="radio" aria-checked="false" data-set="cards" data-value="outline">Контурний</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sp-pane" role="tabpanel" id="pane-font" aria-labelledby="tab-font" data-pane="font" hidden>
+          <div class="font-list" role="radiogroup" aria-label="Шрифт">
+            {fonts.map((f, i) => (
+              <button type="button" class="font-opt" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-set="font" data-value={f.id}>
+                <span class="font-sample" data-font-sample={f.id}>Ag</span>
+                <span class="font-meta"><strong>{f.label}</strong><span>{f.face}</span></span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div class="sp-pane" role="tabpanel" id="pane-promo" aria-labelledby="tab-promo" data-pane="promo" hidden>
+          <button type="button" class="switch" role="switch" aria-checked="true" data-demo-promo-toggle>
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+            <span>Верхній рядок</span>
+          </button>
+          <div class="sp-field">
+            <label for="demo-promo" class="sp-label">Текст оголошення</label>
+            <input id="demo-promo" class="sp-input" type="text" maxlength="60" value="Безкоштовна доставка від 2 000 грн" data-demo-promo-input />
+          </div>
+          <div class="sp-row">
+            <span class="sp-label">Рух</span>
+            <div class="seg" role="radiogroup" aria-label="Рух рядка">
+              <button type="button" role="radio" aria-checked="false" data-set="promo" data-value="center">По центру</button>
+              <button type="button" role="radio" aria-checked="true" data-set="promo" data-value="continuous">Безперервно</button>
+              <button type="button" role="radio" aria-checked="false" data-set="promo" data-value="static">Статично</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sp-foot">
+          <button type="button" class="sp-btn" data-demo-shuffle><Icon name="shuffle" /> Перемішати</button>
+          <button type="button" class="sp-btn" data-demo-reset><Icon name="arrow-counter-clockwise" /> Скинути</button>
+        </div>
+      </div>
+
       <!-- Buyer -->
-      <div class="demo-side">
-        <p class="demo-who"><span class="who-dot who-dot--buyer"></span> Покупець, у Telegram</p>
-        <div class="dphone spot" data-dphone data-screen="catalog" style="--da:#1d1d1f;--da-ink:#ffffff">
-          <div class="dphone-screen">
+      <div class="studio-col">
+        <p class="studio-who">Покупець бачить</p>
+        <div class="dphone" data-dphone data-screen="catalog" data-template="classic" data-promo="continuous">
+          <div class="dphone-screen" data-ds>
+            <div class="ds-promo" data-ds-promo>
+              <div class="ds-promo-track" data-ds-promo-track><span data-ds-promo-text>Безкоштовна доставка від 2 000 грн</span></div>
+            </div>
+
             <!-- Catalog -->
             <div class="dscreen dscreen--catalog" data-screen-id="catalog">
               <header class="ds-head">
-                <span class="ds-shop" data-demo-name>Urban Style</span>
+                <span class="ds-brand">
+                  <span class="ds-logo" data-ds-logo hidden></span>
+                  <span class="ds-shop" data-demo-name>Urban Style</span>
+                </span>
                 <span class="ds-icons" aria-hidden="true">
                   <span><Icon name="magnifying-glass" /></span>
                   <span><Icon name="sliders-horizontal" /></span>
                 </span>
               </header>
+
+              <!-- Template blocks -->
+              <div class="tb tb-hero" data-tb="minimal">
+                <p class="tb-hero-k">Нова колекція</p>
+                <p class="tb-hero-t" data-demo-name>Urban Style</p>
+                <button type="button" class="ds-btn ds-btn--sm" data-scroll-grid>До каталогу</button>
+              </div>
+              <div class="tb tb-tiles" data-tb="grid_focus">
+                {cats.filter((c) => c.icon).map((c) => (
+                  <button type="button" class="tb-tile" data-cat-jump={c.id}><Icon name={c.icon!} /><span>{c.label}</span></button>
+                ))}
+              </div>
+              <button type="button" class="tb tb-lead" data-tb="editorial" data-open="hoodie">
+                <span class="tb-lead-img"><Icon name="hoodie-fill" /></span>
+                <span class="tb-lead-k">Історія колекції</span>
+                <span class="tb-lead-t">Худі, в якому не холодно навіть у листопаді</span>
+                <span class="tb-lead-p">{fmt(2400)}</span>
+              </button>
+
               <div class="ds-chips" role="group" aria-label="Категорії">
                 {cats.map((c, i) => (
                   <button type="button" class="ds-chip" aria-pressed={i === 0 ? 'true' : 'false'} data-cat={c.id}>{c.label}</button>
                 ))}
               </div>
-              <ul class="ds-grid">
+              <ul class="ds-grid" data-ds-grid>
                 {products.map((p) => (
                   <li class="ds-card" data-product-card data-cat={p.cat}>
                     <button type="button" class="ds-card-hit" data-open={p.id}>
@@ -97,9 +241,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
 
             <!-- Cart -->
             <div class="dscreen dscreen--cart" data-screen-id="cart">
-              <header class="ds-head">
-                <span class="ds-title">Кошик</span>
-              </header>
+              <header class="ds-head"><span class="ds-title">Кошик</span></header>
               <ul class="ds-lines" data-cart-lines></ul>
               <div class="ds-empty" data-cart-empty>
                 <Icon name="shopping-bag" />
@@ -138,17 +280,15 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
                 </button>
               </div>
               <div class="ds-sticky">
-                <button type="button" class="ds-btn" data-pay-submit>
-                  <Icon name="lock-simple" /> <span data-pay-label>Оплатити</span>
-                </button>
+                <button type="button" class="ds-btn" data-pay-submit><Icon name="lock-simple" /> <span data-pay-label>Оплатити</span></button>
               </div>
             </div>
 
             <!-- Processing and done -->
             <div class="dscreen dscreen--done" data-screen-id="done">
               <div class="ds-done" data-done>
-                <span class="ds-spinner" data-done-spinner aria-hidden="true"><Icon name="spinner-gap" /></span>
-                <span class="ds-check" data-done-check aria-hidden="true"><Icon name="check-circle-fill" /></span>
+                <span class="ds-spinner" aria-hidden="true"><Icon name="spinner-gap" /></span>
+                <span class="ds-check" aria-hidden="true"><Icon name="check-circle-fill" /></span>
                 <p class="ds-done-title" data-done-title>Оплата…</p>
                 <p class="ds-muted" data-done-sub></p>
                 <button type="button" class="ds-btn ds-btn--ghost" data-go="catalog" data-done-back>Повернутися в каталог</button>
@@ -159,25 +299,24 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
             <!-- Product sheet -->
             <div class="ds-sheet" data-sheet aria-hidden="true">
               <div class="ds-sheet-scrim" data-sheet-close></div>
-              <div class="ds-sheet-body" role="dialog" aria-label="Товар" data-sheet-body>
+              <div class="ds-sheet-body" role="dialog" aria-label="Товар">
                 <span class="ds-sheet-grip" aria-hidden="true"></span>
                 <span class="ds-img ds-img--lg" data-sheet-img></span>
                 <p class="ds-sheet-name" data-sheet-name></p>
                 <p class="ds-price ds-price--lg" data-sheet-price></p>
-                <p class="ds-muted ds-sheet-label">Розмір</p>
+                <p class="ds-muted">Розмір</p>
                 <div class="ds-sizes" role="radiogroup" aria-label="Розмір" data-sheet-sizes></div>
                 <button type="button" class="ds-btn" data-sheet-add>Додати в кошик</button>
               </div>
             </div>
 
-            <!-- Tab bar -->
             <nav class="ds-tabs" aria-label="Розділи магазину">
-              <button type="button" class="ds-tab" data-go="catalog" data-tab="catalog"><Icon name="house" /><span>Каталог</span></button>
-              <button type="button" class="ds-tab" data-go="cart" data-tab="cart">
+              <button type="button" class="ds-tab" data-go="catalog" data-tab-id="catalog"><Icon name="house" /><span>Каталог</span></button>
+              <button type="button" class="ds-tab" data-go="cart" data-tab-id="cart">
                 <span class="ds-tab-icon"><Icon name="shopping-bag" /><span class="ds-badge" data-cart-badge hidden>0</span></span>
                 <span>Кошик</span>
               </button>
-              <button type="button" class="ds-tab" data-tab="orders" disabled><Icon name="receipt" /><span>Замовлення</span></button>
+              <button type="button" class="ds-tab" disabled><Icon name="receipt" /><span>Замовлення</span></button>
             </nav>
 
             <p class="ds-toast" data-toast role="status" aria-live="polite"></p>
@@ -185,15 +324,10 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
         </div>
       </div>
 
-      <svg class="demo-wire" viewBox="0 0 120 40" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M2 20 C 40 20, 80 20, 118 20" pathLength="100" class="wire-base" />
-        <path d="M2 20 C 40 20, 80 20, 118 20" pathLength="100" class="wire-pulse" data-wire />
-      </svg>
-
       <!-- Owner -->
-      <div class="demo-side">
-        <p class="demo-who"><span class="who-dot who-dot--owner"></span> Ви, у боті магазину</p>
-        <div class="dchat spot" id="demo-owner" data-dchat>
+      <div class="studio-col">
+        <p class="studio-who">Ви отримуєте</p>
+        <div class="dchat" id="demo-owner" data-dchat>
           <header class="dchat-head">
             <span class="dchat-avatar" data-demo-initial aria-hidden="true">U</span>
             <div>
@@ -210,16 +344,16 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
               <p>Магазин <strong data-demo-name>Urban Style</strong> працює. Нові замовлення приходитимуть сюди, а повний кабінет відкривається кнопкою <strong>Керування</strong>.</p>
             </div>
           </div>
-          <p class="dchat-hint" data-chat-hint><Icon name="cursor-click" /> Додайте товар у кошик ліворуч і оформіть замовлення</p>
+          <p class="dchat-hint" data-chat-hint><Icon name="cursor-click" /> <span data-chat-hint-text>Додайте товар у кошик і оформіть замовлення</span></p>
         </div>
       </div>
     </div>
 
-    <div class="demo-after">
-      <p class="demo-note">
-        Демо працює просто на сторінці, нічого нікуди не надсилається. Назву{' '}<strong>«<span data-demo-name>Urban Style</span>»</strong>{' '}бот попросить першим кроком, коли створюватимете справжній магазин.
+    <div class="studio-finale" data-finale>
+      <p class="studio-finale-text">
+        Так працюватиме <strong>«<span data-demo-name>Urban Style</span>»</strong>. Назву бот попросить першим кроком, а вигляд ви збережете в розділі «Вигляд».
       </p>
-      <a class="btn btn-primary" href={SIGNUP_URL} target="_blank" rel="noopener">
+      <a class="btn btn-primary" href={SIGNUP_URL} target="_blank" rel="noopener" data-magnetic>
         Створити магазин
         <span class="btn-icon"><Icon name="paper-plane-tilt" /></span>
       </a>
@@ -241,203 +375,462 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
 </section>
 
 <style>
-  .demo {
-    position: relative;
+  .studio-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    align-items: end;
+    gap: 24px 64px;
+    margin-bottom: 36px;
   }
-  .demo::before {
-    content: '';
-    position: absolute;
-    inset: 10% 0 0;
-    pointer-events: none;
-    background: radial-gradient(60% 50% at 50% 45%, rgba(63, 91, 255, 0.14), transparent 70%);
+  .studio-head .h2 {
+    max-width: 14ch;
   }
 
-  /* Controls */
-  .demo-controls {
-    position: relative;
+  /* Progress */
+  .studio-steps {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: center;
-    gap: 16px 28px;
-    margin: -16px auto 48px;
-    padding: 18px 22px;
-    max-width: 860px;
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.03);
-    box-shadow: inset 0 0 0 1px var(--line);
-  }
-  .dc-field {
-    display: grid;
     gap: 8px;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    min-width: 0;
+    margin-bottom: 28px;
   }
-  .dc-label {
-    font-size: 0.85rem;
+  .studio-steps li {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 40px;
+    padding: 0 16px 0 6px;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--muted);
+    font-size: 0.92rem;
+    font-weight: 500;
+    transition: background-color 0.4s var(--ease-out), color 0.4s var(--ease-out);
+  }
+  .sf-dot {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    color: transparent;
+    font-size: 15px;
+    transition: background-color 0.4s var(--ease-out), color 0.4s var(--ease-out);
+  }
+  .studio-steps li.is-done {
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: none;
+  }
+  .studio-steps li.is-done .sf-dot {
+    background: var(--bg);
+    color: var(--ink);
+    box-shadow: none;
+  }
+
+  .studio-grid {
+    display: grid;
+    grid-template-columns: minmax(300px, 380px) 340px minmax(280px, 360px);
+    justify-content: space-between;
+    align-items: start;
+    gap: 28px;
+  }
+  .studio-col {
+    display: grid;
+    gap: 12px;
+    justify-items: center;
+  }
+  .studio-who {
+    font-size: 0.9rem;
     font-weight: 600;
     color: var(--muted);
-    padding: 0;
   }
-  .dc-input {
-    width: min(280px, 72vw);
-    height: 46px;
-    padding: 0 16px;
+
+  /* Panel */
+  .studio-panel {
+    display: grid;
+    gap: 18px;
+    padding: 20px;
+    border-radius: var(--r-card);
+    background: var(--surface);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    position: sticky;
+    top: calc(var(--nav-h) + 32px);
+  }
+  .sp-identity {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    align-items: end;
+    gap: 12px;
+  }
+  .sp-logo {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--surface-3);
+    color: var(--ink-2);
+    font-size: 22px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.4s var(--ease-spring);
+  }
+  .sp-logo:hover {
+    transform: scale(1.05);
+  }
+  .sp-logo input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .sp-logo:focus-within {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+  }
+  .sp-logo-img {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+  }
+  .sp-logo-img:not([hidden]) + .sp-logo-empty {
+    display: none;
+  }
+  .sp-name,
+  .sp-field {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+  .sp-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .sp-input {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
     border: 0;
-    border-radius: 14px;
+    border-radius: 12px;
     background: var(--surface-2);
     box-shadow: inset 0 0 0 1px var(--line-strong);
     color: var(--ink);
-    font: 600 1.05rem var(--font-text);
+    font: 600 1rem var(--font-text);
     transition: box-shadow 0.25s var(--ease-out);
   }
-  .dc-input:focus {
+  .sp-input:focus {
     outline: none;
     box-shadow:
-      inset 0 0 0 1px var(--accent-text),
+      inset 0 0 0 1.5px var(--ink),
       0 0 0 4px var(--accent-soft);
   }
-  .dc-swatches {
+
+  .sp-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    padding: 4px;
+    border-radius: 16px;
+    background: var(--surface-3);
+  }
+  .sp-tabs button {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    padding: 8px 4px;
+    border-radius: 12px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out);
+  }
+  .sp-tabs button :global(.icon) {
+    font-size: 18px;
+  }
+  .sp-tabs button[aria-selected='true'] {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 1px 3px rgba(10, 10, 11, 0.12);
+  }
+  .sp-pane {
+    display: grid;
+    gap: 14px;
+    min-height: 330px;
+    align-content: start;
+  }
+  .sp-pane[hidden] {
+    display: none;
+  }
+  .sp-row {
+    display: grid;
+    gap: 8px;
+  }
+  .sp-note {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  /* Templates */
+  .tpl-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .tpl {
+    display: grid;
+    gap: 4px;
+    padding: 8px 8px 10px;
+    border-radius: 16px;
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+    text-align: left;
+    transition: box-shadow 0.25s var(--ease-out), transform 0.4s var(--ease-spring);
+  }
+  .tpl:hover {
+    transform: translateY(-2px);
+  }
+  .tpl[aria-checked='true'] {
+    box-shadow: inset 0 0 0 2px var(--ink);
+  }
+  .tpl-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .tpl-text {
+    font-size: 0.74rem;
+    line-height: 1.35;
+    color: var(--muted);
+  }
+  /* Wireframe thumbnails of each template's structure */
+  .tpl-thumb {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: 10px;
+    gap: 3px;
+    height: 74px;
+    padding: 6px;
+    border-radius: 10px;
+    background: var(--surface);
+    margin-bottom: 4px;
+    overflow: hidden;
+  }
+  .tpl-thumb i {
+    border-radius: 3px;
+    background: var(--surface-3);
+  }
+  .tpl-thumb--classic i:nth-child(1) {
+    grid-column: 1 / -1;
+    height: 6px;
+    width: 70%;
+  }
+  .tpl-thumb--classic i:nth-child(n + 2) {
+    grid-row: span 2;
+  }
+  .tpl-thumb--minimal i:nth-child(1) {
+    grid-column: 1 / -1;
+    grid-row: span 2;
+    background: var(--ink-2);
+  }
+  .tpl-thumb--minimal i:nth-child(n + 2) {
+    grid-row: span 2;
+  }
+  .tpl-thumb--grid_focus i:nth-child(-n + 2) {
+    background: var(--ink-2);
+    opacity: 0.6;
+  }
+  .tpl-thumb--grid_focus i:nth-child(n + 3) {
+    grid-row: span 2;
+  }
+  .tpl-thumb--editorial i:nth-child(1) {
+    grid-column: 1 / -1;
+    grid-row: span 3;
+    background: var(--ink-2);
+  }
+  .tpl-thumb--editorial i:nth-child(n + 2) {
+    grid-row: span 2;
+  }
+
+  /* Segmented controls */
+  .seg {
     display: flex;
     gap: 4px;
+    padding: 4px;
+    border-radius: 14px;
+    background: var(--surface-3);
   }
-  .dc-swatch {
+  .seg button {
+    flex: 1;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--muted);
+    transition: background-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
+  }
+  .seg button[aria-checked='true'] {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 1px 3px rgba(10, 10, 11, 0.12);
+  }
+  .sp-swatches {
+    display: flex;
+    gap: 6px;
+  }
+  .sw {
     position: relative;
     display: grid;
     place-items: center;
     width: 44px;
     height: 44px;
-    cursor: pointer;
-  }
-  .dc-swatch input {
-    position: absolute;
-    inset: 0;
-    margin: 0;
-    opacity: 0;
-    cursor: pointer;
-  }
-  .dc-swatch span:not(.sr-only) {
-    width: 28px;
-    height: 28px;
     border-radius: 50%;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+    cursor: pointer;
+  }
+  .sw > span:first-child {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgba(10, 10, 11, 0.15);
     transition: transform 0.35s var(--ease-spring), box-shadow 0.25s var(--ease-out);
   }
-  .dc-swatch:hover span:not(.sr-only) {
-    transform: scale(1.12);
+  .sw:hover > span:first-child {
+    transform: scale(1.1);
   }
-  .dc-swatch input:checked + span {
+  .sw[aria-checked='true'] > span:first-child,
+  .sw--custom.is-active .sw-custom-ring {
     box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.25),
-      0 0 0 3px var(--bg),
+      0 0 0 3px var(--surface),
       0 0 0 5px var(--ink);
   }
-  .dc-swatch input:focus-visible + span {
-    outline: 2px solid var(--accent-text);
-    outline-offset: 6px;
+  .sw--custom input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
   }
-  .dc-reset {
-    display: inline-flex;
+  .sw-custom-ring {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, #f5f5f7, #8e8e96, #3a3a3f, #111113, #8e8e96, #f5f5f7);
+    pointer-events: none;
+    transition: box-shadow 0.25s var(--ease-out);
+  }
+  .sw--custom:focus-within .sw-custom-ring {
+    outline: 2px solid var(--ink);
+    outline-offset: 4px;
+  }
+
+  /* Fonts */
+  .font-list {
+    display: grid;
+    gap: 6px;
+  }
+  .font-opt {
+    display: grid;
+    grid-template-columns: 52px 1fr;
     align-items: center;
-    gap: 8px;
-    height: 44px;
-    padding: 0 16px;
-    border-radius: var(--r-pill);
-    color: var(--ink-2);
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 14px;
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+    text-align: left;
+    transition: box-shadow 0.25s var(--ease-out);
+  }
+  .font-opt[aria-checked='true'] {
+    box-shadow: inset 0 0 0 2px var(--ink);
+  }
+  .font-sample {
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+  }
+  .font-meta {
+    display: grid;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .font-meta strong {
+    color: var(--ink);
     font-weight: 600;
     font-size: 0.92rem;
-    box-shadow: inset 0 0 0 1px var(--line-strong);
-    transition: background-color 0.25s var(--ease-out);
-  }
-  .dc-reset:hover {
-    background: rgba(255, 255, 255, 0.05);
   }
 
-  /* Stage */
-  .demo-stage {
-    --dp-w: 340px;
-    --dp-h: calc(var(--dp-w) * 18.4 / 9);
-    position: relative;
-    display: grid;
-    grid-template-columns: var(--dp-w) minmax(48px, 140px) minmax(0, 380px);
-    justify-content: center;
-    align-items: end;
-    gap: 0 12px;
-  }
-  .demo-side {
-    display: grid;
-    gap: 14px;
-    justify-items: center;
-  }
-  .demo-who {
+  /* Switch */
+  .switch {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.9rem;
+    gap: 12px;
+    justify-self: start;
+    min-height: 44px;
     font-weight: 600;
-    color: var(--ink-2);
   }
-  .who-dot {
-    width: 8px;
-    height: 8px;
+  .switch-track {
+    position: relative;
+    width: 52px;
+    height: 32px;
+    border-radius: var(--r-pill);
+    background: var(--line-strong);
+    transition: background-color 0.3s var(--ease-out);
+  }
+  .switch-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(10, 10, 11, 0.25);
+    transition: transform 0.5s var(--ease-spring);
   }
-  .who-dot--buyer {
-    background: #5fb6ff;
+  .switch[aria-checked='true'] .switch-track {
+    background: var(--ink);
   }
-  .who-dot--owner {
-    background: var(--ok);
-  }
-  .demo-wire {
-    width: 100%;
-    height: 40px;
-    overflow: visible;
-    align-self: center;
-    margin-top: 34px;
-  }
-  .wire-base,
-  .wire-pulse {
-    fill: none;
-    stroke-width: 2;
-    vector-effect: non-scaling-stroke;
-  }
-  .wire-base {
-    stroke: var(--line-strong);
-    stroke-dasharray: 2 4;
-  }
-  .wire-pulse {
-    stroke: var(--accent-text);
-    stroke-dasharray: 18 100;
-    stroke-dashoffset: 18;
-    opacity: 0;
-    filter: drop-shadow(0 0 6px var(--accent-glow));
-  }
-  .wire-pulse.is-firing {
-    animation: wire 0.9s var(--ease-out);
-  }
-  @keyframes wire {
-    0% {
-      stroke-dashoffset: 18;
-      opacity: 1;
-    }
-    100% {
-      stroke-dashoffset: -100;
-      opacity: 1;
-    }
+  .switch[aria-checked='true'] .switch-thumb {
+    transform: translateX(20px);
   }
 
-  /* Buyer phone: a light Cartium storefront inside a chrome frame */
+  .sp-foot {
+    display: flex;
+    gap: 8px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+  .sp-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 44px;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background-color 0.25s var(--ease-out);
+  }
+  .sp-btn:hover {
+    background: var(--surface-2);
+  }
+
+  /* ---------- Phone ---------- */
   .dphone {
-    --ds-bg: #f4f5f7;
-    --ds-card: #ffffff;
-    --ds-ink: #16181d;
-    --ds-muted: #6b7280;
-    --ds-line: rgba(22, 24, 29, 0.08);
+    --dp-w: 340px;
     width: var(--dp-w);
     max-width: 100%;
-    height: var(--dp-h);
+    height: calc(var(--dp-w) * 18.4 / 9);
     padding: 7px;
     border-radius: var(--r-phone);
     background: var(--chrome);
@@ -446,16 +839,101 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
       var(--shadow-phone);
   }
   .dphone-screen {
+    /* Storefront theme: written by demo.ts from the studio controls. */
+    --ds-bg: #f4f4f6;
+    --ds-card: #ffffff;
+    --ds-surface: #ececef;
+    --ds-ink: #141416;
+    --ds-muted: #6b6b72;
+    --ds-line: rgba(20, 20, 22, 0.08);
+    --da: #111113;
+    --da-ink: #ffffff;
+    --ds-font: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --ds-r-card: 16px;
+    --ds-r-ctrl: 12px;
+    --ds-r-pill: 9999px;
+    --ds-card-bg: var(--tone, #e9e9ec);
+    --ds-card-shadow: none;
+    --ds-card-border: none;
     position: relative;
     height: 100%;
     overflow: hidden;
     border-radius: calc(var(--r-phone) - 7px);
     background: var(--ds-bg);
     color: var(--ds-ink);
-    font-family: var(--font-text);
-    box-shadow: 0 0 0 5px #0b0f17;
+    font-family: var(--ds-font);
+    box-shadow: 0 0 0 5px #0b0b0d;
     isolation: isolate;
+    transition: background-color 0.4s var(--ease-out), color 0.4s var(--ease-out);
   }
+  .dphone-screen.is-dark {
+    --ds-bg: #000000;
+    --ds-card: #121212;
+    --ds-surface: #1c1c1e;
+    --ds-ink: #f5f5f7;
+    --ds-muted: #9a9aa2;
+    --ds-line: rgba(255, 255, 255, 0.1);
+  }
+  .dphone-screen.is-dark .ds-img,
+  .dphone-screen.is-dark .tb-tile,
+  .dphone-screen.is-dark .tb-lead-img {
+    filter: brightness(0.92);
+  }
+
+  /* Promo marquee (Вигляд → Верхній рядок) */
+  .ds-promo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background: var(--da);
+    color: var(--da-ink);
+    font-size: 0.74rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: transform 0.4s var(--ease-out);
+  }
+  .dphone[data-promo='off'] .ds-promo {
+    transform: translateY(-100%);
+  }
+  .ds-promo-track {
+    display: flex;
+    gap: 28px;
+    padding-inline: 14px;
+  }
+  .dphone[data-promo='center'] .ds-promo,
+  .dphone[data-promo='static'] .ds-promo {
+    justify-content: center;
+  }
+  .dphone[data-promo='continuous'] .ds-promo-track {
+    animation: promo-loop 9s linear infinite;
+  }
+  .dphone[data-promo='center'] .ds-promo-track {
+    animation: promo-center 6s var(--ease-out) infinite;
+  }
+  @keyframes promo-loop {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @keyframes promo-center {
+    0% {
+      transform: translateX(110%);
+    }
+    25%,
+    70% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-110%);
+    }
+  }
+
   .dscreen {
     position: absolute;
     inset: 0 0 64px;
@@ -473,12 +951,15 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     overflow-y: auto;
     scrollbar-width: none;
   }
+  .dphone:not([data-promo='off']) .dscreen {
+    top: 28px;
+  }
   .dscreen::-webkit-scrollbar {
     display: none;
   }
   .dscreen--checkout,
   .dscreen--done {
-    inset: 0;
+    bottom: 0;
   }
   .dphone[data-screen='catalog'] .dscreen--catalog,
   .dphone[data-screen='cart'] .dscreen--cart,
@@ -498,10 +979,29 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     justify-content: space-between;
     gap: 10px;
     min-height: 40px;
+    flex: none;
+  }
+  .ds-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .ds-logo {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 0 0 1px var(--ds-line);
+  }
+  .ds-logo[hidden] {
+    display: none;
   }
   .ds-shop {
-    font-weight: 600;
-    font-size: 1.5rem;
+    font-weight: 700;
+    font-size: 1.4rem;
     letter-spacing: -0.03em;
     line-height: 1.1;
     min-width: 0;
@@ -510,7 +1010,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     white-space: nowrap;
   }
   .ds-title {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 1.3rem;
     letter-spacing: -0.02em;
     margin-right: auto;
@@ -520,26 +1020,105 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     gap: 8px;
     flex: none;
   }
-  .ds-icons span {
-    display: grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
-    background: var(--ds-card);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    font-size: 18px;
-  }
+  .ds-icons span,
   .ds-back {
     display: grid;
     place-items: center;
     width: 36px;
     height: 36px;
-    border-radius: 12px;
+    border-radius: var(--ds-r-ctrl);
     background: var(--ds-card);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    color: var(--ds-ink);
     font-size: 18px;
   }
+
+  /* Template blocks: one per template, shown by data-template on the phone */
+  .tb {
+    display: none;
+    flex: none;
+  }
+  .dphone[data-template='minimal'] .tb-hero,
+  .dphone[data-template='grid_focus'] .tb-tiles,
+  .dphone[data-template='editorial'] .tb-lead {
+    display: grid;
+  }
+  .dphone[data-template='grid_focus'] .ds-chips,
+  .dphone[data-template='editorial'] .ds-chips {
+    display: none;
+  }
+  .tb-hero {
+    gap: 4px;
+    align-content: end;
+    justify-items: start;
+    aspect-ratio: 16 / 10;
+    padding: 16px;
+    border-radius: var(--ds-r-card);
+    background:
+      radial-gradient(120% 90% at 85% 10%, rgba(255, 255, 255, 0.22), transparent 55%),
+      linear-gradient(160deg, #3a3a3f, #0e0e10);
+    color: #fff;
+  }
+  .tb-hero-k {
+    font-size: 0.72rem;
+    opacity: 0.8;
+  }
+  .tb-hero-t {
+    font-weight: 700;
+    font-size: 1.35rem;
+    letter-spacing: -0.03em;
+    margin-bottom: 6px;
+  }
+  .tb-tiles {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .tb-tile {
+    display: grid;
+    justify-items: start;
+    gap: 6px;
+    padding: 12px;
+    border-radius: var(--ds-r-card);
+    background: var(--ds-surface);
+    color: var(--ds-ink);
+    font-size: 0.86rem;
+    font-weight: 600;
+    text-align: left;
+  }
+  .tb-tile :global(.icon) {
+    font-size: 30px;
+  }
+  .tb-lead {
+    gap: 4px;
+    padding: 0 0 6px;
+    text-align: left;
+    color: var(--ds-ink);
+  }
+  .tb-lead-img {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--ds-r-card);
+    background: linear-gradient(170deg, #e7e7ea, #cfcfd4);
+    color: #1b1b1e;
+    font-size: 96px;
+    margin-bottom: 6px;
+  }
+  .tb-lead-k {
+    font-size: 0.72rem;
+    color: var(--ds-muted);
+  }
+  .tb-lead-t {
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .tb-lead-p {
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
   .ds-chips {
     display: flex;
     gap: 6px;
@@ -556,11 +1135,11 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     flex: none;
     height: 34px;
     padding: 0 14px;
-    border-radius: var(--r-pill);
+    border-radius: var(--ds-r-pill);
     background: var(--ds-card);
     box-shadow: inset 0 0 0 1px var(--ds-line);
     color: var(--ds-ink);
-    font-size: 0.86rem;
+    font-size: 0.84rem;
     font-weight: 500;
     transition: background-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
   }
@@ -576,7 +1155,12 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
   }
   .ds-card {
     position: relative;
-    transition: opacity 0.3s var(--ease-out), transform 0.4s var(--ease-out);
+    border-radius: var(--ds-r-card);
+    background: var(--ds-card-wrap, transparent);
+    box-shadow: var(--ds-card-shadow);
+    border: var(--ds-card-border);
+    padding: var(--ds-card-pad, 0);
+    transition: box-shadow 0.3s var(--ease-out);
   }
   .ds-card[hidden] {
     display: none;
@@ -592,9 +1176,9 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     display: grid;
     place-items: center;
     aspect-ratio: 1 / 1.08;
-    border-radius: 16px;
-    background: var(--tone, #e7e8ec);
-    color: #1b1d22;
+    border-radius: calc(var(--ds-r-card) - 2px);
+    background: var(--tone, #e9e9ec);
+    color: #1b1b1e;
     font-size: 64px;
     margin-bottom: 4px;
     transition: transform 0.45s var(--ease-spring);
@@ -608,7 +1192,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     font-size: 110px;
   }
   .ds-name {
-    font-size: 0.86rem;
+    font-size: 0.84rem;
   }
   .ds-price {
     display: flex;
@@ -616,11 +1200,12 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     align-items: baseline;
     gap: 2px 6px;
     font-weight: 600;
-    font-size: 0.92rem;
+    font-size: 0.9rem;
   }
+  .ds-price :global(s),
   .ds-price s {
     font-weight: 400;
-    font-size: 0.76rem;
+    font-size: 0.74rem;
     color: var(--ds-muted);
   }
   .ds-price--lg {
@@ -628,13 +1213,13 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
   }
   .ds-add {
     position: absolute;
-    right: 0;
-    bottom: 2px;
+    right: var(--ds-card-pad, 0);
+    bottom: calc(var(--ds-card-pad, 0px) + 2px);
     display: grid;
     place-items: center;
     width: 32px;
     height: 32px;
-    border-radius: 50%;
+    border-radius: var(--ds-r-pill);
     background: var(--ds-card);
     box-shadow: inset 0 0 0 1px var(--ds-line);
     color: var(--ds-ink);
@@ -647,7 +1232,57 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     transform: scale(1.08);
   }
 
-  /* Cart */
+  /* Cards: flat / soft / outline */
+  .dphone-screen[data-cards='soft'] {
+    --ds-card-wrap: var(--ds-card);
+    --ds-card-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.25);
+    --ds-card-pad: 6px;
+  }
+  .dphone-screen[data-cards='outline'] {
+    --ds-card-wrap: transparent;
+    --ds-card-border: 1px solid var(--ds-line);
+    --ds-card-pad: 6px;
+  }
+  .dphone-screen[data-cards='outline'] .ds-card {
+    border-color: color-mix(in srgb, var(--ds-ink) 18%, transparent);
+  }
+
+  /* Buttons: filled / outline */
+  .ds-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 18px;
+    border-radius: var(--ds-r-ctrl);
+    background: var(--da);
+    color: var(--da-ink);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: transform 0.3s var(--ease-spring), background-color 0.3s var(--ease-out);
+  }
+  .ds-btn--sm {
+    height: 34px;
+    padding: 0 14px;
+    font-size: 0.82rem;
+  }
+  .ds-btn:active {
+    transform: scale(0.97);
+  }
+  .dphone-screen[data-buttons='outline'] .ds-btn:not(.ds-btn--ghost),
+  .dphone-screen[data-buttons='outline'] .ds-chip[aria-pressed='true'] {
+    background: transparent;
+    color: var(--da-on-surface);
+    box-shadow: inset 0 0 0 1.5px var(--da-on-surface);
+  }
+  .ds-btn--ghost {
+    background: var(--ds-card);
+    color: var(--ds-ink);
+    box-shadow: inset 0 0 0 1px var(--ds-line);
+  }
+
+  /* Cart, checkout, done */
   .ds-lines {
     display: grid;
     gap: 8px;
@@ -658,7 +1293,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     align-items: center;
     gap: 10px;
     padding: 8px;
-    border-radius: 16px;
+    border-radius: var(--ds-r-card);
     background: var(--ds-card);
   }
   .ds-lines :global(.ds-line-img) {
@@ -666,9 +1301,9 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     place-items: center;
     width: 52px;
     height: 52px;
-    border-radius: 12px;
-    background: var(--tone, #e7e8ec);
-    color: #1b1d22;
+    border-radius: var(--ds-r-ctrl);
+    background: var(--tone, #e9e9ec);
+    color: #1b1b1e;
     font-size: 30px;
   }
   .ds-lines :global(.ds-line-info) {
@@ -693,7 +1328,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
   .ds-lines :global(.ds-qty button) {
     width: 30px;
     height: 30px;
-    border-radius: 10px;
+    border-radius: var(--ds-r-ctrl);
     background: var(--ds-bg);
     color: var(--ds-ink);
     font-size: 1rem;
@@ -733,35 +1368,11 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     color: var(--ds-ink);
     font-size: 1.15rem;
   }
-  .ds-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    height: 48px;
-    padding: 0 18px;
-    border-radius: 16px;
-    background: var(--da);
-    color: var(--da-ink);
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: transform 0.3s var(--ease-spring), opacity 0.3s var(--ease-out);
-  }
-  .ds-btn:active {
-    transform: scale(0.97);
-  }
-  .ds-btn--ghost {
-    background: var(--ds-card);
-    color: var(--ds-ink);
-    box-shadow: inset 0 0 0 1px var(--ds-line);
-  }
-
-  /* Checkout */
   .ds-block {
     display: grid;
     gap: 2px;
     padding: 12px 14px;
-    border-radius: 16px;
+    border-radius: var(--ds-r-card);
     background: var(--ds-card);
     font-size: 0.9rem;
   }
@@ -784,7 +1395,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     display: grid;
     gap: 2px;
     padding: 10px 14px;
-    border-radius: 14px;
+    border-radius: var(--ds-r-card);
     background: var(--ds-card);
     box-shadow: inset 0 0 0 1px var(--ds-line);
     text-align: left;
@@ -792,7 +1403,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     transition: box-shadow 0.25s var(--ease-out);
   }
   .ds-pay-opt[aria-checked='true'] {
-    box-shadow: inset 0 0 0 2px var(--da);
+    box-shadow: inset 0 0 0 2px var(--da-on-surface);
   }
   .ds-pay-name {
     font-weight: 600;
@@ -802,8 +1413,6 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     font-size: 0.78rem;
     color: var(--ds-muted);
   }
-
-  /* Done */
   .ds-done {
     margin: auto 0;
     display: grid;
@@ -823,7 +1432,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
   }
   .ds-check {
     display: none;
-    color: #16a34a;
+    color: var(--ds-ink);
   }
   .ds-done.is-done .ds-spinner {
     display: none;
@@ -833,7 +1442,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     animation: pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   .ds-done-title {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 1.15rem;
   }
   .ds-done [data-done-back] {
@@ -843,14 +1452,8 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
   .ds-done.is-done [data-done-back] {
     visibility: visible;
   }
-  /* On one-column layouts the owner chat sits below the phone: offer a jump to it. */
   .ds-to-owner {
     display: none;
-  }
-  @media (max-width: 900px) {
-    .ds-done.is-done .ds-to-owner {
-      display: inline-flex;
-    }
   }
   @keyframes spin {
     to {
@@ -877,7 +1480,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
   .ds-sheet-scrim {
     position: absolute;
     inset: 0;
-    background: rgba(10, 12, 18, 0.4);
+    background: rgba(0, 0, 0, 0.4);
     opacity: 0;
     transition: opacity 0.3s var(--ease-out);
   }
@@ -905,15 +1508,12 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     width: 40px;
     height: 4px;
     border-radius: 4px;
-    background: rgba(22, 24, 29, 0.18);
+    background: var(--ds-line);
     margin-bottom: 4px;
   }
   .ds-sheet-name {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 1.1rem;
-  }
-  .ds-sheet-label {
-    margin-top: 4px;
   }
   .ds-sizes {
     display: flex;
@@ -925,7 +1525,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     min-width: 44px;
     height: 40px;
     padding: 0 12px;
-    border-radius: 12px;
+    border-radius: var(--ds-r-ctrl);
     background: var(--ds-card);
     box-shadow: inset 0 0 0 1px var(--ds-line);
     color: var(--ds-ink);
@@ -943,7 +1543,6 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     cursor: not-allowed;
   }
 
-  /* Tabs, badge, toast */
   .ds-tabs {
     position: absolute;
     left: 10px;
@@ -954,7 +1553,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     grid-template-columns: repeat(3, 1fr);
     height: 56px;
     border-radius: 20px;
-    background: rgba(255, 255, 255, 0.92);
+    background: color-mix(in srgb, var(--ds-card) 92%, transparent);
     box-shadow:
       0 0 0 1px var(--ds-line),
       0 8px 24px -10px rgba(0, 0, 0, 0.25);
@@ -981,8 +1580,8 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
   .ds-tab:disabled {
     cursor: default;
   }
-  .dphone[data-screen='catalog'] .ds-tab[data-tab='catalog'],
-  .dphone[data-screen='cart'] .ds-tab[data-tab='cart'] {
+  .dphone[data-screen='catalog'] .ds-tab[data-tab-id='catalog'],
+  .dphone[data-screen='cart'] .ds-tab[data-tab-id='cart'] {
     color: var(--ds-ink);
     font-weight: 600;
   }
@@ -1011,33 +1610,33 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
   .ds-toast {
     position: absolute;
     left: 50%;
-    top: 14px;
+    top: 40px;
     z-index: 6;
     padding: 8px 14px;
-    border-radius: var(--r-pill);
-    background: #16181d;
-    color: #fff;
+    border-radius: var(--ds-r-pill);
+    background: var(--ds-ink);
+    color: var(--ds-bg);
     font-size: 0.82rem;
     font-weight: 600;
     white-space: nowrap;
-    transform: translate(-50%, -60px);
+    transform: translate(-50%, -90px);
     transition: transform 0.45s var(--ease-spring);
   }
   .ds-toast.is-shown {
     transform: translate(-50%, 0);
   }
 
-  /* Owner chat */
+  /* ---------- Owner chat ---------- */
   .dchat {
     width: 100%;
-    height: var(--dp-h);
+    height: calc(340px * 18.4 / 9);
     display: flex;
     flex-direction: column;
     border-radius: var(--r-card);
-    background: linear-gradient(180deg, var(--surface-2), var(--surface));
+    background: var(--surface);
     box-shadow:
-      inset 0 0 0 1px var(--line-strong),
-      var(--shadow-lift);
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
     overflow: hidden;
   }
   .dchat-head {
@@ -1054,7 +1653,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     height: 40px;
     border-radius: 50%;
     background: var(--chrome);
-    color: #0b0f17;
+    color: #0b0b0d;
     font-weight: 700;
   }
   .dchat-name {
@@ -1073,7 +1672,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
   .dchat-stats div {
     padding: 10px 14px;
     border-radius: 16px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--surface-2);
     box-shadow: inset 0 0 0 1px var(--line);
   }
   .dchat-stats dt {
@@ -1105,6 +1704,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     font-size: 0.9rem;
     line-height: 1.45;
     color: var(--ink-2);
+    animation: msg-in 0.5s var(--ease-out) backwards;
   }
   .dchat-log :global(.bmsg strong) {
     color: var(--ink);
@@ -1113,10 +1713,6 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
   .bmsg--order {
     display: grid;
     gap: 1px;
-    animation: msg-in 0.5s var(--ease-out);
-  }
-  .dchat-log :global(.bmsg--status) {
-    animation: msg-in 0.5s var(--ease-out);
   }
   .bmsg-title {
     font-weight: 600;
@@ -1125,7 +1721,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
   }
   .bmsg-pay {
     margin-top: 6px;
-    color: var(--ok);
+    color: var(--ink);
     font-weight: 600;
   }
   .bmsg-kb {
@@ -1137,18 +1733,20 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     flex: 1;
     height: 40px;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
     color: var(--ink);
     font-weight: 600;
     font-size: 0.86rem;
-    transition: background-color 0.25s var(--ease-out);
+    transition: background-color 0.25s var(--ease-out), transform 0.3s var(--ease-spring);
   }
   .bmsg-btn:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.14);
+    background: var(--ink);
+    color: var(--bg);
   }
   .bmsg-btn:disabled {
-    color: var(--ok);
     cursor: default;
+    opacity: 0.8;
   }
   .dchat-hint {
     display: flex;
@@ -1157,8 +1755,9 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     margin: 0 14px 14px;
     padding: 10px 14px;
     border-radius: 14px;
-    background: var(--accent-soft);
-    color: var(--accent-text);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--ink-2);
     font-size: 0.86rem;
     font-weight: 500;
   }
@@ -1172,46 +1771,77 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/ /g, ' ')} г�
     }
   }
 
-  .demo-after {
-    display: grid;
-    justify-items: center;
-    gap: 22px;
-    margin-top: 48px;
-    text-align: center;
+  /* Finale */
+  .studio-finale {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px 40px;
+    margin-top: 44px;
+    padding: 24px 28px;
+    border-radius: var(--r-card);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+    transition: background-color 0.6s var(--ease-out), color 0.6s var(--ease-out);
   }
-  .demo-note {
-    max-width: 52ch;
-    color: var(--muted);
+  .studio-finale-text {
+    max-width: 56ch;
+    color: var(--ink-2);
   }
-  .demo-note strong {
+  .studio-finale-text strong {
     color: var(--ink);
     font-weight: 600;
   }
+  .studio-finale.is-ready {
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .studio-finale.is-ready .studio-finale-text,
+  .studio-finale.is-ready .studio-finale-text strong {
+    color: var(--bg);
+  }
+  .studio-finale.is-ready .btn-primary {
+    background: var(--bg);
+    color: var(--ink);
+  }
 
-  @media (max-width: 900px) {
-    .demo-stage {
-      --dp-w: min(340px, calc(100vw - 2 * var(--gutter)));
-      grid-template-columns: minmax(0, 1fr);
+  @media (max-width: 1180px) {
+    .studio-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       justify-items: center;
-      gap: 0;
     }
-    .demo-side {
+    .studio-panel {
+      grid-column: 1 / -1;
+      position: static;
       width: 100%;
     }
-    .demo-wire {
-      width: 40px;
-      height: 64px;
-      margin: 8px auto;
-      transform: rotate(90deg);
+    .sp-pane {
+      min-height: 0;
+    }
+  }
+  @media (max-width: 760px) {
+    .studio-head {
+      grid-template-columns: 1fr;
+    }
+    .studio-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .dphone {
+      --dp-w: min(340px, calc(100vw - 2 * var(--gutter)));
     }
     .dchat {
-      max-width: 420px;
       height: 480px;
+      max-width: 420px;
+    }
+    .ds-done.is-done .ds-to-owner {
+      display: inline-flex;
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .ds-spinner {
-      animation: none;
+    .ds-spinner,
+    .ds-promo-track {
+      animation: none !important;
     }
   }
 </style>

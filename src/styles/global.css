@@ -31,40 +31,42 @@
 }
 
 /* ---------- Tokens ---------- */
-/* "Chrome night": the Cartium mark is polished chrome on black, so the page is a
-   midnight canvas, chrome type and frames, real product screens as the light source,
-   and one cobalt accent for actions. One deliberate theme. */
-:root {
-  color-scheme: dark;
-  --bg: #070a12;
-  --bg-deep: #04060b;
-  --bg-raise: #0b101b;
-  --surface: #0f1522;
-  --surface-2: #151c2c;
-  --surface-3: #1c2537;
-  --ink: #eef2f8;
-  --ink-2: #c6cfde;
-  --muted: #8d98ad;
-  --line: rgba(214, 224, 240, 0.09);
-  --line-strong: rgba(214, 224, 240, 0.18);
-  --accent: #3f5bff;
-  --accent-text: #9db0ff;
+/* Monochrome, like the Cartium product itself (its default accent is neutral ink):
+   white and graphite for reading, black "stages" for the moments that should glow,
+   and the chrome of the logo as the only material. No hue anywhere in the site chrome;
+   colour appears only inside real product screens.
+   .paper puts the light tokens back inside a stage (product cards on black). */
+:root,
+.paper {
+  color-scheme: light;
+  --bg: #f4f4f5;
+  --bg-raise: #ececee;
+  --surface: #ffffff;
+  --surface-2: #f7f7f8;
+  --surface-3: #ececee;
+  --ink: #0a0a0b;
+  --ink-2: #2a2a2e;
+  --muted: #66666d;
+  --line: rgba(10, 10, 11, 0.08);
+  --line-strong: rgba(10, 10, 11, 0.16);
+  --accent: #0a0a0b;
+  --accent-text: #0a0a0b;
   --on-accent: #ffffff;
-  --accent-soft: rgba(110, 134, 255, 0.14);
-  --accent-glow: rgba(63, 91, 255, 0.5);
-  --ok: #4fd18f;
-  --ok-soft: rgba(79, 209, 143, 0.14);
-  --panel: #0c1220;
-  --on-panel: #eef2f8;
-  --on-panel-muted: #9aa6bc;
-  --chrome-text: linear-gradient(180deg, #ffffff 0%, #eef2f8 28%, #a3adc0 50%, #dfe5ee 68%, #ffffff 100%);
-  --chrome: linear-gradient(145deg, #eef1f6 0%, #6d7586 16%, #c9d0da 34%, #3b4250 58%, #aeb6c3 80%, #5a6270 100%);
-  --chrome-edge: rgba(255, 255, 255, 0.4);
-  --chrome-border: linear-gradient(140deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.06) 30%, rgba(157, 176, 255, 0.35) 60%, rgba(255, 255, 255, 0.08) 85%, rgba(255, 255, 255, 0.4));
-  --shadow-soft: 0 24px 48px -28px rgba(0, 0, 0, 0.85);
-  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.4), 0 40px 80px -40px rgba(0, 0, 0, 0.9);
-  --shadow-phone: 0 60px 100px -50px rgba(0, 0, 0, 0.95), 0 40px 120px -60px rgba(63, 91, 255, 0.45);
-  --glass: rgba(12, 17, 29, 0.72);
+  --accent-soft: rgba(10, 10, 11, 0.06);
+  --accent-glow: rgba(10, 10, 11, 0.25);
+  --ok: #0a0a0b;
+  --ok-soft: rgba(10, 10, 11, 0.07);
+  --panel: #0a0a0b;
+  --on-panel: #f4f4f5;
+  --on-panel-muted: #a1a1aa;
+  --chrome-text: linear-gradient(180deg, #ffffff 0%, #f1f1f3 26%, #9a9aa3 50%, #e4e4e8 68%, #ffffff 100%);
+  --chrome: linear-gradient(145deg, #f5f5f7 0%, #8a8a93 16%, #d9d9de 34%, #4a4a50 58%, #bdbdc4 80%, #6a6a72 100%);
+  --chrome-edge: rgba(255, 255, 255, 0.7);
+  --chrome-border: linear-gradient(140deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.06) 30%, rgba(255, 255, 255, 0.28) 60%, rgba(255, 255, 255, 0.06) 85%, rgba(255, 255, 255, 0.45));
+  --shadow-soft: 0 1px 2px rgba(10, 10, 11, 0.04), 0 18px 40px -24px rgba(10, 10, 11, 0.22);
+  --shadow-lift: 0 2px 4px rgba(10, 10, 11, 0.05), 0 40px 80px -40px rgba(10, 10, 11, 0.35);
+  --shadow-phone: 0 70px 100px -60px rgba(10, 10, 11, 0.55), 0 30px 50px -30px rgba(10, 10, 11, 0.3);
+  --glass: rgba(250, 250, 250, 0.74);
 
   --font-display: 'Fixel Display', 'Fixel Text', ui-sans-serif, system-ui, sans-serif;
   --font-text: 'Fixel Text', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -76,15 +78,65 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
 
-  --page-max: 1200px;
-  --gutter: clamp(16px, 4vw, 40px);
-  --section-y: clamp(88px, 12vw, 168px);
+  --page-max: 1240px;
+  --gutter: clamp(16px, 4vw, 48px);
+  --section-y: clamp(96px, 12vw, 176px);
   --nav-h: 64px;
 
   --z-nav: 40;
   --z-menu: 50;
   --z-sticky-cta: 45;
   --z-grain: 60;
+}
+
+/* Black stage: the same tokens, inverted. Any section with .stage reads them. */
+.stage {
+  color-scheme: dark;
+  --bg: #0a0a0b;
+  --bg-raise: #121214;
+  --surface: #141416;
+  --surface-2: #1b1b1e;
+  --surface-3: #252529;
+  --ink: #f4f4f5;
+  --ink-2: #d4d4d8;
+  --muted: #a1a1aa;
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.18);
+  --accent: #f4f4f5;
+  --accent-text: #f4f4f5;
+  --on-accent: #0a0a0b;
+  --accent-soft: rgba(255, 255, 255, 0.08);
+  --accent-glow: rgba(255, 255, 255, 0.18);
+  --ok: #f4f4f5;
+  --ok-soft: rgba(255, 255, 255, 0.1);
+  --panel: #f4f4f5;
+  --on-panel: #0a0a0b;
+  --on-panel-muted: #52525b;
+  --chrome-edge: rgba(255, 255, 255, 0.35);
+  --shadow-soft: 0 24px 48px -28px rgba(0, 0, 0, 0.85);
+  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.4), 0 40px 80px -40px rgba(0, 0, 0, 0.9);
+  --shadow-phone: 0 70px 120px -50px rgba(0, 0, 0, 0.95), 0 0 120px -40px rgba(255, 255, 255, 0.16);
+  --glass: rgba(20, 20, 22, 0.72);
+  background: var(--bg);
+  color: var(--ink);
+}
+.paper {
+  background: var(--surface);
+  color: var(--ink);
+}
+/* A stage that grows from an inset card to full bleed as it scrolls in (main.ts drives the vars). */
+.stage[data-stage] {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+}
+.stage[data-stage]::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0 var(--stage-x, 0px);
+  border-radius: var(--stage-r, 0px) var(--stage-r, 0px) 0 0;
+  background: var(--bg);
 }
 
 /* ---------- Base ---------- */
@@ -103,11 +155,7 @@ html {
 body {
   margin: 0;
   min-height: 100dvh;
-  background:
-    radial-gradient(1100px 620px at 72% -8%, rgba(63, 91, 255, 0.2), transparent 62%),
-    radial-gradient(900px 520px at 8% 4%, rgba(160, 172, 196, 0.08), transparent 60%),
-    var(--bg);
-  background-repeat: no-repeat;
+  background: var(--bg);
   color: var(--ink);
   font-family: var(--font-text);
   font-size: 17px;
@@ -159,9 +207,6 @@ ol {
   outline-offset: 3px;
   border-radius: 6px;
 }
-.on-panel :focus-visible {
-  outline-color: var(--on-panel);
-}
 ::selection {
   background: var(--accent);
   color: var(--on-accent);
@@ -174,7 +219,8 @@ body::after {
   inset: 0;
   z-index: var(--z-grain);
   pointer-events: none;
-  opacity: 0.05;
+  opacity: 0.035;
+  mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -200,7 +246,7 @@ body::after {
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, -20%), rgba(157, 176, 255, 0.1), transparent 45%);
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, -20%), color-mix(in srgb, var(--ink) 6%, transparent), transparent 45%);
   opacity: 0;
   transition: opacity 0.4s var(--ease-out);
   pointer-events: none;
@@ -211,7 +257,7 @@ body::after {
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, -20%), rgba(190, 204, 255, 0.55), transparent 60%);
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, -20%), color-mix(in srgb, var(--ink) 45%, transparent), transparent 60%);
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -338,13 +384,13 @@ body::after {
   background: var(--accent);
   color: var(--on-accent);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 10px 28px -12px rgba(47, 75, 255, 0.7);
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 14px 30px -16px var(--accent-glow);
 }
 .btn-primary:hover {
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 16px 36px -14px rgba(47, 75, 255, 0.85);
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 22px 40px -18px var(--accent-glow);
 }
 .btn-ghost {
   padding: 0 26px;
@@ -364,7 +410,7 @@ body::after {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.16);
+  background: color-mix(in srgb, var(--on-accent) 16%, transparent);
   transition: transform 0.5s var(--ease-spring);
 }
 .btn-icon svg {

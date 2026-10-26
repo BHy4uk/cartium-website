@@ -16,13 +16,13 @@ const hide = (svg: string) => svg.replace('<svg ', '<svg aria-hidden="true" focu
         <span class="rail-name">LiqPay</span>
       </li>
       <li class="rail rail--mono" aria-label="plata by mono">
-        <span class="rail-logo" set:html={hide(monoDark)} />
+        <span class="rail-logo rail-logo--invert" set:html={hide(monoDark)} />
       </li>
       <li class="rail rail--apple" aria-label="Apple Pay">
-        <span class="rail-logo rail-logo--invert" set:html={hide(appleLight)} />
+        <span class="rail-logo" set:html={hide(appleLight)} />
       </li>
       <li class="rail rail--google" aria-label="Google Pay">
-        <span class="rail-logo" set:html={hide(googleDark)} />
+        <span class="rail-logo rail-logo--invert" set:html={hide(googleDark)} />
       </li>
       <li class="rail rail--text"><Icon name="truck" /> Нова пошта</li>
       <li class="rail rail--text"><Icon name="bank" /> Реквізити IBAN</li>
@@ -65,8 +65,10 @@ const hide = (svg: string) => svg.replace('<svg ', '<svg aria-hidden="true" focu
   .rail:hover {
     opacity: 1;
   }
+  /* Brand marks in greyscale, so the strip reads as one monochrome line. */
   .rail-logo {
     display: inline-flex;
+    filter: grayscale(1);
   }
   .rail-logo :global(svg) {
     height: 26px;
@@ -88,8 +90,8 @@ const hide = (svg: string) => svg.replace('<svg ', '<svg aria-hidden="true" focu
   .rail--text :global(.icon) {
     font-size: 1.35rem;
   }
-  /* The one-colour Apple Pay mark, turned white for the dark page. */
+  /* plata by mono and Google Pay ship white-on-dark artwork: invert it for the light page. */
   .rail-logo--invert {
-    filter: invert(1);
+    filter: grayscale(1) invert(1);
   }
 </style>

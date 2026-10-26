@@ -139,29 +139,33 @@ function startNotifCycle() {
   }, 4200);
 }
 
-function heroTilt() {
+function heroMotion() {
+  const hero = $('[data-hero]');
   const stage = $('[data-hero-stage]');
   const tilt = $('[data-tilt]');
   const notif = $('[data-notif]');
-  if (!stage || !tilt || reduceMotion || !finePointer) return;
+  if (!hero || !stage || !tilt || reduceMotion) return;
+
+  // Scroll: the two headline lines part like a curtain and the phones rise to meet you.
+  const scrub = { trigger: hero, start: 'top top', end: 'bottom top', scrub: true };
+  gsap.to('[data-hl="1"]', { xPercent: -7, ease: 'none', scrollTrigger: scrub });
+  gsap.to('[data-hl="2"]', { xPercent: 9, ease: 'none', scrollTrigger: scrub });
+  gsap.to(stage, { y: -80, ease: 'none', scrollTrigger: scrub });
+  gsap.to('.hero-slot--left', { xPercent: -10, ease: 'none', scrollTrigger: scrub });
+  gsap.to('.hero-slot--right', { xPercent: 10, ease: 'none', scrollTrigger: scrub });
+
+  // Pointer: the fan of phones leans toward the cursor; the notification floats against it.
+  if (!finePointer) return;
   const rx = gsap.quickTo(tilt, 'rotationX', { duration: 0.9, ease: 'power3.out' });
   const ry = gsap.quickTo(tilt, 'rotationY', { duration: 0.9, ease: 'power3.out' });
   const nx = notif ? gsap.quickTo(notif, 'x', { duration: 1.1, ease: 'power3.out' }) : null;
   const ny = notif ? gsap.quickTo(notif, 'y', { duration: 1.1, ease: 'power3.out' }) : null;
-  const hero = stage.closest<HTMLElement>('section') ?? stage;
   hero.addEventListener('pointermove', (e) => {
-    // Light: a soft spotlight under the pointer and the chrome band of the headline.
-    const hr = hero.getBoundingClientRect();
-    const fx = (e.clientX - hr.left) / hr.width;
-    const fy = (e.clientY - hr.top) / hr.height;
-    hero.style.setProperty('--hx', `${(fx * 100).toFixed(1)}%`);
-    hero.style.setProperty('--hy', `${(fy * 100).toFixed(1)}%`);
-    hero.style.setProperty('--shine', `${(12 + fy * 52).toFixed(1)}%`);
     const r = stage.getBoundingClientRect();
-    const px = (e.clientX - (r.left + r.width / 2)) / r.width;
-    const py = (e.clientY - (r.top + r.height / 2)) / r.height;
-    ry(gsap.utils.clamp(-1, 1, px) * 10);
-    rx(gsap.utils.clamp(-1, 1, py) * -7);
+    const px = gsap.utils.clamp(-1, 1, (e.clientX - (r.left + r.width / 2)) / r.width);
+    const py = gsap.utils.clamp(-1, 1, (e.clientY - (r.top + r.height / 2)) / r.height);
+    ry(px * 10);
+    rx(py * -7);
     nx?.(px * 18);
     ny?.(py * 12);
   });
@@ -171,10 +175,6 @@ function heroTilt() {
     nx?.(0);
     ny?.(0);
   });
-
-  // The phones drift apart a little as the hero scrolls away.
-  gsap.to('.hero-slot--left', { xPercent: -10, ease: 'none', scrollTrigger: { trigger: stage, start: 'top top', end: 'bottom top', scrub: true } });
-  gsap.to('.hero-slot--right', { xPercent: 10, ease: 'none', scrollTrigger: { trigger: stage, start: 'top top', end: 'bottom top', scrub: true } });
 }
 
 function magnetic() {
@@ -353,61 +353,45 @@ function launch(mm: gsap.MatchMedia) {
   mm.add('(max-width: 960px)', () => build('scaleY'));
 }
 
-/* ---------- Gallery ---------- */
-function gallery(mm: gsap.MatchMedia) {
-  const section = $('[data-gallery]');
+/* ---------- Showcase ---------- */
+// The feature in the middle of the viewport decides which screen the pinned phone shows.
+function showcase() {
+  const section = $('[data-showcase]');
   if (!section) return;
-  const pin = $('[data-gallery-pin]', section)!;
-  const viewport = $('[data-gallery-viewport]', section)!;
-  const track = $('[data-gallery-track]', section)!;
-  const bar = $('[data-gallery-bar]', section)!;
+  const items = $$('[data-sc-item]', section);
+  const shots = $$('[data-sc-shot]', section);
+  const count = $('[data-sc-count]', section);
+  const bar = $('[data-sc-bar]', section);
+  const set = (n: number) => {
+    items.forEach((el, i) => el.classList.toggle('is-active', i === n));
+    shots.forEach((el, i) => el.classList.toggle('is-on', i <= n));
+    if (count) count.textContent = String(n + 1).padStart(2, '0');
+    if (bar) bar.style.transform = `scaleX(${(n + 1) / items.length})`;
+  };
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((e) => e.isIntersecting && set(Number((e.target as HTMLElement).dataset.scItem)));
+    },
+    { rootMargin: '-48% 0px -48% 0px' },
+  );
+  items.forEach((el) => io.observe(el));
+}
 
-  mm.add('(min-width: 1025px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)', () => {
-    root.classList.add('gallery-animated');
-    const distance = () => Math.max(0, track.scrollWidth - window.innerWidth);
-    const tween = gsap.to(track, {
-      x: () => -distance(),
-      ease: 'none',
-      scrollTrigger: {
-        trigger: pin,
-        start: 'top top',
-        end: () => `+=${distance() * 0.8}`,
-        pin: true,
-        scrub: 0.8,
-        invalidateOnRefresh: true,
-        anticipatePin: 1,
-        onUpdate: (self) => gsap.set(bar, { scaleX: 0.1 + self.progress * 0.9 }),
+/* ---------- Black stages ---------- */
+// A stage arrives as an inset card and opens to full bleed by the time it reaches the top.
+function stages() {
+  if (reduceMotion) return;
+  $$('[data-stage]').forEach((el) => {
+    gsap.fromTo(
+      el,
+      { '--stage-x': () => `${Math.min(48, window.innerWidth * 0.03)}px`, '--stage-r': '40px' },
+      {
+        '--stage-x': '0px',
+        '--stage-r': '0px',
+        ease: 'none',
+        scrollTrigger: { trigger: el, start: 'top bottom', end: 'top 10%', scrub: true, invalidateOnRefresh: true },
       },
-    });
-    // Each phone leans in as it crosses the centre of the screen.
-    $$('.gcard-phone', track).forEach((p) => {
-      gsap.fromTo(
-        p,
-        { y: 36 },
-        {
-          y: -12,
-          ease: 'none',
-          scrollTrigger: { trigger: p, containerAnimation: tween, start: 'left right', end: 'right left', scrub: true },
-        },
-      );
-    });
-    return () => root.classList.remove('gallery-animated');
-  });
-
-  mm.add('(max-width: 1024px), (max-height: 699px), (prefers-reduced-motion: reduce)', () => {
-    let raf = 0;
-    const update = () => {
-      raf = 0;
-      const max = viewport.scrollWidth - viewport.clientWidth;
-      const p = max > 0 ? viewport.scrollLeft / max : 0;
-      bar.style.transform = `scaleX(${0.1 + p * 0.9})`;
-    };
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(update);
-    };
-    viewport.addEventListener('scroll', onScroll, { passive: true });
-    update();
-    return () => viewport.removeEventListener('scroll', onScroll);
+    );
   });
 }
 
@@ -551,7 +535,7 @@ const idle = (fn: () => void) => {
   else setTimeout(fn, 200);
 };
 
-heroTilt();
+heroMotion();
 magnetic();
 spotlight();
 window.setTimeout(startNotifCycle, 2200);
@@ -564,7 +548,8 @@ idle(() => {
   const mm = gsap.matchMedia();
   story(mm);
   launch(mm);
-  gallery(mm);
+  showcase();
+  stages();
   reveals();
   ScrollTrigger.refresh();
   document.fonts?.ready.then(() => ScrollTrigger.refresh());

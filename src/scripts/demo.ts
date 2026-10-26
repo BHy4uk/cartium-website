@@ -1,5 +1,6 @@
-// The live demo store: a buyer side (a miniature Cartium storefront) and an owner
-// side (the shop bot's chat). Everything runs locally; nothing is sent anywhere.
+// The storefront studio: appearance controls that mirror Керування → Вигляд, a live
+// miniature storefront (buyer side) and the shop bot's chat (owner side).
+// Everything runs locally; nothing is sent anywhere.
 
 type Product = {
   id: string;
@@ -13,11 +14,46 @@ type Product = {
 };
 type Line = { id: string; size: string; qty: number };
 type Pay = 'liqpay' | 'mono' | 'cod';
+type Look = {
+  template: string;
+  mode: string;
+  accent: string;
+  buttons: string;
+  radius: string;
+  cards: string;
+  font: string;
+  promo: string;
+};
 
 const PAY_NAMES: Record<Pay, string> = { liqpay: 'LiqPay', mono: 'plata by mono', cod: 'Накладений платіж' };
 const FIRST_ORDER = 58; // continues the demo data on the documentation screenshots
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DEFAULT_LOOK: Look = {
+  template: 'classic',
+  mode: 'light',
+  accent: 'auto',
+  buttons: 'filled',
+  radius: 'rounded',
+  cards: 'flat',
+  font: 'modern',
+  promo: 'continuous',
+};
+// theme.js FONT_STACKS and RADIUS, as the storefront applies them.
+const FONT_STACKS: Record<string, string> = {
+  modern: 'Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  system: '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  premium: '"IBM Plex Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  fashion: '"Space Grotesk", Inter, "Segoe UI", Helvetica, Arial, sans-serif',
+  neutral: '"Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif',
+};
+const RADIUS: Record<string, [string, string, string]> = {
+  rounded: ['16px', '12px', '9999px'],
+  medium: ['12px', '10px', '14px'],
+  sharp: ['4px', '3px', '6px'],
+};
+const WEB_FONTS =
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap';
 
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')} грн`;
 
 const TRANSLIT: Record<string, string> = {
@@ -31,12 +67,37 @@ function botHandle(name: string) {
   const slug = latin.replace(/[^a-z0-9]+/g, '').slice(0, 20) || 'myshop';
   return `${slug}_bot`;
 }
-function inkFor(hex: string) {
+function luminance(hex: string) {
   const v = hex.replace('#', '');
   const [r, g, b] = [0, 2, 4].map((i) => parseInt(v.slice(i, i + 2), 16) / 255);
   const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
-  const lum = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
-  return lum > 0.45 ? '#16181d' : '#ffffff';
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+const DEFAULT_ACCENT: Record<string, string> = { light: '#1d1d1f', dark: '#f5f5f7' };
+// theme.js readableInk: darken (or lighten, on dark) the accent until it clears 4.5:1 as text.
+function readableInk(hex: string, mode: string) {
+  const dark = mode === 'dark';
+  const target = dark ? 0.21 : 0.18;
+  let [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(1 + i, 3 + i), 16));
+  const toHex = () => `#${[r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+  for (let i = 0; i < 24; i++) {
+    const l = luminance(toHex());
+    if (dark ? l >= target : l <= target) break;
+    if (dark) [r, g, b] = [r, g, b].map((v) => Math.min(255, Math.round(v + (255 - v) * 0.12) + 1));
+    else [r, g, b] = [r, g, b].map((v) => Math.max(0, Math.round(v * 0.88)));
+  }
+  return toHex();
+}
+const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
+
+let webFontsLoaded = false;
+function loadWebFonts() {
+  if (webFontsLoaded) return;
+  webFontsLoaded = true;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = WEB_FONTS;
+  document.head.append(link);
 }
 
 export function initDemo() {
@@ -48,26 +109,124 @@ export function initDemo() {
   const products: Product[] = JSON.parse(q('[data-demo-products]').textContent || '[]');
   const byId = new Map(products.map((p) => [p.id, p]));
   const phone = q('[data-dphone]');
+  const screen = q('[data-ds]');
   const sheet = q('[data-sheet]');
   const toast = q('[data-toast]');
   const log = q('[data-chat-log]');
   const hint = q('[data-chat-hint]');
-  const wire = root.querySelector<SVGPathElement>('[data-wire]');
+  const hintText = q('[data-chat-hint-text]');
+  const finale = q('[data-finale]');
   const initialLog = log.innerHTML;
 
+  const look: Look = { ...DEFAULT_LOOK };
   const state = {
     cart: [] as Line[],
-    current: '' as string,
-    size: '' as string,
+    current: '',
+    size: '',
     pay: 'liqpay' as Pay,
     orderNo: FIRST_ORDER,
     orders: 0,
     revenue: 0,
     name: 'Urban Style',
     opener: null as HTMLElement | null,
+    logoUrl: '',
   };
 
-  /* ----- Personalisation ----- */
+  /* ----- Progress ----- */
+  const flags = { style: false, buy: false, ship: false };
+  const flag = (key: keyof typeof flags) => {
+    if (flags[key]) return;
+    flags[key] = true;
+    root.querySelector(`[data-step-flag="${key}"]`)?.classList.add('is-done');
+    if (flags.style && flags.buy && flags.ship) finale.classList.add('is-ready');
+  };
+  const resetFlags = () => {
+    (Object.keys(flags) as (keyof typeof flags)[]).forEach((k) => (flags[k] = false));
+    qa('[data-step-flag]').forEach((el) => el.classList.remove('is-done'));
+    finale.classList.remove('is-ready');
+  };
+
+  /* ----- Tabs ----- */
+  const tabs = qa<HTMLButtonElement>('[role="tab"]');
+  const selectTab = (tab: HTMLButtonElement, focus = false) => {
+    tabs.forEach((t) => {
+      const on = t === tab;
+      t.setAttribute('aria-selected', String(on));
+      t.tabIndex = on ? 0 : -1;
+      const pane = root.querySelector<HTMLElement>(`[data-pane="${t.dataset.tab}"]`);
+      if (pane) pane.hidden = !on;
+    });
+    if (tab.dataset.tab === 'font') loadWebFonts();
+    if (focus) tab.focus();
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => selectTab(t));
+    t.addEventListener('keydown', (e) => {
+      const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (!step) return;
+      e.preventDefault();
+      selectTab(tabs[(i + step + tabs.length) % tabs.length], true);
+    });
+  });
+
+  /* ----- Applying the look ----- */
+  const customColor = q<HTMLInputElement>('[data-demo-color]');
+  const customSwatch = customColor.closest('.sw')!;
+  const applyLook = () => {
+    phone.dataset.template = look.template;
+    phone.dataset.promo = look.promo;
+    screen.classList.toggle('is-dark', look.mode === 'dark');
+    screen.dataset.buttons = look.buttons;
+    screen.dataset.cards = look.cards;
+    const [rc, rctrl, rpill] = RADIUS[look.radius];
+    screen.style.setProperty('--ds-r-card', rc);
+    screen.style.setProperty('--ds-r-ctrl', rctrl);
+    screen.style.setProperty('--ds-r-pill', rpill);
+    screen.style.setProperty('--ds-font', FONT_STACKS[look.font]);
+
+    // Accent, as theme.js resolves it: the fill, the text on it, and a version that reads as text.
+    const fill = look.accent === 'auto' ? DEFAULT_ACCENT[look.mode] : look.accent;
+    screen.style.setProperty('--da', fill);
+    screen.style.setProperty('--da-ink', luminance(fill) > 0.4 ? '#1d1d1f' : '#ffffff');
+    screen.style.setProperty('--da-on-surface', readableInk(fill, look.mode));
+
+    // Reflect the look in every control.
+    qa<HTMLElement>('[data-set]').forEach((el) => {
+      const key = el.dataset.set as keyof Look;
+      el.setAttribute('aria-checked', String(look[key] === el.dataset.value));
+    });
+    const isPreset = qa('[data-set="accent"]').some((el) => el.dataset.value === look.accent);
+    customSwatch.classList.toggle('is-active', !isPreset);
+  };
+
+  root.addEventListener('click', (e) => {
+    const el = (e.target as Element).closest<HTMLElement>('[data-set]');
+    if (!el || !root.contains(el)) return;
+    const key = el.dataset.set as keyof Look;
+    look[key] = el.dataset.value!;
+    if (key === 'font') loadWebFonts();
+    applyLook();
+    flag('style');
+  });
+  // Arrow keys move between options of one radiogroup.
+  root.addEventListener('keydown', (e) => {
+    const el = (e.target as Element).closest<HTMLElement>('[data-set]');
+    if (!el) return;
+    const step = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    const group = qa<HTMLElement>(`[data-set="${el.dataset.set}"]`);
+    const next = group[(group.indexOf(el) + step + group.length) % group.length];
+    next.focus();
+    next.click();
+  });
+  customColor.addEventListener('input', () => {
+    look.accent = customColor.value;
+    applyLook();
+    flag('style');
+  });
+
+  /* ----- Identity: name and logo ----- */
   const nameInput = q<HTMLInputElement>('[data-demo-input]');
   const applyName = () => {
     state.name = nameInput.value.trim() || 'Мій магазин';
@@ -75,41 +234,118 @@ export function initDemo() {
     q('[data-demo-bot]').textContent = botHandle(state.name);
     q('[data-demo-initial]').textContent = [...state.name][0]?.toUpperCase() ?? 'M';
   };
-  nameInput.addEventListener('input', applyName);
+  nameInput.addEventListener('input', () => {
+    applyName();
+    flag('style');
+  });
 
-  qa<HTMLInputElement>('[data-demo-accent]').forEach((input) =>
-    input.addEventListener('change', () => {
-      if (!input.checked) return;
-      phone.style.setProperty('--da', input.value);
-      phone.style.setProperty('--da-ink', inkFor(input.value));
-    }),
-  );
+  const logoInput = q<HTMLInputElement>('[data-demo-logo-input]');
+  const logoPreview = q('[data-demo-logo-preview]');
+  const dsLogo = q('[data-ds-logo]');
+  const setLogo = (url: string) => {
+    if (state.logoUrl) URL.revokeObjectURL(state.logoUrl);
+    state.logoUrl = url;
+    [logoPreview, dsLogo].forEach((el) => {
+      el.hidden = !url;
+      el.style.backgroundImage = url ? `url("${url}")` : '';
+    });
+  };
+  logoInput.addEventListener('change', () => {
+    const file = logoInput.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    setLogo(URL.createObjectURL(file));
+    flag('style');
+  });
 
-  /* ----- Navigation between screens ----- */
-  const show = (screen: string) => {
-    if (screen === 'checkout' && !state.cart.length) screen = 'cart';
-    if (screen === 'cart') renderCart();
-    if (screen === 'checkout') renderPayLabel();
-    phone.dataset.screen = screen;
-    const active = root.querySelector<HTMLElement>(`[data-screen-id="${screen}"]`);
-    active?.scrollTo({ top: 0 });
+  /* ----- Promo bar ----- */
+  const promoToggle = q<HTMLButtonElement>('[data-demo-promo-toggle]');
+  const promoInput = q<HTMLInputElement>('[data-demo-promo-input]');
+  const promoTrack = q('[data-ds-promo-track]');
+  let lastPromoMode = look.promo;
+  const renderPromo = () => {
+    const text = promoInput.value.trim() || 'Ваше оголошення';
+    promoTrack.innerHTML = '';
+    // A continuous loop needs the text twice to wrap seamlessly.
+    const copies = look.promo === 'continuous' ? 4 : 1;
+    for (let i = 0; i < copies; i++) {
+      const span = document.createElement('span');
+      span.textContent = text;
+      if (i > 0) span.setAttribute('aria-hidden', 'true');
+      promoTrack.append(span);
+    }
+  };
+  promoInput.addEventListener('input', () => {
+    renderPromo();
+    flag('style');
+  });
+  promoToggle.addEventListener('click', () => {
+    const on = promoToggle.getAttribute('aria-checked') !== 'true';
+    promoToggle.setAttribute('aria-checked', String(on));
+    if (on) look.promo = lastPromoMode === 'off' ? 'continuous' : lastPromoMode;
+    else {
+      lastPromoMode = look.promo;
+      look.promo = 'off';
+    }
+    applyLook();
+    renderPromo();
+    flag('style');
+  });
+  root.addEventListener('click', (e) => {
+    const el = (e.target as Element).closest<HTMLElement>('[data-set="promo"]');
+    if (!el) return;
+    promoToggle.setAttribute('aria-checked', 'true');
+    renderPromo();
+  });
+
+  /* ----- Shuffle and reset ----- */
+  q('[data-demo-shuffle]').addEventListener('click', () => {
+    const accents = qa('[data-set="accent"]').map((el) => el.dataset.value!);
+    look.template = pick(['classic', 'minimal', 'grid_focus', 'editorial'].filter((t) => t !== look.template));
+    look.mode = pick(['light', 'dark']);
+    look.accent = pick(accents);
+    look.buttons = pick(['filled', 'outline']);
+    look.radius = pick(['rounded', 'medium', 'sharp']);
+    look.cards = pick(['flat', 'soft', 'outline']);
+    look.font = pick(['modern', 'neutral', 'premium', 'fashion', 'system']);
+    loadWebFonts();
+    applyLook();
+    flag('style');
+    if (!reduceMotion) phone.animate([{ transform: 'scale(0.985)' }, { transform: 'scale(1)' }], { duration: 450, easing: 'cubic-bezier(.34,1.56,.64,1)' });
+  });
+
+  /* ----- Screens ----- */
+  const show = (target: string) => {
+    if (target === 'checkout' && !state.cart.length) target = 'cart';
+    if (target === 'cart') renderCart();
+    if (target === 'checkout') renderPayLabel();
+    phone.dataset.screen = target;
+    root.querySelector<HTMLElement>(`[data-screen-id="${target}"]`)?.scrollTo({ top: 0 });
   };
   root.addEventListener('click', (e) => {
     const go = (e.target as Element).closest<HTMLElement>('[data-go]');
     if (go && root.contains(go)) show(go.dataset.go!);
   });
 
-  /* ----- Catalog filter ----- */
-  const chips = qa<HTMLButtonElement>('[data-cat].ds-chip');
-  chips.forEach((chip) =>
-    chip.addEventListener('click', () => {
-      chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
-      const cat = chip.dataset.cat;
-      qa('[data-product-card]').forEach((card) => {
-        card.hidden = cat !== 'all' && card.dataset.cat !== cat;
-      });
+  /* ----- Catalog filter and template blocks ----- */
+  const chips = qa<HTMLButtonElement>('.ds-chip[data-cat]');
+  const catalogScreen = q('[data-screen-id="catalog"]');
+  const grid = q('[data-ds-grid]');
+  const filter = (cat: string) => {
+    chips.forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.cat === cat)));
+    qa('[data-product-card]').forEach((card) => {
+      card.hidden = cat !== 'all' && card.dataset.cat !== cat;
+    });
+  };
+  const scrollToGrid = () =>
+    catalogScreen.scrollTo({ top: grid.offsetTop - 70, behavior: reduceMotion ? 'auto' : 'smooth' });
+  chips.forEach((chip) => chip.addEventListener('click', () => filter(chip.dataset.cat!)));
+  qa('[data-cat-jump]').forEach((tile) =>
+    tile.addEventListener('click', () => {
+      filter(tile.dataset.catJump!);
+      scrollToGrid();
     }),
   );
+  q('[data-scroll-grid]').addEventListener('click', scrollToGrid);
 
   /* ----- Product sheet ----- */
   const sizesBox = q('[data-sheet-sizes]');
@@ -118,9 +354,9 @@ export function initDemo() {
     if (!p) return;
     state.current = id;
     state.opener = opener;
-    const card = root.querySelector(`[data-open="${id}"] .ds-img`);
+    const icon = root.querySelector(`.ds-card-hit[data-open="${id}"] .ds-img`);
     const img = q('[data-sheet-img]');
-    img.innerHTML = card?.innerHTML ?? '';
+    img.innerHTML = icon?.innerHTML ?? '';
     img.style.setProperty('--tone', p.tone);
     q('[data-sheet-name]').textContent = p.name;
     q('[data-sheet-price]').innerHTML = p.old ? `${fmt(p.price)} <s>${fmt(p.old)}</s>` : fmt(p.price);
@@ -176,7 +412,7 @@ export function initDemo() {
     sheet.setAttribute('aria-hidden', 'true');
     updateBadge(true);
     say('Додано в кошик');
-    hint.innerHTML = hint.innerHTML.replace(/Додайте[^<]*$/, 'Тепер відкрийте кошик і оформіть замовлення');
+    hintText.textContent = 'Тепер відкрийте кошик і оформіть замовлення';
   });
 
   /* ----- Cart ----- */
@@ -196,7 +432,7 @@ export function initDemo() {
       const p = byId.get(l.id)!;
       const li = document.createElement('li');
       li.className = 'ds-line';
-      const icon = root.querySelector(`[data-open="${l.id}"] .ds-img`)?.innerHTML ?? '';
+      const icon = root.querySelector(`.ds-card-hit[data-open="${l.id}"] .ds-img`)?.innerHTML ?? '';
       li.innerHTML = `
         <span class="ds-line-img" style="--tone:${p.tone}">${icon}</span>
         <span class="ds-line-info"><span class="ds-line-name"></span><span class="ds-line-meta"></span></span>
@@ -267,18 +503,12 @@ export function initDemo() {
       q('[data-done-sub]').textContent = 'Дякуємо! Деталі в розділі «Замовлення».';
       state.cart = [];
       updateBadge();
-      fireWire();
-      window.setTimeout(() => notifyOwner(n, sum, lines, pay), reduceMotion ? 0 : 650);
+      flag('buy');
+      window.setTimeout(() => notifyOwner(n, sum, lines, pay), reduceMotion ? 0 : 500);
     }, reduceMotion ? 300 : 1400);
   });
 
   /* ----- Owner side ----- */
-  const fireWire = () => {
-    if (!wire) return;
-    wire.classList.remove('is-firing');
-    void wire.getBoundingClientRect();
-    wire.classList.add('is-firing');
-  };
   const statOrders = q('[data-stat-orders]');
   const statRevenue = q('[data-stat-revenue]');
   const countTo = (el: HTMLElement, from: number, to: number, money: boolean) => {
@@ -323,17 +553,18 @@ export function initDemo() {
     btn.disabled = true;
     btn.textContent = '⏳ Створюємо ТТН…';
     const status = document.createElement('div');
-    status.className = 'bmsg bmsg--status';
+    status.className = 'bmsg';
     status.textContent = '⏳ Створюємо ТТН. Це може зайняти кілька секунд.';
     log.append(status);
     log.scrollTo({ top: log.scrollHeight, behavior: reduceMotion ? 'auto' : 'smooth' });
     window.setTimeout(() => {
       const number = `2045${Math.floor(1e9 + Math.random() * 9e9)}`.slice(0, 14);
-      status.innerHTML = '';
+      status.textContent = '';
       const strong = document.createElement('strong');
       strong.textContent = number;
       status.append('✅ ТТН ', strong, ' створено. Посилку можна відстежити з картки замовлення.');
       btn.textContent = '✓ ТТН створено';
+      flag('ship');
     }, reduceMotion ? 200 : 1100);
   };
 
@@ -343,6 +574,14 @@ export function initDemo() {
 
   /* ----- Reset ----- */
   q('[data-demo-reset]').addEventListener('click', () => {
+    Object.assign(look, DEFAULT_LOOK);
+    lastPromoMode = look.promo;
+    promoToggle.setAttribute('aria-checked', 'true');
+    nameInput.value = 'Urban Style';
+    promoInput.value = 'Безкоштовна доставка від 2 000 грн';
+    customColor.value = '#1d1d1f';
+    logoInput.value = '';
+    setLogo('');
     state.cart = [];
     state.orderNo = FIRST_ORDER;
     state.orders = 0;
@@ -351,15 +590,22 @@ export function initDemo() {
     closeSheet();
     log.innerHTML = initialLog;
     applyName();
+    applyLook();
+    renderPromo();
     statOrders.textContent = '0';
     statRevenue.textContent = fmt(0);
     hint.hidden = false;
-    hint.innerHTML = hint.innerHTML.replace(/(Тепер|Додайте)[^<]*$/, 'Додайте товар у кошик ліворуч і оформіть замовлення');
-    chips[0]?.click();
+    hintText.textContent = 'Додайте товар у кошик і оформіть замовлення';
+    filter('all');
     show('catalog');
+    resetFlags();
   });
 
   applyName();
+  applyLook();
+  renderPromo();
   updateBadge();
   renderCart();
+  // Font samples in the panel use the stacks they describe.
+  qa('[data-font-sample]').forEach((el) => (el.style.fontFamily = FONT_STACKS[el.dataset.fontSample!]));
 }
