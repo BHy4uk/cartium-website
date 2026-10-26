@@ -205,106 +205,115 @@ function duration(mins: number) {
   return h ? `${h} год ${m} хв` : `${m} хв`;
 }
 
-function story(mm: gsap.MatchMedia) {
+// Both lanes play the same sale on a clock; each starts when it scrolls into view.
+function storyRace() {
   const section = $('[data-story]');
   if (!section) return;
-  const pin = $('[data-story-pin]', section)!;
-  const stateA = $('[data-story-a]', section)!;
-  const stateB = $('[data-story-b]', section)!;
-  const chat = $('[data-chat]', section)!;
-  const list = $('[data-chat-list]', section)!;
-  const msgs = $$('[data-msg]', section);
-  const order = $('[data-order]', section)!;
-  const countMsgs = $('[data-count-msgs]', section)!;
-  const countTime = $('[data-count-time]', section)!;
-  const ttnBtn = $('[data-ttn-btn]', section)!;
-  const ttnLabel = $('[data-ttn-label]', section)!;
-  const ttnStep = $('[data-ttn-step]', section)!;
+  const direct = $('[data-lane="direct"]', section)!;
+  const cartium = $('[data-lane="cartium"]', section)!;
+  const msgs = $$('[data-msg]', direct);
+  const win = $('[data-chat-window]', direct)!;
+  const clock = $('[data-chat-clock]', direct)!;
+  const countMine = $('[data-count-mine]', direct)!;
+  const countTime = $('[data-count-time]', direct)!;
+  const steps = $$('[data-flow-step]', cartium);
+  const order = $('[data-order]', cartium)!;
+  const ttnBtn = $('[data-ttn-btn]', cartium)!;
+  const ttnLabel = $('[data-ttn-label]', cartium)!;
+  const cartiumTime = $('[data-cartium-time]', cartium)!;
+  const summary = $('[data-race-summary]', section)!;
   const times = msgs.map((m) => minutes(m.querySelector('time')?.textContent ?? '0:00'));
+  win.scrollTop = win.scrollHeight;
+  // Without motion the markup already shows the finished race.
+  if (reduceMotion) return;
+  root.classList.add('race-ready');
 
-  const setCounters = (n: number) => {
-    countMsgs.textContent = String(n);
-    countTime.textContent = duration(n > 0 ? times[n - 1] - times[0] : 0);
+  type Lane = { reset(): void; play(): void; played: boolean; visible: boolean; timers: number[] };
+  const later = (lane: Lane, ms: number, fn: () => void) => lane.timers.push(window.setTimeout(fn, ms));
+  const STEP = 430;
+
+  const directLane: Lane = {
+    played: false,
+    visible: false,
+    timers: [],
+    reset() {
+      this.timers.forEach(clearTimeout);
+      this.timers = [];
+      msgs.forEach((m) => m.classList.remove('is-in'));
+      direct.querySelector('[data-lane-done]')!.classList.remove('is-in');
+      summary.classList.remove('is-in');
+      countMine.textContent = '0';
+      countTime.textContent = '0 хв';
+      clock.textContent = '10:02';
+      win.scrollTop = 0;
+    },
+    play() {
+      this.played = true;
+      msgs.forEach((m, i) =>
+        later(this, 250 + i * STEP, () => {
+          m.classList.add('is-in');
+          countMine.textContent = String(msgs.slice(0, i + 1).filter((x) => x.dataset.from === 'me').length);
+          countTime.textContent = duration(times[i] - times[0]);
+          clock.textContent = m.querySelector('time')?.textContent ?? '';
+          win.scrollTo({ top: win.scrollHeight, behavior: 'smooth' });
+        }),
+      );
+      const end = 250 + msgs.length * STEP;
+      later(this, end, () => direct.querySelector('[data-lane-done]')!.classList.add('is-in'));
+      later(this, end + 300, () => summary.classList.add('is-in'));
+    },
   };
-  const setTtn = (done: boolean) => {
-    ttnBtn.classList.toggle('is-done', done);
-    ttnLabel.textContent = done ? 'ТТН 20451386942763' : 'Створити ТТН';
-    ttnStep.classList.toggle('is-done', done);
+  const cartiumLane: Lane = {
+    played: false,
+    visible: false,
+    timers: [],
+    reset() {
+      this.timers.forEach(clearTimeout);
+      this.timers = [];
+      [...steps, order, cartium.querySelector('[data-lane-done]')!].forEach((el) => el.classList.remove('is-in'));
+      cartiumTime.textContent = '0 хв';
+      ttnBtn.classList.remove('is-done');
+      ttnLabel.textContent = 'Створити ТТН';
+    },
+    play() {
+      this.played = true;
+      steps.forEach((el, i) =>
+        later(this, 250 + i * 520, () => {
+          el.classList.add('is-in');
+          cartiumTime.textContent = `${i} хв`;
+        }),
+      );
+      later(this, 1300, () => order.classList.add('is-in'));
+      later(this, 2050, () => {
+        ttnBtn.classList.add('is-done');
+        ttnLabel.textContent = 'ТТН 20451386942762';
+      });
+      later(this, 2300, () => cartium.querySelector('[data-lane-done]')!.classList.add('is-in'));
+    },
   };
 
-  mm.add('(min-width: 961px) and (min-height: 640px) and (prefers-reduced-motion: no-preference)', () => {
-    root.classList.add('story-animated');
-    const windowEl = list.parentElement!;
-    const shiftFor = (i: number) => {
-      const last = msgs[i];
-      const bottom = last.offsetTop + last.offsetHeight;
-      return -Math.max(0, bottom - (windowEl.clientHeight - 32));
-    };
+  const lanes = new Map<Element, Lane>([
+    [direct, directLane],
+    [cartium, cartiumLane],
+  ]);
+  lanes.forEach((lane) => lane.reset());
+  const io = new IntersectionObserver(
+    (entries) =>
+      entries.forEach((e) => {
+        const lane = lanes.get(e.target)!;
+        lane.visible = e.isIntersecting;
+        if (e.isIntersecting && !lane.played) lane.play();
+      }),
+    { threshold: 0.35 },
+  );
+  lanes.forEach((_, el) => io.observe(el));
 
-    // The first question is already on screen when the section pins.
-    gsap.set(msgs.slice(1), { autoAlpha: 0, y: 14, scale: 0.96 });
-    msgs.forEach((m) => gsap.set(m, { transformOrigin: m.classList.contains('msg--me') ? '100% 100%' : '0% 100%' }));
-    gsap.set(stateB, { autoAlpha: 0, y: 40 });
-    gsap.set(order, { autoAlpha: 0, y: 60, scale: 0.92 });
-    setCounters(1);
-    setTtn(false);
-
-    const step = 0.6;
-    const counter = { n: 1 };
-    const tl = gsap.timeline({
-      defaults: { ease: 'power2.out' },
-      scrollTrigger: {
-        trigger: pin,
-        start: 'top top',
-        end: () => `+=${window.innerHeight * 3.2}`,
-        pin: true,
-        scrub: 0.6,
-        invalidateOnRefresh: true,
-        anticipatePin: 1,
-      },
+  $('[data-story-replay]', section)?.addEventListener('click', () => {
+    lanes.forEach((lane) => {
+      lane.reset();
+      lane.played = false;
+      if (lane.visible) lane.play();
     });
-
-    msgs.slice(1).forEach((m, k) => {
-      const i = k + 1;
-      tl.to(m, { autoAlpha: 1, y: 0, scale: 1, duration: 0.45 }, (i - 1) * step);
-      tl.to(list, { y: () => shiftFor(i), duration: 0.45 }, (i - 1) * step);
-    });
-    tl.to(
-      counter,
-      {
-        n: msgs.length,
-        duration: (msgs.length - 2) * step + 0.45,
-        ease: 'none',
-        onUpdate: () => setCounters(Math.round(counter.n)),
-      },
-      0,
-    );
-
-    const end = (msgs.length - 1) * step + 0.6;
-    tl.to(chat, { autoAlpha: 0, y: -40, scale: 0.9, duration: 0.8, ease: 'power2.in' }, end)
-      .to(stateA, { autoAlpha: 0, y: -40, duration: 0.7, ease: 'power2.in' }, end)
-      .to(order, { autoAlpha: 1, y: 0, scale: 1, duration: 0.9, ease: 'back.out(1.4)' }, end + 0.6)
-      .to(stateB, { autoAlpha: 1, y: 0, duration: 0.9, ease: EASE }, end + 0.7);
-
-    const ttn = { done: 0 };
-    tl.to(ttn, { done: 1, duration: 0.6, onUpdate: () => setTtn(ttn.done > 0.5) }, end + 2);
-    tl.to({}, { duration: 0.8 });
-
-    return () => {
-      root.classList.remove('story-animated');
-      setCounters(msgs.length);
-      setTtn(false);
-    };
-  });
-
-  // Smaller screens: no pin, the chat plays as it scrolls into view.
-  mm.add('(max-width: 960px), (max-height: 639px)', () => {
-    if (reduceMotion) return;
-    gsap.set(msgs, { autoAlpha: 0, y: 12 });
-    const tl = gsap.timeline({ scrollTrigger: { trigger: chat, start: 'top 75%', once: true } });
-    tl.to(msgs, { autoAlpha: 1, y: 0, duration: 0.5, stagger: 0.12, ease: EASE });
-    gsap.from(order, { autoAlpha: 0, y: 50, scale: 0.94, duration: 1, ease: EASE, scrollTrigger: { trigger: order, start: 'top 85%', once: true } });
-    ScrollTrigger.create({ trigger: order, start: 'top 45%', once: true, onEnter: () => setTtn(true) });
   });
 }
 
@@ -396,16 +405,67 @@ function stages() {
 }
 
 /* ---------- Growth demos ---------- */
-function growth() {
-  const stage = $('[data-ai-stage]');
-  $$<HTMLInputElement>('[data-ai-swatch]').forEach((input) => {
-    input.addEventListener('change', () => {
-      if (!stage || !input.checked) return;
-      stage.style.setProperty('--ai-bg', input.value);
-      stage.classList.toggle('is-dark', input.value === '#2b2b2b');
-      if (!reduceMotion) gsap.fromTo('.ai-product', { scale: 0.94 }, { scale: 1, duration: 0.7, ease: 'back.out(2)' });
-    });
+// AI photo: operation, backdrop or scene, a before/after split and the accept step.
+function aiPhoto() {
+  const tile = $('[data-ai]');
+  if (!tile) return;
+  const after = $('[data-ai-after]', tile)!;
+  const compare = $('[data-ai-compare]', tile)!;
+  const range = $<HTMLInputElement>('[data-ai-range]', tile)!;
+  const hint = $('[data-ai-hint]', tile)!;
+  const backgrounds = $('[data-ai-backgrounds]', tile)!;
+  const scenes = $('[data-ai-scenes]', tile)!;
+  const status = $('[data-ai-status]', tile)!;
+  let busy = 0;
+  const regenerate = () => {
+    status.textContent = '';
+    if (reduceMotion) return;
+    after.classList.remove('is-busy');
+    void after.offsetWidth;
+    after.classList.add('is-busy');
+    window.clearTimeout(busy);
+    busy = window.setTimeout(() => after.classList.remove('is-busy'), 800);
+  };
+  const setSplit = (v: number) => {
+    range.value = String(v);
+    compare.style.setProperty('--split', `${v}%`);
+  };
+  range.addEventListener('input', () => setSplit(Number(range.value)));
+
+  const group = $('[role="radiogroup"]', tile)!;
+  radioGroup(group, (btn) => {
+    const op = btn.dataset.aiOp!;
+    after.dataset.op = op;
+    hint.textContent = btn.title;
+    const lifestyle = op === 'lifestyle';
+    backgrounds.hidden = lifestyle;
+    scenes.hidden = !lifestyle;
+    // Show more of the result once the visitor starts choosing.
+    if (Number(range.value) > 30) setSplit(30);
+    regenerate();
   });
+  $$<HTMLInputElement>('[data-ai-swatch]', tile).forEach((input) =>
+    input.addEventListener('change', () => {
+      if (!input.checked) return;
+      after.style.setProperty('--ai-bg', input.value);
+      regenerate();
+    }),
+  );
+  $$<HTMLInputElement>('[data-ai-scene]', tile).forEach((input) =>
+    input.addEventListener('change', () => {
+      if (!input.checked) return;
+      after.dataset.scene = input.value;
+      regenerate();
+    }),
+  );
+  $('[data-ai-accept]', tile)!.addEventListener('click', () => {
+    setSplit(0);
+    status.textContent = 'Фото додано в товар «Кільце»';
+  });
+}
+
+function growth() {
+  aiPhoto();
 
   const reminder = $('[data-reminder]');
   const remindGroup = reminder?.querySelector<HTMLElement>('[role="radiogroup"]');
@@ -546,7 +606,7 @@ idle(() => {
   growth();
   pricing();
   const mm = gsap.matchMedia();
-  story(mm);
+  storyRace();
   launch(mm);
   showcase();
   stages();

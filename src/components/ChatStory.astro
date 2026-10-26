@@ -1,8 +1,11 @@
 ---
+import { Image } from 'astro:assets';
 import Icon from './Icon.astro';
+import teePhoto from '../assets/products/tee.png';
 
-// A typical Instagram-direct sale, told as a chat. The counters below are read
-// off this script (14 messages, 10:02 to 12:49), not a statistic.
+// One sale told twice and played side by side: a typical Instagram-direct sale on the left,
+// the same sale through Cartium on the right. The counters are read off this script
+// (14 messages, 10:02 to 12:49 versus 10:02 to 10:05), not a statistic.
 type Msg = { from: 'them' | 'me'; text?: string; time: string; kind?: 'shot' };
 const chat: Msg[] = [
   { from: 'them', text: 'Добрий день! Скільки коштує футболка з фото?', time: '10:02' },
@@ -20,49 +23,47 @@ const chat: Msg[] = [
   { from: 'me', text: 'Відправлю завтра, ТТН скину сюди', time: '12:40' },
   { from: 'me', text: 'ТТН 20451386942762', time: '12:49' },
 ];
+const steps = [
+  { time: '10:02', text: 'Олена відкриває каталог і обирає футболку, чорну, M' },
+  { time: '10:03', text: 'Платить через LiqPay, адреса Нової пошти вже у формі' },
+  { time: '10:04', text: 'Вам приходить оплачене замовлення' },
+  { time: '10:05', text: 'Ви натискаєте «Створити ТТН»' },
+];
 ---
 <section class="story stage" id="story" aria-labelledby="story-title" data-story data-stage>
-  <div class="story-pin" data-story-pin>
-    <div class="container story-grid">
-      <div class="story-copy">
-        <div class="story-state story-state--a" data-story-a>
-          <h2 id="story-title" class="display h2">Так виглядає один продаж у&nbsp;директі</h2>
-          <p class="lead">Ціна, розмір, реквізити, скрін оплати, адреса, ТТН. Кожну відповідь пишете ви, поки покупець чекає.</p>
-          <dl class="story-stats">
-            <div class="stat">
-              <dt>Повідомлень</dt>
-              <dd><span data-count-msgs>14</span></dd>
-            </div>
-            <div class="stat">
-              <dt>Від питання до ТТН</dt>
-              <dd><span data-count-time>2 год 47 хв</span></dd>
-            </div>
-          </dl>
-        </div>
+  <div class="container">
+    <div class="story-head">
+      <h2 id="story-title" class="display h2">Один і той самий продаж. У директі і в&nbsp;Cartium.</h2>
+      <p class="lead">Покупниця пише о 10:02. Подивіться, коли посилка буде готова до відправки.</p>
+      <button type="button" class="story-replay" data-story-replay>
+        <Icon name="arrow-counter-clockwise" /> Програти ще раз
+      </button>
+    </div>
 
-        <div class="story-state story-state--b" data-story-b>
-          <h2 class="display h2">У Cartium замовлення приходить уже оплаченим</h2>
-          <ul class="story-points">
-            <li><Icon name="t-shirt-fill" /> Покупець сам обирає товар, розмір і колір у каталозі</li>
-            <li><Icon name="credit-card" /> LiqPay і plata by mono підтверджують оплату без вас</li>
-            <li><Icon name="truck" /> Адреса для Нової пошти вже в замовленні, ТТН створюється однією кнопкою</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="story-stage">
-        <div class="chat" data-chat>
+    <div class="race">
+      <!-- Direct -->
+      <article class="lane" data-lane="direct" aria-labelledby="lane-direct">
+        <header class="lane-head">
+          <p class="lane-name" id="lane-direct">У директі</p>
+          <p class="lane-done" data-lane-done>Готово о 12:49</p>
+        </header>
+        <dl class="lane-stats">
+          <div><dt>Ваших повідомлень</dt><dd data-count-mine>9</dd></div>
+          <div><dt>До ТТН</dt><dd data-count-time>2 год 47 хв</dd></div>
+        </dl>
+        <div class="chat">
           <div class="chat-head">
             <span class="chat-avatar" aria-hidden="true">О</span>
             <div>
               <p class="chat-name">olena.melnyk</p>
               <p class="chat-sub">Директ</p>
             </div>
+            <time class="chat-clock" data-chat-clock>12:49</time>
           </div>
-          <div class="chat-window">
-            <ol class="chat-list" data-chat-list>
+          <div class="chat-window" data-chat-window data-lenis-prevent>
+            <ol class="chat-list">
               {chat.map((m) => (
-                <li class:list={['msg', `msg--${m.from}`, m.kind && `msg--${m.kind}`]} data-msg>
+                <li class:list={['msg', `msg--${m.from}`, m.kind && `msg--${m.kind}`]} data-msg data-from={m.from}>
                   {m.kind === 'shot' ? (
                     <span class="msg-shot" aria-label="Скріншот оплати">
                       <span class="shot-lines" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -77,138 +78,168 @@ const chat: Msg[] = [
             </ol>
           </div>
         </div>
+      </article>
 
-        <article class="order paper" data-order aria-label="Приклад замовлення в Cartium">
+      <!-- Cartium -->
+      <article class="lane lane--cartium" data-lane="cartium" aria-labelledby="lane-cartium">
+        <header class="lane-head">
+          <p class="lane-name" id="lane-cartium">У Cartium</p>
+          <p class="lane-done" data-lane-done>Готово о 10:05</p>
+        </header>
+        <dl class="lane-stats">
+          <div><dt>Ваших повідомлень</dt><dd>0</dd></div>
+          <div><dt>До ТТН</dt><dd data-cartium-time>3 хв</dd></div>
+        </dl>
+        <ol class="flow">
+          {steps.map((s) => (
+            <li class="flow-step" data-flow-step>
+              <time>{s.time}</time>
+              <span>{s.text}</span>
+            </li>
+          ))}
+        </ol>
+        <article class="order paper" data-order aria-label="Замовлення в Cartium">
           <header class="order-head">
             <span class="order-num">#55</span>
             <span class="order-status"><Icon name="check-circle-fill" /> Оплачено</span>
             <span class="order-time">10:04</span>
           </header>
           <div class="order-row">
-            <span class="order-thumb" aria-hidden="true"><Icon name="t-shirt-fill" /></span>
+            <span class="order-thumb"><Image src={teePhoto} alt="" width={112} quality={82} /></span>
             <div class="order-item">
               <p class="order-title">Футболка, чорна</p>
-              <p class="order-meta">Розмір M, 1 шт.</p>
+              <p class="order-meta">Розмір M, 1 шт. · Нова пошта, Київ, №12</p>
             </div>
             <p class="order-sum">1 500 грн</p>
           </div>
-          <dl class="order-kv">
-            <div><dt>Покупець</dt><dd>Олена Мельник</dd></div>
-            <div><dt>Оплата</dt><dd>LiqPay</dd></div>
-            <div><dt>Доставка</dt><dd>Нова пошта, Київ, №12</dd></div>
-          </dl>
-          <div class="order-actions">
-            <span class="order-btn" data-ttn-btn><Icon name="truck" /> <span data-ttn-label>Створити ТТН</span></span>
-          </div>
-          <ol class="order-timeline" aria-label="Етапи замовлення">
-            <li class="is-done">Створено</li>
-            <li class="is-done">Оплачено</li>
-            <li data-ttn-step>Відправлено</li>
-          </ol>
+          <span class="order-btn is-done" data-ttn-btn><Icon name="truck" /> <span data-ttn-label>ТТН 20451386942762</span></span>
         </article>
-      </div>
+      </article>
     </div>
+
+    <p class="race-summary" data-race-summary>
+      Поки в директі ви пишете 9 повідомлень і чекаєте відповіді, у Cartium покупець сам обирає розмір, платить, а ТТН створюється однією кнопкою.
+    </p>
   </div>
 </section>
 
 <style>
   .story {
-    position: relative;
-    padding-block: var(--section-y);
+    padding-block: clamp(72px, 9vw, 128px);
   }
-  .story-grid {
+  .story-head {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: clamp(32px, 6vw, 96px);
-    align-items: center;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    align-items: end;
+    gap: 16px 48px;
+    margin-bottom: clamp(24px, 3vw, 40px);
   }
-  .story-copy {
-    display: grid;
+  .story-head .h2 {
+    grid-row: 1 / span 2;
+    max-width: 18ch;
+    font-size: clamp(2rem, 1.2rem + 2.4vw, 3.2rem);
   }
-  .story-state {
-    display: grid;
-    gap: 24px;
-    align-content: center;
-  }
-  .story-state .h2 {
-    font-size: clamp(2rem, 1.2rem + 2.3vw, 3.1rem);
-  }
-  .story-stats {
-    display: flex;
-    gap: 16px;
-    margin-top: 8px;
-  }
-  .stat {
-    min-width: 168px;
-    padding: 18px 22px;
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.03);
-    box-shadow: inset 0 0 0 1px var(--line-strong);
-  }
-  .stat dt {
-    color: var(--muted);
-    font-size: 0.9rem;
-    font-weight: 500;
-  }
-  .stat dd {
-    margin: 4px 0 0;
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: clamp(1.7rem, 1.2rem + 1.4vw, 2.4rem);
-    letter-spacing: -0.03em;
-    line-height: 1.1;
-  }
-  .story-points {
-    display: grid;
-    gap: 14px;
-    margin-top: 4px;
-  }
-  .story-points li {
-    display: grid;
-    grid-template-columns: 40px 1fr;
-    align-items: center;
-    gap: 14px;
+  .story-head .lead {
+    grid-column: 2;
     font-size: 1.08rem;
-    color: var(--ink-2);
   }
-  .story-points :global(.icon) {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    background: var(--accent-soft);
-    color: var(--accent-text);
-    font-size: 1.2rem;
+  .story-replay {
+    grid-column: 2;
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 18px;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background-color 0.25s var(--ease-out);
+  }
+  .story-replay:hover {
+    background: var(--surface-2);
   }
 
-  /* Chat */
-  .story-stage {
-    position: relative;
+  .race {
     display: grid;
-    justify-items: center;
-    gap: 28px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(16px, 2.4vw, 32px);
+    align-items: start;
   }
+  .lane {
+    display: grid;
+    gap: 12px;
+    padding: clamp(16px, 1.6vw, 22px);
+    border-radius: calc(var(--r-card) + 4px);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .lane-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .lane-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.35rem;
+    letter-spacing: -0.02em;
+  }
+  .lane-done {
+    padding: 5px 12px;
+    border-radius: var(--r-pill);
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: opacity 0.4s var(--ease-out), transform 0.5s var(--ease-spring);
+  }
+  .lane-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .lane-stats div {
+    padding: 8px 14px;
+    border-radius: 16px;
+    background: var(--surface-2);
+  }
+  .lane-stats dt {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  .lane-stats dd {
+    margin: 2px 0 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.35rem, 1.1rem + 0.7vw, 1.75rem);
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+  }
+
+  /* Direct chat */
   .chat {
-    width: min(420px, 100%);
-    border-radius: var(--r-card);
-    border: 1px solid transparent;
-    background:
-      linear-gradient(var(--surface), var(--surface)) padding-box,
-      var(--chrome-border) border-box;
-    box-shadow: var(--shadow-lift);
+    border-radius: 22px;
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
     overflow: hidden;
   }
   .chat-head {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px 18px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--line);
   }
   .chat-avatar {
     display: grid;
     place-items: center;
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: var(--chrome);
     color: #0a0a0b;
@@ -222,8 +253,22 @@ const chat: Msg[] = [
     font-size: 0.82rem;
     color: var(--muted);
   }
+  .chat-clock {
+    margin-left: auto;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--ink-2);
+  }
   .chat-window {
-    padding: 16px 14px;
+    height: 330px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    padding: 14px 12px;
+  }
+  .chat-window::-webkit-scrollbar {
+    display: none;
   }
   .chat-list {
     display: grid;
@@ -233,10 +278,10 @@ const chat: Msg[] = [
     display: flex;
     align-items: flex-end;
     gap: 8px;
-    max-width: 84%;
+    max-width: 86%;
     padding: 8px 12px;
     border-radius: 18px;
-    font-size: 0.93rem;
+    font-size: 0.92rem;
     line-height: 1.35;
   }
   .msg--them {
@@ -267,8 +312,8 @@ const chat: Msg[] = [
     display: grid;
     gap: 4px;
     align-content: center;
-    width: 48px;
-    height: 60px;
+    width: 44px;
+    height: 54px;
     padding: 8px;
     border-radius: 12px;
     background: var(--surface);
@@ -282,23 +327,37 @@ const chat: Msg[] = [
   }
   .shot-lines i:nth-child(2) {
     width: 70%;
-    background: var(--ok);
+    background: var(--ink);
   }
   .shot-label {
     font-size: 0.85rem;
     color: var(--muted);
   }
 
-  /* Order card */
-  .order {
-    width: min(420px, 100%);
-    padding: 20px;
-    border-radius: var(--r-card);
-    box-shadow:
-      0 2px 6px rgba(0, 0, 0, 0.4),
-      0 40px 120px -40px rgba(255, 255, 255, 0.22);
+  /* Cartium side */
+  .flow {
     display: grid;
-    gap: 16px;
+    gap: 2px;
+  }
+  .flow-step {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    gap: 12px;
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-2);
+  }
+  .flow-step time {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .order {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 22px;
+    box-shadow: 0 40px 100px -40px rgba(255, 255, 255, 0.22);
   }
   .order-head {
     display: flex;
@@ -308,7 +367,7 @@ const chat: Msg[] = [
   .order-num {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     letter-spacing: -0.03em;
   }
   .order-status {
@@ -320,7 +379,7 @@ const chat: Msg[] = [
     background: var(--ok-soft);
     color: var(--ok);
     font-weight: 600;
-    font-size: 0.86rem;
+    font-size: 0.85rem;
   }
   .order-time {
     margin-left: auto;
@@ -334,141 +393,110 @@ const chat: Msg[] = [
     gap: 14px;
   }
   .order-thumb {
-    display: grid;
-    place-items: center;
+    display: block;
     width: 56px;
     height: 56px;
-    border-radius: 16px;
-    background: var(--surface-2);
-    color: var(--ink);
-    font-size: 30px;
+    border-radius: 14px;
+    background: #2a2a2a;
+    overflow: hidden;
+  }
+  .order-thumb :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
   .order-title {
     font-weight: 600;
   }
   .order-meta {
     color: var(--muted);
-    font-size: 0.9rem;
+    font-size: 0.88rem;
   }
   .order-sum {
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     letter-spacing: -0.02em;
     white-space: nowrap;
   }
-  .order-kv {
-    display: grid;
-    gap: 6px;
-    padding: 14px 16px;
-    border-radius: 18px;
-    background: var(--surface-2);
-    font-size: 0.92rem;
-  }
-  .order-kv div {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-  }
-  .order-kv dt {
-    color: var(--muted);
-  }
-  .order-kv dd {
-    margin: 0;
-    font-weight: 500;
-    text-align: right;
-  }
-  .order-actions {
-    display: flex;
-  }
   .order-btn {
-    flex: 1;
     display: inline-flex;
     justify-content: center;
     align-items: center;
     gap: 8px;
-    height: 48px;
+    height: 46px;
     border-radius: var(--r-pill);
     background: var(--ink);
     color: var(--bg);
     font-weight: 600;
+    transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out);
   }
   .order-btn.is-done {
     background: var(--ok-soft);
     color: var(--ok);
   }
-  .order-timeline {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    font-size: 0.8rem;
-    color: var(--muted);
-  }
-  .order-timeline li {
-    padding-top: 10px;
-    border-top: 3px solid var(--line-strong);
-  }
-  .order-timeline li.is-done {
-    border-color: var(--ok);
+
+  .race-summary {
+    max-width: 46rem;
+    margin: clamp(28px, 3vw, 44px) auto 0;
+    text-align: center;
     color: var(--ink-2);
+    font-size: clamp(1.05rem, 1rem + 0.35vw, 1.25rem);
+    line-height: 1.5;
+    text-wrap: balance;
   }
 
-  @media (max-width: 960px) {
-    /* One column, in reading order: the problem, the chat, the answer, the order. */
-    .story-grid {
+  /* Before the race starts (set by main.ts only when motion is allowed). */
+  :global(.race-ready) [data-msg],
+  :global(.race-ready) [data-flow-step],
+  :global(.race-ready) [data-order],
+  :global(.race-ready) [data-lane-done],
+  :global(.race-ready) .race-summary {
+    opacity: 0;
+  }
+  :global(.race-ready) [data-msg],
+  :global(.race-ready) [data-flow-step] {
+    transform: translateY(10px);
+  }
+  :global(.race-ready) [data-order] {
+    transform: translateY(24px) scale(0.97);
+  }
+  :global(.race-ready) [data-lane-done] {
+    transform: scale(0.8);
+  }
+  :global(.race-ready) [data-msg].is-in,
+  :global(.race-ready) [data-flow-step].is-in,
+  :global(.race-ready) [data-order].is-in,
+  :global(.race-ready) [data-lane-done].is-in,
+  :global(.race-ready) .race-summary.is-in {
+    opacity: 1;
+    transform: none;
+  }
+  [data-msg],
+  [data-flow-step],
+  [data-order],
+  .race-summary {
+    transition:
+      opacity 0.45s var(--ease-out),
+      transform 0.6s var(--ease-spring);
+  }
+
+  @media (max-width: 900px) {
+    .story-head {
+      grid-template-columns: 1fr;
+    }
+    .story-head .h2,
+    .story-head .lead,
+    .story-replay {
+      grid-column: 1;
+      grid-row: auto;
+    }
+    .race {
       grid-template-columns: minmax(0, 1fr);
-      gap: 40px;
     }
-    .story-copy,
-    .story-stage {
-      display: contents;
+    .chat-window {
+      height: 340px;
     }
-    .story-state--a {
-      order: 1;
-    }
-    .chat {
-      order: 2;
-      justify-self: center;
-    }
-    .story-state--b {
-      order: 3;
-      margin-top: 32px;
-    }
-    .order {
-      order: 4;
-      justify-self: center;
-    }
-  }
-
-  /* Animated mode (desktop and tablet, motion allowed): JS pins the section and plays
-     the chat; without JS both states and the full chat stay visible. */
-  :global(.story-animated) .story-pin {
-    height: 100dvh;
-    display: grid;
-    align-items: center;
-  }
-  :global(.story-animated) .story {
-    padding-block: 0;
-  }
-  :global(.story-animated) .story-copy {
-    grid-template-areas: 'state';
-  }
-  :global(.story-animated) .story-state {
-    grid-area: state;
-  }
-  :global(.story-animated) .story-state--b {
-    margin-top: 0;
-  }
-  :global(.story-animated) .story-stage {
-    grid-template-areas: 'stage';
-  }
-  :global(.story-animated) .chat,
-  :global(.story-animated) .order {
-    grid-area: stage;
-    align-self: center;
-  }
-  :global(.story-animated) .chat-window {
-    height: min(460px, 56dvh);
-    overflow: hidden;
   }
 </style>

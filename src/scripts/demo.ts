@@ -134,15 +134,21 @@ export function initDemo() {
 
   /* ----- Progress ----- */
   const flags = { style: false, buy: false, ship: false };
+  const markCurrent = () => {
+    const next = (Object.keys(flags) as (keyof typeof flags)[]).find((k) => !flags[k]);
+    qa('[data-step-flag]').forEach((el) => el.classList.toggle('is-current', el.dataset.stepFlag === next));
+  };
   const flag = (key: keyof typeof flags) => {
     if (flags[key]) return;
     flags[key] = true;
     root.querySelector(`[data-step-flag="${key}"]`)?.classList.add('is-done');
+    markCurrent();
     if (flags.style && flags.buy && flags.ship) finale.classList.add('is-ready');
   };
   const resetFlags = () => {
     (Object.keys(flags) as (keyof typeof flags)[]).forEach((k) => (flags[k] = false));
     qa('[data-step-flag]').forEach((el) => el.classList.remove('is-done'));
+    markCurrent();
     finale.classList.remove('is-ready');
   };
 
@@ -601,11 +607,103 @@ export function initDemo() {
     resetFlags();
   });
 
+
+  /* ----- Coach: a ring and a bubble on the next thing to press ----- */
+  // Visitors skim; the coach makes it obvious this is a working storefront, not a picture.
+  const coach = q('[data-coach]');
+  const coachText = q('[data-coach-text]');
+  const coachRing = q('[data-coach-ring]');
+  let studioVisible = false;
+  let lastTarget: HTMLElement | null = null;
+  const nextStep = (): [HTMLElement | null, string] => {
+    if (!flags.style) {
+      const pane = qa('[data-pane]').find((el) => !el.hidden);
+      const option =
+        pane?.dataset.pane === 'tpl'
+          ? root.querySelector<HTMLElement>(`[data-set="template"]:not([data-value="${look.template}"])`)
+          : pane?.querySelector<HTMLElement>('[data-set][aria-checked="false"]');
+      return [option ?? null, 'Натисніть, щоб змінити вітрину'];
+    }
+    if (!flags.buy) {
+      if (sheet.classList.contains('is-open')) return [q<HTMLElement>('[data-sheet-add]'), 'Додайте в кошик'];
+      const at = phone.dataset.screen;
+      if (at === 'catalog')
+        return state.cart.length
+          ? [q<HTMLElement>('.ds-tab[data-tab-id="cart"]'), 'Відкрийте кошик']
+          : [root.querySelector<HTMLElement>('.ds-card:not([hidden]) .ds-add'), 'Тепер купіть товар: натисніть +'];
+      if (at === 'cart')
+        return state.cart.length
+          ? [q<HTMLElement>('[data-cart-footer] [data-go="checkout"]'), 'Оформіть замовлення']
+          : [q<HTMLElement>('.ds-tab[data-tab-id="catalog"]'), 'Поверніться в каталог'];
+      if (at === 'checkout') return [q<HTMLElement>('[data-pay-submit]'), 'Оберіть оплату й оплатіть'];
+      return [null, ''];
+    }
+    if (!flags.ship) return [root.querySelector<HTMLElement>('[data-ttn]:not(:disabled)'), 'Створіть ТТН для покупця'];
+    return [null, ''];
+  };
+  const hideCoach = () => {
+    coach.classList.remove('is-on');
+    coachRing.classList.remove('is-on');
+  };
+  const placeCoach = () => {
+    if (!studioVisible) return;
+    requestAnimationFrame(placeCoach);
+    const [el, text] = nextStep();
+    if (!el) return hideCoach();
+    const r = el.getBoundingClientRect();
+    if (!r.width) return hideCoach();
+    const off = r.top > innerHeight - 40 ? 'down' : r.bottom < 72 ? 'up' : '';
+    const label = off ? `${off === 'down' ? '↓' : '↑'} ${text}` : text;
+    if (el !== lastTarget || coachText.textContent !== label) {
+      lastTarget = el;
+      coachText.textContent = label;
+      coachRing.style.borderRadius = getComputedStyle(el).borderRadius || '14px';
+    }
+    const bw = coach.offsetWidth;
+    const bh = coach.offsetHeight;
+    // Off the page: pin the bubble to the edge it is on; a tap scrolls to the control.
+    if (off) {
+      coach.dataset.side = 'edge';
+      coach.style.transform = `translate(${(innerWidth - bw) / 2}px, ${off === 'down' ? innerHeight - bh - 104 : 84}px)`;
+      coach.classList.add('is-on');
+      coachRing.classList.remove('is-on');
+      return;
+    }
+    // On the page but scrolled out of the phone's own screen: nothing sensible to point at.
+    if (screen.contains(el)) {
+      const box = screen.getBoundingClientRect();
+      if (r.top > box.bottom - r.height / 2 || r.bottom < box.top + r.height / 2) return hideCoach();
+    }
+    coachRing.style.width = `${r.width + 10}px`;
+    coachRing.style.height = `${r.height + 10}px`;
+    coachRing.style.transform = `translate(${r.left - 5}px, ${r.top - 5}px)`;
+    const x = Math.min(Math.max(12, r.left + r.width / 2 - 30), innerWidth - bw - 12);
+    const above = r.top - bh - 16 > 72;
+    coach.dataset.side = above ? 'above' : 'below';
+    coach.style.transform = `translate(${x}px, ${above ? r.top - bh - 14 : r.bottom + 14}px)`;
+    coach.style.setProperty('--arrow-x', `${Math.min(Math.max(18, r.left + r.width / 2 - x), bw - 18)}px`);
+    coach.classList.add('is-on');
+    coachRing.classList.add('is-on');
+  };
+  coach.addEventListener('click', () => {
+    if (coach.dataset.side === 'edge') lastTarget?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+  });
+  new IntersectionObserver(
+    ([e]) => {
+      const was = studioVisible;
+      studioVisible = e.isIntersecting;
+      if (studioVisible && !was) requestAnimationFrame(placeCoach);
+      if (!studioVisible) hideCoach();
+    },
+    { threshold: 0.12 },
+  ).observe(q('.studio-grid'));
+
   applyName();
   applyLook();
   renderPromo();
   updateBadge();
   renderCart();
+  markCurrent();
   // Font samples in the panel use the stacks they describe.
   qa('[data-font-sample]').forEach((el) => (el.style.fontFamily = FONT_STACKS[el.dataset.fontSample!]));
 }

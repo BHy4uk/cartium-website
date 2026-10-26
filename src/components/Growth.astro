@@ -1,5 +1,13 @@
 ---
+import { getImage } from 'astro:assets';
 import Icon from './Icon.astro';
+import ringPhoto from '../assets/products/ring.png';
+import ringCutout from '../assets/products/ring-cutout.png';
+import teePhoto from '../assets/products/tee.png';
+
+const ringSrc = (await getImage({ src: ringPhoto, format: 'webp', quality: 85 })).src;
+const ringCutSrc = (await getImage({ src: ringCutout, format: 'webp', quality: 90 })).src;
+const teeThumb = (await getImage({ src: teePhoto, width: 120, format: 'webp' })).src;
 
 // Real backdrop presets of the AI photo assistant (application/ai_image_operations.py).
 const backdrops = [
@@ -9,7 +17,18 @@ const backdrops = [
   { id: 'dark', label: 'Темний', css: '#2b2b2b' },
   { id: 'gradient', label: 'Градієнт', css: 'linear-gradient(180deg,#f3f3f3,#d9d9d9)' },
 ];
-const operations = ['Замінити фон', 'Студійне фото', 'На людині', 'Лайфстайл'];
+// Four of the ten real operations, with their own hints; the demo imitates the result on a cut-out.
+const operations = [
+  { id: 'replace_background', label: 'Замінити фон', hint: 'Товар без змін, новий фон' },
+  { id: 'studio', label: 'Студійне фото', hint: 'Чистий фон і м\'яке світло' },
+  { id: 'catalog_ready', label: 'Для каталогу', hint: 'По центру, однакові відступи' },
+  { id: 'lifestyle', label: 'Лайфстайл', hint: 'Товар у живій сцені' },
+];
+const scenes = [
+  { id: 'home', label: 'Затишний дім' },
+  { id: 'desk', label: 'Робочий стіл' },
+  { id: 'cafe', label: "Кав'ярня" },
+];
 const reminders = [
   { id: '30m', label: '30 хв', long: 'через 30 хвилин' },
   { id: '6h', label: '6 год', long: 'через 6 годин' },
@@ -25,16 +44,32 @@ const reminders = [
 
     <div class="bento">
       <article class="tile spot tile--ai" data-ai>
-        <div class="ai-stage" data-ai-stage style={`--ai-bg:${backdrops[1].css}`}>
-          <span class="ai-product" aria-hidden="true"><Icon name="t-shirt-fill" /></span>
-          <span class="ai-badge"><Icon name="sparkle" /> AI-чернетка</span>
+        <div class="ai-compare" data-ai-compare style="--split:50%">
+          <div class="ai-before">
+            <img src={ringSrc} alt="Оригінальне фото кільця на темному тлі" width="248" height="316" loading="lazy" decoding="async" />
+          </div>
+          <div class="ai-after" data-ai-after data-op="replace_background" data-scene="home" style={`--ai-bg:${backdrops[1].css}`}>
+            <span class="ai-scene" aria-hidden="true"></span>
+            <span class="ai-frame" aria-hidden="true"></span>
+            <span class="ai-shadow" aria-hidden="true"></span>
+            <img class="ai-reflect" src={ringCutSrc} alt="" aria-hidden="true" />
+            <img class="ai-cut" src={ringCutSrc} alt="AI-чернетка: кільце на новому фоні" />
+          </div>
+          <span class="ai-tag" aria-hidden="true">Ваше фото</span>
+          <span class="ai-tag ai-tag--after" aria-hidden="true"><Icon name="sparkle" /> AI-чернетка</span>
+          <span class="ai-handle" aria-hidden="true"><Icon name="caret-left" /><Icon name="caret-right" /></span>
+          <input class="ai-range" type="range" min="0" max="100" value="50" aria-label="Порівняти ваше фото й AI-чернетку" data-ai-range />
         </div>
         <div class="tile-body">
           <h3 class="h3">Фото для каталогу без фотографа</h3>
-          <p class="body-muted">
-            Замініть фон, зробіть студійне світло або покажіть річ на людині. Результат потрапляє в товар, лише коли ви його приймете.
-          </p>
-          <fieldset class="swatches">
+          <p class="body-muted">Оберіть дію і потягніть повзунок: ліворуч ваше фото, праворуч AI-чернетка. У товар вона потрапить, лише коли ви її приймете.</p>
+          <div class="ops" role="radiogroup" aria-label="Що зробити з фото">
+            {operations.map((o, i) => (
+              <button type="button" class="op" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-ai-op={o.id} title={o.hint}>{o.label}</button>
+            ))}
+          </div>
+          <p class="ops-hint" data-ai-hint>{operations[0].hint}</p>
+          <fieldset class="swatches" data-ai-backgrounds>
             <legend class="swatches-legend">Фон</legend>
             {backdrops.map((b, i) => (
               <label class="swatch" title={b.label}>
@@ -44,10 +79,20 @@ const reminders = [
               </label>
             ))}
           </fieldset>
-          <ul class="ops" aria-label="Дії AI-асистента">
-            {operations.map((o) => <li class="pill">{o}</li>)}
-          </ul>
-          <p class="tile-foot">20, 100 або 300 AI-кредитів на місяць залежно від тарифу</p>
+          <fieldset class="scenes" data-ai-scenes hidden>
+            <legend class="swatches-legend">Сцена</legend>
+            {scenes.map((sc, i) => (
+              <label class="scene">
+                <input type="radio" name="ai-scene" value={sc.id} checked={i === 0} data-ai-scene />
+                <span>{sc.label}</span>
+              </label>
+            ))}
+          </fieldset>
+          <div class="ai-actions">
+            <button type="button" class="ai-accept" data-ai-accept><Icon name="check" /> Прийняти в товар</button>
+            <span class="ai-status" data-ai-status role="status" aria-live="polite"></span>
+          </div>
+          <p class="tile-foot">Ще 6 дій: Покращити фото, Без манекена, На вішаку, На людині, Преміум-реклама, Своє завдання. 20, 100 або 300 AI-кредитів на місяць залежно від тарифу. У демо результат імітовано, у магазині його створює AI з вашого фото.</p>
         </div>
       </article>
 
@@ -100,7 +145,7 @@ const reminders = [
               <span class="mini-state mini-state--off"><Icon name="pause" /> Оформлення на паузі, каталог відкритий</span>
             </div>
             <div class="mini-item">
-              <span class="mini-thumb"><Icon name="t-shirt-fill" /></span>
+              <span class="mini-thumb"><img src={teeThumb} alt="" loading="lazy" decoding="async" /></span>
               <div>
                 <p class="mini-name">Футболка</p>
                 <p class="mini-price">1 500 грн</p>
@@ -171,62 +216,339 @@ const reminders = [
   .tile--ai {
     grid-column: span 7;
     grid-row: span 2;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
     align-items: stretch;
     align-content: stretch;
   }
   .tile--ai .tile-body {
     align-content: center;
   }
-  .ai-stage {
+  /* Before / after: the AI layer is clipped from the left at --split. */
+  /* The frame has the photo's proportions and the cut-out sits exactly where the ring is
+     in the original (crop box 38,107 to 210,234 of 248x316), so before and after line up. */
+  .ai-compare {
+    --ring-x: 15.3%;
+    --ring-y: 33.9%;
+    --ring-w: 69.4%;
+    --ring-h: 40.2%;
     position: relative;
-    min-height: 420px;
+    align-self: center;
+    aspect-ratio: 248 / 316;
     border-radius: 22px;
-    background: var(--ai-bg);
-    box-shadow: inset 0 0 0 1px var(--line);
-    display: grid;
-    place-items: center;
     overflow: hidden;
+    background: #2a2a2a;
+    box-shadow: inset 0 0 0 1px var(--line);
+    isolation: isolate;
+  }
+  .ai-before,
+  .ai-after {
+    position: absolute;
+    inset: 0;
+  }
+  .ai-before img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .ai-after {
+    clip-path: inset(0 0 0 var(--split));
+    overflow: hidden;
+  }
+  .ai-scene {
+    position: absolute;
+    inset: 0;
+    background: var(--ai-bg);
     transition: background 0.6s var(--ease-out);
   }
-  .ai-product {
-    position: relative;
-    z-index: 1;
-    font-size: clamp(120px, 14vw, 190px);
-    color: #1d1f24;
-    transition: transform 0.7s var(--ease-spring);
-  }
-  .ai-stage.is-dark .ai-product {
-    color: #f4f5f7;
-  }
-  .tile--ai:hover .ai-product {
-    transform: translateY(-6px) scale(1.03);
-  }
-  .ai-product::after {
-    content: '';
+  .ai-cut,
+  .ai-reflect {
     position: absolute;
-    left: 14%;
-    right: 14%;
-    bottom: -0.02em;
-    height: 0.1em;
+    left: var(--ring-x);
+    top: var(--ring-y);
+    width: var(--ring-w);
+    transform-origin: 50% 100%;
+    transition: transform 0.6s var(--ease-spring), opacity 0.4s var(--ease-out), filter 0.4s var(--ease-out);
+  }
+  .ai-cut {
+    z-index: 2;
+    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.14));
+  }
+  .ai-reflect {
+    z-index: 1;
+    top: calc(var(--ring-y) + var(--ring-h) - 1%);
+    transform: scaleY(-1);
+    transform-origin: 50% 0;
+    opacity: 0;
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.32), transparent 60%);
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.32), transparent 60%);
+  }
+  .ai-shadow {
+    position: absolute;
+    z-index: 1;
+    left: calc(var(--ring-x) + var(--ring-w) * 0.1);
+    width: calc(var(--ring-w) * 0.8);
+    top: calc(var(--ring-y) + var(--ring-h) - 4%);
+    height: 7%;
     border-radius: 50%;
     background: radial-gradient(closest-side, rgba(0, 0, 0, 0.3), transparent);
-    z-index: -1;
+    transform-origin: 50% 0;
+    transition: transform 0.6s var(--ease-spring);
   }
-  .ai-badge {
+  .ai-frame {
     position: absolute;
-    left: 12px;
+    z-index: 3;
+    left: 9%;
+    right: 9%;
+    top: 50%;
+    aspect-ratio: 1;
+    translate: 0 -50%;
+    border: 1.5px dashed rgba(10, 10, 11, 0.28);
+    border-radius: 12px;
+    opacity: 0;
+    transition: opacity 0.4s var(--ease-out);
+  }
+
+  /* Studio: soft key light from above and a floor reflection. */
+  .ai-after[data-op='studio'] .ai-scene {
+    background:
+      radial-gradient(90% 60% at 50% 18%, rgba(255, 255, 255, 0.7), transparent 70%),
+      linear-gradient(to top, rgba(0, 0, 0, 0.1), transparent 34%),
+      var(--ai-bg);
+  }
+  .ai-after[data-op='studio'] .ai-reflect {
+    opacity: 1;
+  }
+  .ai-after[data-op='studio'] .ai-shadow {
+    opacity: 0.6;
+  }
+  /* Catalog: centred, even margins. */
+  .ai-after[data-op='catalog_ready'] .ai-cut,
+  .ai-after[data-op='catalog_ready'] .ai-shadow {
+    transform: translateY(-6%) scale(1.06);
+  }
+  .ai-after[data-op='catalog_ready'] .ai-frame {
+    opacity: 1;
+  }
+  /* Lifestyle scenes: a wall, a surface and the light of the room. */
+  .ai-after[data-op='lifestyle'] .ai-cut,
+  .ai-after[data-op='lifestyle'] .ai-shadow {
+    transform: translateY(32%) scale(0.72);
+  }
+  .ai-after[data-op='lifestyle'][data-scene='home'] .ai-scene {
+    background:
+      linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.45) 38%, transparent 46%, transparent 52%, rgba(255, 255, 255, 0.3) 58%, transparent 66%),
+      linear-gradient(to bottom, #e8e0d4 0 62%, #b99f80 62% 64%, #c8b293 64%, #a98f70);
+  }
+  .ai-after[data-op='lifestyle'][data-scene='desk'] .ai-scene {
+    background:
+      linear-gradient(to bottom, transparent 62%, rgba(0, 0, 0, 0.06) 62% 63%, transparent 63%),
+      linear-gradient(6deg, transparent 12%, #ffffff 12% 28%, transparent 28%),
+      linear-gradient(to bottom, #e4e7ea 0 62%, #f2f2f0 62%);
+  }
+  .ai-after[data-op='lifestyle'][data-scene='cafe'] .ai-scene {
+    background:
+      radial-gradient(circle at 18% 20%, rgba(255, 206, 140, 0.5), transparent 9%),
+      radial-gradient(circle at 74% 12%, rgba(255, 220, 160, 0.4), transparent 8%),
+      radial-gradient(circle at 88% 34%, rgba(255, 196, 120, 0.35), transparent 7%),
+      radial-gradient(circle at 36% 38%, rgba(255, 230, 180, 0.25), transparent 6%),
+      linear-gradient(to bottom, #3e3029 0 62%, #6e5443 62%, #4f3b2f);
+  }
+
+  /* "Generating": a light sweep over the AI side. */
+  .ai-after::after {
+    content: '';
+    position: absolute;
+    z-index: 4;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%);
+    background-size: 250% 100%;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .ai-after.is-busy::after {
+    opacity: 1;
+    animation: ai-sweep 0.8s ease-in-out;
+  }
+  .ai-after.is-busy .ai-cut {
+    filter: blur(6px) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.14));
+  }
+  @keyframes ai-sweep {
+    from {
+      background-position: 120% 0;
+    }
+    to {
+      background-position: -40% 0;
+    }
+  }
+
+  .ai-tag {
+    position: absolute;
+    z-index: 5;
     top: 12px;
+    left: 12px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
     padding: 6px 12px;
     border-radius: var(--r-pill);
-    background: rgba(255, 255, 255, 0.86);
-    color: #0a0a0b;
+    background: rgba(10, 10, 11, 0.6);
+    color: #fff;
     font-size: 0.8rem;
     font-weight: 600;
     backdrop-filter: blur(8px);
+  }
+  .ai-tag--after {
+    left: auto;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.88);
+    color: #0a0a0b;
+  }
+  .ai-handle {
+    position: absolute;
+    z-index: 6;
+    top: 0;
+    bottom: 0;
+    left: var(--split);
+    width: 2px;
+    translate: -1px 0;
+    background: #fff;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+  }
+  .ai-handle::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  }
+  .ai-handle :global(.icon) {
+    position: absolute;
+    top: 50%;
+    z-index: 1;
+    translate: 0 -50%;
+    color: #0a0a0b;
+    font-size: 15px;
+  }
+  .ai-handle :global(.icon:first-child) {
+    right: 3px;
+  }
+  .ai-handle :global(.icon:last-child) {
+    left: 3px;
+  }
+  .ai-range {
+    position: absolute;
+    z-index: 7;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: ew-resize;
+  }
+  .ai-compare:has(.ai-range:focus-visible) .ai-handle::before {
+    outline: 2px solid var(--accent-text);
+    outline-offset: 3px;
+  }
+
+  .op {
+    height: 40px;
+    padding: 0 16px;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    color: var(--ink-2);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
+  }
+  .op:hover {
+    background: var(--surface-3);
+  }
+  .op[aria-checked='true'] {
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: none;
+  }
+  .ops-hint {
+    margin-top: -2px;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+  .scenes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+    margin: 6px 0 0;
+    padding: 0;
+    border: 0;
+  }
+  .scenes[hidden],
+  .swatches[hidden] {
+    display: none;
+  }
+  .scene {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    height: 38px;
+    padding: 0 14px;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .scene input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .scene:has(input:checked) {
+    background: var(--surface-3);
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+    color: var(--ink);
+  }
+  .scene:has(input:focus-visible) {
+    outline: 2px solid var(--accent-text);
+    outline-offset: 2px;
+  }
+  .ai-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  .ai-accept {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 18px;
+    border-radius: var(--r-pill);
+    background: var(--ink);
+    color: var(--bg);
+    font-weight: 600;
+    font-size: 0.92rem;
+    transition: transform 0.4s var(--ease-spring);
+  }
+  .ai-accept:active {
+    transform: scale(0.97);
+  }
+  .ai-status {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ink-2);
   }
   .swatches {
     display: flex;
@@ -482,14 +804,18 @@ const reminders = [
     gap: 12px;
   }
   .mini-thumb {
-    display: grid;
-    place-items: center;
+    display: block;
     width: 52px;
     height: 52px;
     border-radius: 14px;
-    background: #e7e8ec;
-    font-size: 28px;
-    color: #1b1d22;
+    background: #2a2a2a;
+    overflow: hidden;
+  }
+  .mini-thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
   .mini-name {
     font-weight: 600;
@@ -573,17 +899,17 @@ const reminders = [
     .tile--account {
       grid-template-columns: 1fr;
     }
-    .ai-stage {
-      aspect-ratio: 4 / 3;
+    .ai-compare {
+      width: min(100%, 420px);
+      justify-self: center;
     }
   }
   @media (max-width: 860px) {
     .bento {
       grid-template-columns: minmax(0, 1fr);
     }
-    .ai-stage {
-      min-height: 0;
-      aspect-ratio: 1 / 1;
+    .ai-compare {
+      width: 100%;
     }
     .tile--ai,
     .tile--cart,

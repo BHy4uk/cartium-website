@@ -299,6 +299,130 @@ body::after {
   transform: none;
 }
 
+/* ---------- iPhone frame ---------- */
+/* A current iPhone Pro: thin titanium band, slim black bezel, Dynamic Island, status bar and
+   home indicator. Everything is sized in cqw of .iphone, so one frame scales from 200 to 340px.
+   Markup: src/components/Device.astro (the studio phone in Demo.astro repeats it by hand). */
+.iphone {
+  --device-w: 320px;
+  container-type: inline-size;
+  position: relative;
+  width: min(var(--device-w), 100%);
+}
+.iphone-body {
+  position: relative;
+  padding: 1.15cqw;
+  border-radius: 16.6cqw;
+  background: linear-gradient(150deg, #8d8d93 0%, #3b3b40 14%, #1c1c1f 38%, #2e2e33 62%, #121214 84%, #6e6e75 100%);
+  box-shadow:
+    inset 0 0 0 0.3cqw rgba(255, 255, 255, 0.22),
+    var(--shadow-phone);
+}
+/* On a black stage the dark titanium would vanish: use the natural (light) finish. */
+.stage .iphone-body {
+  background: linear-gradient(150deg, #e2e2e6 0%, #8c8c93 16%, #55555b 40%, #76767d 64%, #4a4a50 84%, #c4c4ca 100%);
+}
+.iphone-glass {
+  padding: 2.35cqw;
+  border-radius: 15.45cqw;
+  background: #050506;
+  box-shadow: inset 0 0 0 0.25cqw rgba(255, 255, 255, 0.08);
+}
+.iphone-screen {
+  --status-ink: #0a0a0b;
+  position: relative;
+  overflow: hidden;
+  border-radius: 13.1cqw;
+  background: var(--screen-bg, #f6f6f6);
+  isolation: isolate;
+}
+.iphone-status {
+  position: relative;
+  z-index: 6;
+  height: 12cqw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6cqw 7cqw 0 9.6cqw;
+  color: var(--status-ink);
+  font: 600 3.9cqw/1 -apple-system, 'SF Pro Text', Inter, 'Segoe UI', system-ui, sans-serif;
+  letter-spacing: -0.01em;
+  pointer-events: none;
+}
+.iphone-island {
+  position: absolute;
+  left: 50%;
+  top: 2.5cqw;
+  width: 28.5cqw;
+  height: 8.3cqw;
+  translate: -50% 0;
+  border-radius: 99px;
+  background: #000;
+}
+.iphone-icons {
+  display: flex;
+  align-items: center;
+  gap: 1.4cqw;
+}
+.iphone-icons svg {
+  display: block;
+  height: 3.2cqw;
+  width: auto;
+  fill: currentColor;
+}
+.iphone-content picture,
+.iphone-content img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.iphone-home {
+  position: relative;
+  z-index: 6;
+  display: block;
+  height: 7cqw;
+  pointer-events: none;
+}
+.iphone-home::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 2.1cqw;
+  width: 34cqw;
+  height: 1.35cqw;
+  translate: -50% 0;
+  border-radius: 99px;
+  background: var(--status-ink);
+}
+/* Side keys: Action button and volume on the left, side button on the right. */
+.iphone-key {
+  position: absolute;
+  z-index: -1;
+  width: 1.1cqw;
+  border-radius: 0.6cqw;
+  background: linear-gradient(90deg, #2a2a2e, #6b6b72 60%, #2a2a2e);
+}
+.iphone-key--action {
+  left: -0.55cqw;
+  top: 21%;
+  height: 8cqw;
+}
+.iphone-key--up {
+  left: -0.55cqw;
+  top: 29%;
+  height: 12.5cqw;
+}
+.iphone-key--down {
+  left: -0.55cqw;
+  top: 37%;
+  height: 12.5cqw;
+}
+.iphone-key--side {
+  right: -0.55cqw;
+  top: 31%;
+  height: 19cqw;
+}
+
 /* ---------- Layout ---------- */
 .container {
   width: 100%;

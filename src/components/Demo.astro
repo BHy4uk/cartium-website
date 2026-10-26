@@ -1,22 +1,32 @@
 ---
+import type { ImageMetadata } from 'astro';
+import { getImage } from 'astro:assets';
 import Icon from './Icon.astro';
+import teePhoto from '../assets/products/tee.png';
+import pantsPhoto from '../assets/products/pants.png';
+import shortsPhoto from '../assets/products/shorts.png';
+import ringPhoto from '../assets/products/ring.png';
 import { SIGNUP_URL } from '../config';
 
 // A working miniature of a Cartium storefront. Every control below maps to a real
 // setting of Керування → Налаштування → Вигляд (webapp/shared/theme.js,
 // application/store_templates.py); prices and the Нова пошта address follow the docs' demo data.
+// The demo products are Cartium's own sample photos (src/assets/products); names and prices
+// follow the docs' demo shop, so they match the screenshots elsewhere on the page.
+const photo = async (src: ImageMetadata) => (await getImage({ src, format: 'webp', quality: 82 })).src;
 const products = [
-  { id: 'tee', name: 'Футболка', cat: 'tees', price: 1500, icon: 't-shirt-fill', tone: '#e9e9ec', sizes: ['S', 'M', 'L', 'XL'], soldOut: ['XL'] },
-  { id: 'hoodie', name: 'Худі oversize', cat: 'hoodies', price: 2400, icon: 'hoodie-fill', tone: '#e2e2e6', sizes: ['S', 'M', 'L'], soldOut: [] },
-  { id: 'jeans', name: 'Джинси', cat: 'jeans', price: 2750, old: 3450, icon: 'pants-fill', tone: '#e6e6ea', sizes: ['28', '30', '32'], soldOut: ['28'] },
-  { id: 'cap', name: 'Кепка', cat: 'acc', price: 690, icon: 'baseball-cap-fill', tone: '#ececee', sizes: ['One size'], soldOut: [] },
+  { id: 'tee', name: 'Футболка', cat: 'tees', price: 1500, img: await photo(teePhoto), tone: '#2a2a2a', sizes: ['S', 'M', 'L', 'XL'], soldOut: ['XL'] },
+  { id: 'jeans', name: 'Джинси', cat: 'jeans', price: 2750, old: 3450, img: await photo(pantsPhoto), tone: '#2a2a2a', sizes: ['29', '30', '32', '34'], soldOut: ['29'] },
+  { id: 'shorts', name: 'Шорти', cat: 'shorts', price: 2200, img: await photo(shortsPhoto), tone: '#2a2a2a', sizes: ['S', 'M', 'L', 'XL'], soldOut: [] },
+  { id: 'ring', name: 'Кільце', cat: 'acc', price: 1800, img: await photo(ringPhoto), tone: '#2a2a2a', sizes: ['16', '17', '18', '19'], soldOut: ['16'] },
 ];
+const byId = Object.fromEntries(products.map((p) => [p.id, p]));
 const cats = [
   { id: 'all', label: 'Усі' },
-  { id: 'tees', label: 'Футболки', icon: 't-shirt-fill' },
-  { id: 'hoodies', label: 'Худі', icon: 'hoodie-fill' },
-  { id: 'jeans', label: 'Джинси', icon: 'pants-fill' },
-  { id: 'acc', label: 'Аксесуари', icon: 'baseball-cap-fill' },
+  { id: 'tees', label: 'Футболки', img: byId.tee.img },
+  { id: 'jeans', label: 'Джинси', img: byId.jeans.img },
+  { id: 'shorts', label: 'Шорти', img: byId.shorts.img },
+  { id: 'acc', label: 'Аксесуари', img: byId.ring.img },
 ];
 // Four of the ten real templates; descriptions are the product's own.
 const templates = [
@@ -45,6 +55,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
   <script type="application/json" data-demo-products set:html={JSON.stringify(products)} />
   <div class="container">
     <div class="studio-head">
+      <p class="studio-live"><span class="live-dot" aria-hidden="true"></span><Icon name="cursor-click" /> Інтерактивне демо: тут усе натискається</p>
       <h2 id="demo-title" class="display h2">Зберіть свою вітрину. Потім купіть у ній щось.</h2>
       <p class="lead">
         Кожен перемикач тут повторює розділ «Вигляд» у вашому магазині. Налаштуйте, оформіть замовлення як покупець і подивіться, що в цю секунду отримуєте ви.
@@ -52,9 +63,9 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     </div>
 
     <ol class="studio-steps" aria-label="Кроки демо">
-      <li data-step-flag="style"><span class="sf-dot"><Icon name="check" /></span> Оформіть вітрину</li>
-      <li data-step-flag="buy"><span class="sf-dot"><Icon name="check" /></span> Купіть як покупець</li>
-      <li data-step-flag="ship"><span class="sf-dot"><Icon name="check" /></span> Прийміть замовлення і створіть ТТН</li>
+      <li data-step-flag="style" class="is-current"><span class="sf-dot"><span class="sf-num">1</span><Icon name="check" /></span> Оформіть вітрину</li>
+      <li data-step-flag="buy"><span class="sf-dot"><span class="sf-num">2</span><Icon name="check" /></span> Купіть як покупець</li>
+      <li data-step-flag="ship"><span class="sf-dot"><span class="sf-num">3</span><Icon name="check" /></span> Прийміть замовлення і створіть ТТН</li>
     </ol>
 
     <div class="studio-grid">
@@ -180,8 +191,22 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
       <!-- Buyer -->
       <div class="studio-col">
         <p class="studio-who">Покупець бачить</p>
-        <div class="dphone" data-dphone data-screen="catalog" data-template="classic" data-promo="continuous">
-          <div class="dphone-screen" data-ds>
+        <div class="dphone iphone" data-dphone data-screen="catalog" data-template="classic" data-promo="continuous">
+          <span class="iphone-key iphone-key--action" aria-hidden="true"></span>
+          <span class="iphone-key iphone-key--up" aria-hidden="true"></span>
+          <span class="iphone-key iphone-key--down" aria-hidden="true"></span>
+          <span class="iphone-key iphone-key--side" aria-hidden="true"></span>
+          <div class="iphone-body"><div class="iphone-glass">
+          <div class="dphone-screen iphone-screen" data-ds>
+            <div class="iphone-status" aria-hidden="true">
+              <span>9:41</span>
+              <span class="iphone-island"></span>
+              <span class="iphone-icons">
+                <svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" /><rect x="5" y="5.5" width="3" height="6.5" rx="1" /><rect x="10" y="3" width="3" height="9" rx="1" /><rect x="15" y="0" width="3" height="12" rx="1" /></svg>
+                <svg viewBox="0 0 16 12"><path d="M8 2.4c2.3 0 4.4.9 6 2.4l1.3-1.4A10.6 10.6 0 0 0 8 .4 10.6 10.6 0 0 0 .7 3.4L2 4.8a8.6 8.6 0 0 1 6-2.4Zm0 3.8c1.3 0 2.5.5 3.4 1.3l1.3-1.4A7 7 0 0 0 8 4.2a7 7 0 0 0-4.7 1.9l1.3 1.4c.9-.8 2.1-1.3 3.4-1.3Zm0 3.8c.4 0 .8.2 1.1.4L8 11.6 6.9 10.4c.3-.2.7-.4 1.1-.4Z" /></svg>
+                <svg viewBox="0 0 27 12"><rect x="0.5" y="0.5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" stroke-opacity="0.4" /><rect x="2" y="2" width="20" height="8" rx="2" /><path d="M25 4v4c.8-.3 1.4-1.1 1.4-2s-.6-1.7-1.4-2Z" fill-opacity="0.45" /></svg>
+              </span>
+            </div>
             <div class="ds-promo" data-ds-promo>
               <div class="ds-promo-track" data-ds-promo-track><span data-ds-promo-text>Безкоштовна доставка від 2 000 грн</span></div>
             </div>
@@ -206,15 +231,15 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
                 <button type="button" class="ds-btn ds-btn--sm" data-scroll-grid>До каталогу</button>
               </div>
               <div class="tb tb-tiles" data-tb="grid_focus">
-                {cats.filter((c) => c.icon).map((c) => (
-                  <button type="button" class="tb-tile" data-cat-jump={c.id}><Icon name={c.icon!} /><span>{c.label}</span></button>
+                {cats.filter((c) => c.img).map((c) => (
+                  <button type="button" class="tb-tile" data-cat-jump={c.id}><span class="tb-tile-img"><img src={c.img} alt="" loading="lazy" decoding="async" /></span><span>{c.label}</span></button>
                 ))}
               </div>
-              <button type="button" class="tb tb-lead" data-tb="editorial" data-open="hoodie">
-                <span class="tb-lead-img"><Icon name="hoodie-fill" /></span>
+              <button type="button" class="tb tb-lead" data-tb="editorial" data-open="jeans">
+                <span class="tb-lead-img"><img src={byId.jeans.img} alt="" loading="lazy" decoding="async" /></span>
                 <span class="tb-lead-k">Історія колекції</span>
-                <span class="tb-lead-t">Худі, в якому не холодно навіть у листопаді</span>
-                <span class="tb-lead-p">{fmt(2400)}</span>
+                <span class="tb-lead-t">Чорний денім, який з часом стає тільки кращим</span>
+                <span class="tb-lead-p">{fmt(byId.jeans.price)}</span>
               </button>
 
               <div class="ds-chips" role="group" aria-label="Категорії">
@@ -226,7 +251,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
                 {products.map((p) => (
                   <li class="ds-card" data-product-card data-cat={p.cat}>
                     <button type="button" class="ds-card-hit" data-open={p.id}>
-                      <span class="ds-img" style={`--tone:${p.tone}`}><Icon name={p.icon} /></span>
+                      <span class="ds-img" style={`--tone:${p.tone}`}><img src={p.img} alt="" loading="lazy" decoding="async" /></span>
                       <span class="ds-name">{p.name}</span>
                       <span class="ds-price">
                         {fmt(p.price)}
@@ -320,7 +345,9 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
             </nav>
 
             <p class="ds-toast" data-toast role="status" aria-live="polite"></p>
+            <span class="iphone-home" aria-hidden="true"></span>
           </div>
+          </div></div>
         </div>
       </div>
 
@@ -372,6 +399,13 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
       </div>
     </div>
   </template>
+
+  <!-- Coach: points at the next thing to press (positioned by demo.ts). -->
+  <div class="coach-ring" data-coach-ring aria-hidden="true"></div>
+  <div class="coach" data-coach aria-hidden="true">
+    <span class="coach-hand"><Icon name="hand-pointing" /></span>
+    <span data-coach-text></span>
+  </div>
 </section>
 
 <style>
@@ -384,6 +418,148 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
   }
   .studio-head .h2 {
     max-width: 14ch;
+  }
+  .studio-live {
+    grid-column: 1 / -1;
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px 10px 14px;
+    border-radius: var(--r-pill);
+    background: var(--ink);
+    color: var(--bg);
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  .studio-live :global(.icon) {
+    font-size: 1.2rem;
+  }
+  .live-dot {
+    position: relative;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--bg);
+  }
+  .live-dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+    opacity: 0;
+    animation: live-ping 1.6s var(--ease-out) infinite;
+  }
+  @keyframes live-ping {
+    from {
+      transform: scale(0.4);
+      opacity: 0.9;
+    }
+    to {
+      transform: scale(1.6);
+      opacity: 0;
+    }
+  }
+
+  /* Coach mark: a ring around the next control and a bubble that says what to do. */
+  .coach-ring,
+  .coach {
+    position: fixed;
+    z-index: 35;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s var(--ease-out);
+  }
+  .coach-ring {
+    border-radius: 16px;
+    box-shadow:
+      0 0 0 2px var(--ink),
+      0 0 0 6px color-mix(in srgb, var(--ink) 14%, transparent);
+    animation: coach-pulse 1.6s var(--ease-out) infinite;
+  }
+  .coach {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 260px;
+    padding: 9px 14px 9px 10px;
+    border-radius: 14px;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.3;
+    box-shadow: 0 12px 30px -10px rgba(10, 10, 11, 0.5);
+  }
+  .coach::after {
+    content: '';
+    position: absolute;
+    left: var(--arrow-x, 24px);
+    width: 12px;
+    height: 12px;
+    background: inherit;
+    transform: translateX(-50%) rotate(45deg);
+    border-radius: 2px;
+  }
+  .coach[data-side='above']::after {
+    bottom: -5px;
+  }
+  .coach[data-side='below']::after {
+    top: -5px;
+  }
+  .coach[data-side='edge'] {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .coach[data-side='edge']::after {
+    display: none;
+  }
+  .coach-hand {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--bg) 18%, transparent);
+    font-size: 17px;
+    animation: coach-tap 1.6s var(--ease-out) infinite;
+  }
+  .coach-ring.is-on,
+  .coach.is-on {
+    opacity: 1;
+  }
+  @keyframes coach-pulse {
+    0%,
+    100% {
+      box-shadow:
+        0 0 0 2px var(--ink),
+        0 0 0 6px color-mix(in srgb, var(--ink) 14%, transparent);
+    }
+    50% {
+      box-shadow:
+        0 0 0 2px var(--ink),
+        0 0 0 12px color-mix(in srgb, var(--ink) 0%, transparent);
+    }
+  }
+  @keyframes coach-tap {
+    0%,
+    60%,
+    100% {
+      transform: none;
+    }
+    30% {
+      transform: translateY(3px) scale(0.9);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .coach-ring,
+    .coach-hand,
+    .live-dot::after {
+      animation: none;
+    }
   }
 
   /* Progress */
@@ -414,9 +590,28 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     height: 28px;
     border-radius: 50%;
     box-shadow: inset 0 0 0 1px var(--line-strong);
-    color: transparent;
+    color: var(--ink);
     font-size: 15px;
     transition: background-color 0.4s var(--ease-out), color 0.4s var(--ease-out);
+  }
+  .sf-num {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink-2);
+  }
+  .sf-dot :global(.icon) {
+    display: none;
+  }
+  .studio-steps li.is-done .sf-num {
+    display: none;
+  }
+  .studio-steps li.is-done .sf-dot :global(.icon) {
+    display: block;
+  }
+  .studio-steps li.is-current {
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+    font-weight: 600;
   }
   .studio-steps li.is-done {
     background: var(--ink);
@@ -828,15 +1023,14 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
   /* ---------- Phone ---------- */
   .dphone {
     --dp-w: 340px;
+    --device-w: var(--dp-w);
+    /* Explicit: the column sizes to its content, so a percentage width would collapse. */
     width: var(--dp-w);
-    max-width: 100%;
-    height: calc(var(--dp-w) * 18.4 / 9);
-    padding: 7px;
-    border-radius: var(--r-phone);
-    background: var(--chrome);
-    box-shadow:
-      inset 0 0 0 1px var(--chrome-edge),
-      var(--shadow-phone);
+    aspect-ratio: 1 / 2.037;
+  }
+  .dphone .iphone-body,
+  .dphone .iphone-glass {
+    height: 100%;
   }
   .dphone-screen {
     /* Storefront theme: written by demo.ts from the studio controls. */
@@ -855,15 +1049,12 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     --ds-card-bg: var(--tone, #e9e9ec);
     --ds-card-shadow: none;
     --ds-card-border: none;
-    position: relative;
+    --status-ink: var(--ds-ink);
+    --ds-top: 12cqw;
     height: 100%;
-    overflow: hidden;
-    border-radius: calc(var(--r-phone) - 7px);
     background: var(--ds-bg);
     color: var(--ds-ink);
     font-family: var(--ds-font);
-    box-shadow: 0 0 0 5px #0b0b0d;
-    isolation: isolate;
     transition: background-color 0.4s var(--ease-out), color 0.4s var(--ease-out);
   }
   .dphone-screen.is-dark {
@@ -880,10 +1071,26 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     filter: brightness(0.92);
   }
 
+  .dphone-screen .iphone-status {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--ds-bg);
+    transition: background-color 0.4s var(--ease-out), color 0.4s var(--ease-out);
+  }
+  .dphone-screen .iphone-home {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 7;
+  }
+
   /* Promo marquee (Вигляд → Верхній рядок) */
   .ds-promo {
     position: absolute;
-    top: 0;
+    top: var(--ds-top);
     left: 0;
     right: 0;
     z-index: 3;
@@ -936,7 +1143,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
 
   .dscreen {
     position: absolute;
-    inset: 0 0 64px;
+    inset: var(--ds-top) 0 calc(6.5cqw + 62px);
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -952,14 +1159,14 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     scrollbar-width: none;
   }
   .dphone:not([data-promo='off']) .dscreen {
-    top: 28px;
+    top: calc(var(--ds-top) + 28px);
   }
   .dscreen::-webkit-scrollbar {
     display: none;
   }
   .dscreen--checkout,
   .dscreen--done {
-    bottom: 0;
+    bottom: 5cqw;
   }
   .dphone[data-screen='catalog'] .dscreen--catalog,
   .dphone[data-screen='cart'] .dscreen--cart,
@@ -1085,8 +1292,13 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     font-weight: 600;
     text-align: left;
   }
-  .tb-tile :global(.icon) {
-    font-size: 30px;
+  .tb-tile-img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: calc(var(--ds-r-card) - 4px);
+    background: #2a2a2a;
+    overflow: hidden;
   }
   .tb-lead {
     gap: 4px;
@@ -1095,14 +1307,22 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     color: var(--ds-ink);
   }
   .tb-lead-img {
-    display: grid;
-    place-items: center;
+    display: block;
     aspect-ratio: 4 / 3;
     border-radius: var(--ds-r-card);
-    background: linear-gradient(170deg, #e7e7ea, #cfcfd4);
-    color: #1b1b1e;
-    font-size: 96px;
+    background: #2a2a2a;
+    overflow: hidden;
     margin-bottom: 6px;
+  }
+  /* Product photos sit on their own dark studio backdrop: show them whole, on the same colour. */
+  .tb-tile-img img,
+  .tb-lead-img img,
+  .ds-img :global(img),
+  .ds-lines :global(.ds-line-img img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
   .tb-lead-k {
     font-size: 0.72rem;
@@ -1177,9 +1397,8 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     place-items: center;
     aspect-ratio: 1 / 1.08;
     border-radius: calc(var(--ds-r-card) - 2px);
-    background: var(--tone, #e9e9ec);
-    color: #1b1b1e;
-    font-size: 64px;
+    background: var(--tone, #2a2a2a);
+    overflow: hidden;
     margin-bottom: 4px;
     transition: transform 0.45s var(--ease-spring);
   }
@@ -1189,7 +1408,6 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
   .ds-img--lg {
     width: 100%;
     aspect-ratio: 1.3 / 1;
-    font-size: 110px;
   }
   .ds-name {
     font-size: 0.84rem;
@@ -1302,9 +1520,8 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     width: 52px;
     height: 52px;
     border-radius: var(--ds-r-ctrl);
-    background: var(--tone, #e9e9ec);
-    color: #1b1b1e;
-    font-size: 30px;
+    background: var(--tone, #2a2a2a);
+    overflow: hidden;
   }
   .ds-lines :global(.ds-line-info) {
     display: grid;
@@ -1494,7 +1711,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     bottom: 0;
     display: grid;
     gap: 8px;
-    padding: 10px 16px 18px;
+    padding: 10px 16px calc(18px + 5cqw);
     border-radius: 24px 24px 0 0;
     background: var(--ds-bg);
     transform: translateY(100%);
@@ -1547,7 +1764,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     position: absolute;
     left: 10px;
     right: 10px;
-    bottom: 10px;
+    bottom: 6.5cqw;
     z-index: 4;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -1610,7 +1827,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
   .ds-toast {
     position: absolute;
     left: 50%;
-    top: 40px;
+    top: calc(var(--ds-top) + 36px);
     z-index: 6;
     padding: 8px 14px;
     border-radius: var(--ds-r-pill);
@@ -1619,11 +1836,13 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     font-size: 0.82rem;
     font-weight: 600;
     white-space: nowrap;
-    transform: translate(-50%, -90px);
-    transition: transform 0.45s var(--ease-spring);
+    transform: translate(-50%, -24px);
+    opacity: 0;
+    transition: transform 0.45s var(--ease-spring), opacity 0.25s var(--ease-out);
   }
   .ds-toast.is-shown {
     transform: translate(-50%, 0);
+    opacity: 1;
   }
 
   /* ---------- Owner chat ---------- */

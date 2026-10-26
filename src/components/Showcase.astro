@@ -1,6 +1,7 @@
 ---
 import { Picture } from 'astro:assets';
 import Phone from './Phone.astro';
+import Device from './Device.astro';
 import catalog from '../assets/shots/shell-catalog.png';
 import variants from '../assets/shots/product-create-variants.png';
 import payments from '../assets/shots/payments-list.png';
@@ -55,24 +56,24 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
       <div class="sc-aside" aria-hidden="true">
         <div class="sc-sticky">
-          <div class="sc-device">
-            <div class="sc-bezel">
+          <Device width="var(--dw)" class="sc-device">
+            <div class="sc-stack">
               {cards.map((c, i) => (
                 <div class:list={['sc-shot', { 'is-on': i === 0 }]} data-sc-shot={i} style={`--i:${i}`}>
                   <Picture
                     src={c.img}
                     alt=""
-                    widths={[300, 450, 600]}
-                    sizes="300px"
+                    widths={[290, 435, 580]}
+                    sizes="290px"
                     formats={['avif', 'webp']}
-                    quality={78}
+                    quality={80}
                     loading={i < 2 ? 'eager' : 'lazy'}
                     decoding="async"
                   />
                 </div>
               ))}
             </div>
-          </div>
+          </Device>
           <div class="sc-meter">
             <span class="sc-count"><span data-sc-count>01</span> / {pad(cards.length)}</span>
             <span class="sc-bar"><span data-sc-bar></span></span>
@@ -174,12 +175,12 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
   /* The pinned phone. */
   .sc-aside {
-    --dw: min(310px, calc((100dvh - 200px) * 0.5228));
+    --dw: min(310px, calc((100dvh - 200px) * 0.491));
     position: relative;
   }
   .sc-sticky {
     position: sticky;
-    top: calc(50dvh - var(--dw) * 0.9564 - 24px);
+    top: calc(50dvh - var(--dw) * 1.0185 - 24px);
     display: grid;
     justify-items: center;
     gap: 22px;
@@ -196,36 +197,20 @@ const pad = (n: number) => String(n).padStart(2, '0');
     border-radius: 50%;
     background: radial-gradient(closest-side, rgba(255, 255, 255, 0.1), transparent 70%);
   }
-  .sc-device {
-    width: var(--dw);
-    aspect-ratio: 780 / 1492;
-    padding: 7px;
-    border-radius: var(--r-phone);
-    background: var(--chrome);
-    box-shadow:
-      inset 0 0 0 1px var(--chrome-edge),
-      var(--shadow-phone);
-  }
-  .sc-bezel {
+  .sc-stack {
     position: relative;
-    height: 100%;
-    padding: 5px;
-    border-radius: calc(var(--r-phone) - 7px);
-    background: #0a0a0b;
-    overflow: hidden;
+    aspect-ratio: 780 / 1492;
   }
   .sc-shot {
     position: absolute;
-    inset: 5px;
+    inset: 0;
     z-index: var(--i);
-    border-radius: calc(var(--r-phone) - 12px);
-    overflow: hidden;
-    background: #f4f4f6;
-    clip-path: inset(100% 0 0 0 round calc(var(--r-phone) - 12px));
+    background: #f6f6f6;
+    clip-path: inset(100% 0 0 0);
     transition: clip-path 0.8s var(--ease-out);
   }
   .sc-shot.is-on {
-    clip-path: inset(0 0 0 0 round calc(var(--r-phone) - 12px));
+    clip-path: inset(0 0 0 0);
   }
   .sc-shot :global(picture),
   .sc-shot :global(img) {
