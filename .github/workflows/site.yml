@@ -26,20 +26,19 @@ jobs:
       - run: npx astro check
       - run: npm run build
         env:
-          # Set these as repository variables when the site moves to its own domain
-          # or is served from GitHub Pages under /<repo>/.
-          SITE_URL: ${{ vars.SITE_URL }}
-          BASE_PATH: ${{ vars.BASE_PATH }}
+          # Defaults serve GitHub Pages at https://<owner>.github.io/<repo>/. For a custom
+          # domain set repository variables SITE_URL=https://example.com and BASE_PATH=/.
+          SITE_URL: ${{ vars.SITE_URL || format('https://{0}.github.io', github.repository_owner) }}
+          BASE_PATH: ${{ vars.BASE_PATH || format('/{0}', github.event.repository.name) }}
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'
         with:
           path: dist
 
-  # Publishing is opt-in: enable GitHub Pages (Source: GitHub Actions) and set the
-  # repository variable DEPLOY_TO_PAGES=true. Until then only the build runs.
+  # Every push to main publishes to GitHub Pages (Settings → Pages → Source: GitHub Actions).
   deploy:
     needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.DEPLOY_TO_PAGES == 'true'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       pages: write
