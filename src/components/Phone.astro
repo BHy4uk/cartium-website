@@ -20,10 +20,10 @@ const screenW = Math.round(width * 0.93);
   <Picture
     src={src}
     alt={alt}
-    widths={[screenW, Math.round(screenW * 1.5), Math.min(screenW * 2, src.width)]}
+    widths={[screenW, screenW * 2, Math.min(screenW * 3, src.width)]}
     sizes={sizes ?? `${screenW}px`}
-    formats={['avif', 'webp']}
-    quality={80}
+    formats={['webp']}
+    quality={92}
     loading={priority || eager ? 'eager' : 'lazy'}
     fetchpriority={priority ? 'high' : 'auto'}
     decoding="async"

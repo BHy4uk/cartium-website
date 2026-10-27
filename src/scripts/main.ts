@@ -608,7 +608,7 @@ function pricing() {
 /* ---------- Grid reveals ---------- */
 function reveals() {
   if (reduceMotion) return;
-  const groups = ['.bento .tile', '.ways-grid .way', '.plans .plan', '.faq-list .qa', '.rails-list .rail'];
+  const groups = ['.bento .tile', '.ways-grid .way', '.plans .plan', '.faq-list .qa', '.rails-list .rail', '.cmp-row'];
   groups.forEach((sel) => {
     const items = $$(sel);
     if (!items.length) return;
@@ -630,6 +630,52 @@ function reveals() {
     );
     gsap.fromTo('.final-mark', { rotation: -8, yPercent: 10 }, { rotation: 0, yPercent: -6, ease: 'none', scrollTrigger: { trigger: final, start: 'top bottom', end: 'bottom top', scrub: true } });
   }
+}
+
+/* ---------- Section entrances ---------- */
+// Every section greets the reader: the headline rises word by word, the text after it fades
+// up, and the section's main block glides in and settles as it nears the middle of the screen.
+function splitWords(h: HTMLElement) {
+  // Only plain-text headlines are split; ones with markup inside keep a whole-line reveal.
+  if ([...h.childNodes].some((n) => n.nodeType !== Node.TEXT_NODE)) return [h];
+  const words = (h.textContent ?? '').split(/ +/).filter(Boolean);
+  h.textContent = '';
+  return words.map((w, i) => {
+    const mask = document.createElement('span');
+    mask.className = 'rv-mask';
+    const inner = document.createElement('span');
+    inner.textContent = w;
+    mask.append(inner);
+    h.append(mask, i < words.length - 1 ? ' ' : '');
+    return inner;
+  });
+}
+function entrances() {
+  if (reduceMotion) return;
+  $$('.section-head, .sc-head, .story-head, .studio-head, .final-copy').forEach((head) => {
+    const title = head.querySelector<HTMLElement>('h2');
+    const rest = [...head.children].filter((el) => el !== title) as HTMLElement[];
+    const words = title ? splitWords(title) : [];
+    gsap.set(words, { yPercent: 110 });
+    gsap.set(rest, { autoAlpha: 0, y: 24 });
+    ScrollTrigger.create({
+      trigger: head,
+      start: 'top 86%',
+      once: true,
+      onEnter: () => {
+        gsap.to(words, { yPercent: 0, duration: 1.1, stagger: 0.06, ease: EASE });
+        gsap.to(rest, { autoAlpha: 1, y: 0, duration: 1, stagger: 0.1, delay: 0.25, ease: EASE });
+      },
+    });
+  });
+  // The main block of each section arrives with the scroll and lands as it reaches centre.
+  $$('.studio-grid, .race, .sc-grid, .steps, .cmp, .bento, .plans').forEach((block) => {
+    gsap.fromTo(
+      block,
+      { y: 90, scale: 0.94, transformOrigin: '50% 0%' },
+      { y: 0, scale: 1, ease: 'none', scrollTrigger: { trigger: block, start: 'top bottom', end: 'top 45%', scrub: 0.6 } },
+    );
+  });
 }
 
 /* ---------- Card spotlight ---------- */
@@ -706,6 +752,7 @@ idle(() => {
   showcase();
   stages();
   reveals();
+  entrances();
   ScrollTrigger.refresh();
   document.fonts?.ready.then(() => ScrollTrigger.refresh());
   if (location.hash.length > 1) window.setTimeout(() => scrollToHash(location.hash), 300);

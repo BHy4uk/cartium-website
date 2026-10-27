@@ -466,6 +466,18 @@ body::after {
   height: 19cqw;
 }
 
+/* Word masks for the headline entrance (main.ts, entrances). */
+.rv-mask {
+  display: inline-block;
+  overflow: clip;
+  vertical-align: top;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+.rv-mask > span {
+  display: inline-block;
+}
+
 /* ---------- Layout ---------- */
 .container {
   width: 100%;

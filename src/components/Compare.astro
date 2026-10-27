@@ -1,0 +1,197 @@
+---
+import Icon from './Icon.astro';
+import { SIGNUP_URL } from '../config';
+
+// Cartium next to the usual alternatives, described by how they work rather than by brand.
+// Cartium's column is checked against the product (feature_registry.py, billing/plans.py);
+// the others state only what is true of the approach as a whole.
+const options = [
+  { id: 'cartium', name: 'Cartium', note: 'магазин у Telegram' },
+  { id: 'site', name: 'Свій сайт', note: 'на конструкторі' },
+  { id: 'market', name: 'Маркетплейс', note: 'чужий майданчик' },
+  { id: 'direct', name: 'Директ', note: 'Instagram і месенджери' },
+];
+const rows = [
+  {
+    q: 'Де купує покупець',
+    a: ['У Telegram, де він уже переписується з вами', 'На окремому сайті, куди його треба привести з соцмереж', 'Поруч із сотнями схожих товарів інших продавців', 'У переписці, де кожну деталь уточнюєте ви'],
+  },
+  {
+    q: 'Скільки до першого продажу',
+    a: ['Вечір: 35 хвилин за нашим гайдом, усе з телефона', 'Дизайн, домен, платіжний модуль, доставка', 'Реєстрація, модерація, правила майданчика', 'Одразу, але кожне замовлення вручну'],
+  },
+  {
+    q: 'Скільки віддаєте з продажу',
+    a: ['0% нам: лише тариф від $10 на місяць, комісія LiqPay чи mono окремо', 'Тариф плюс платні додатки й модулі', 'Відсоток з кожного продажу', '0%, зате ваш час на кожну відповідь'],
+  },
+  {
+    q: 'Як підтверджується оплата',
+    a: ['LiqPay і plata by mono підтверджують самі', 'Залежить від підключеного модуля', 'За правилами майданчика', 'Скрін оплати, ви звіряєте виписку'],
+  },
+  {
+    q: 'Чиї це клієнти',
+    a: ['Ваші: база, сегменти й розсилки від вашого бота', 'Ваші, якщо окремо налаштуєте розсилки', 'Майданчика: контакти покупця часто приховані', 'Ваші, але розкидані по чатах'],
+  },
+];
+---
+<section class="section compare" id="compare" aria-labelledby="compare-title">
+  <div class="container">
+    <div class="section-head">
+      <h2 id="compare-title" class="display h2">Сайт, маркетплейс чи директ? Порівняйте чесно.</h2>
+      <p class="lead">Усі три способи продають. Різниця в тому, скільки часу й відсотків вони забирають у власника невеликого магазину.</p>
+    </div>
+
+    <div class="cmp" role="table" aria-label="Порівняння способів продавати онлайн">
+      <div class="cmp-row cmp-row--head" role="row">
+        <span role="columnheader" class="cmp-q"></span>
+        {options.map((o) => (
+          <span role="columnheader" class:list={['cmp-opt', { 'is-us': o.id === 'cartium' }]}>
+            <strong>{o.name}</strong>
+            <small>{o.note}</small>
+          </span>
+        ))}
+      </div>
+      {rows.map((r) => (
+        <div class="cmp-row" role="row">
+          <span role="rowheader" class="cmp-q">{r.q}</span>
+          {r.a.map((cell, i) => (
+            <span role="cell" class:list={['cmp-cell', { 'is-us': i === 0 }]} data-label={options[i].name}>
+              {i === 0 && <Icon name="check" />}
+              {cell}
+            </span>
+          ))}
+        </div>
+      ))}
+    </div>
+
+    <div class="cmp-foot">
+      <p>Нова пошта, промокоди й імпорт вмикаються на Pro. Повний перелік у <a href="#pricing">тарифах</a>.</p>
+      <a class="btn btn-primary" href={SIGNUP_URL} target="_blank" rel="noopener">
+        Спробувати 14 днів безкоштовно
+        <span class="btn-icon"><Icon name="paper-plane-tilt" /></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cmp {
+    display: grid;
+    border-radius: var(--r-card);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
+  }
+  .cmp-row {
+    display: grid;
+    grid-template-columns: minmax(150px, 0.8fr) repeat(4, minmax(0, 1fr));
+    border-top: 1px solid var(--line);
+  }
+  .cmp-row--head {
+    border-top: 0;
+  }
+  .cmp-q,
+  .cmp-opt,
+  .cmp-cell {
+    padding: 18px 20px;
+  }
+  .cmp-q {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .cmp-opt {
+    display: grid;
+    gap: 2px;
+  }
+  .cmp-opt strong {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    letter-spacing: -0.02em;
+  }
+  .cmp-opt small {
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .cmp-cell {
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+  /* Cartium's column is the graphite stripe through the table. */
+  .is-us {
+    background: var(--stage-bg);
+    color: #f4f4f5;
+  }
+  .cmp-opt.is-us small {
+    color: #b4b4bb;
+  }
+  .cmp-cell.is-us {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-weight: 500;
+  }
+  .cmp-cell.is-us :global(.icon) {
+    flex: none;
+    margin-top: 3px;
+  }
+  .cmp-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 32px;
+    margin-top: 28px;
+    color: var(--muted);
+  }
+  .cmp-foot a:not(.btn) {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Phones: each question becomes a card listing the four answers, Cartium first. */
+  @media (max-width: 860px) {
+    .cmp {
+      background: none;
+      box-shadow: none;
+      gap: 12px;
+      overflow: visible;
+    }
+    .cmp-row--head {
+      display: none;
+    }
+    .cmp-row {
+      grid-template-columns: 1fr;
+      border: 0;
+      border-radius: 20px;
+      background: var(--surface);
+      box-shadow: inset 0 0 0 1px var(--line);
+      overflow: hidden;
+    }
+    .cmp-q {
+      padding-bottom: 8px;
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+    }
+    .cmp-cell {
+      padding: 10px 20px;
+      border-top: 1px solid var(--line);
+    }
+    .cmp-cell::before {
+      content: attr(data-label) ': ';
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .cmp-cell.is-us {
+      display: block;
+      border-top: 0;
+    }
+    .cmp-cell.is-us::before {
+      color: #f4f4f5;
+    }
+    .cmp-cell.is-us :global(.icon) {
+      display: none;
+    }
+  }
+</style>

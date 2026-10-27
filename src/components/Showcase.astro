@@ -31,8 +31,8 @@ const pad = (n: number) => String(n).padStart(2, '0');
 <section class="section showcase" id="features" aria-labelledby="showcase-title" data-showcase>
   <div class="container">
     <div class="sc-head">
-      <h2 id="showcase-title" class="display h2">Від вітрини до аналітики. В одному боті.</h2>
-      <p class="lead">Справжні екрани Cartium, без макетів. Оберіть функцію, щоб побачити її.</p>
+      <h2 id="showcase-title" class="display h2">Каталог, оплати, ТТН і розсилки. В&nbsp;одному боті.</h2>
+      <p class="lead">Це справжні екрани Cartium, а не макети. Натисніть на функцію, щоб побачити, як вона виглядає у вас.</p>
     </div>
 
     <div class="sc-grid">
@@ -67,10 +67,10 @@ const pad = (n: number) => String(n).padStart(2, '0');
                 <Picture
                   src={c.img}
                   alt={c.alt}
-                  widths={[290, 435, 580]}
+                  widths={[290, 580, 870]}
                   sizes="(max-width: 960px) 260px, 300px"
-                  formats={['avif', 'webp']}
-                  quality={80}
+                  formats={['webp']}
+                  quality={92}
                   loading={i === 0 ? 'eager' : 'lazy'}
                   decoding="async"
                 />
