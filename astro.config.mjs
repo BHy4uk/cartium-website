@@ -1,9 +1,9 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 
-// SITE_URL and BASE_PATH let the same build run on a custom domain or on
-// GitHub Pages under /<repo>/ (the Pages workflow passes both).
-const site = process.env.SITE_URL || 'https://cartium.work';
+// Production runs on https://cartium.store (Vercel). SITE_URL and BASE_PATH let the same build run
+// elsewhere, e.g. on GitHub Pages under /<repo>/ (the Pages workflow passes both).
+const site = process.env.SITE_URL || 'https://cartium.store';
 const base = process.env.BASE_PATH || '/';
 
 export default defineConfig({
