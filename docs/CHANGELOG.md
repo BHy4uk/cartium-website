@@ -4,6 +4,25 @@
 человек прямо просил это в чате; **Incidental** означает, что изменение сделано по ходу
 работы без такой просьбы и при конфликте уступает чужому Requested.
 
+## Ветка `claude/hosting-cartium-store` (человек: BHy4uk, от актуального `main`)
+
+### 2026-10-27 · 650bfac · Иконка Cartium вместо TGS
+Requested:
+- [layout] Иконка браузера из исходника логотипа вместо TGS на сайте и в документации
+  (в `tgshop-docs` тоже, коммит 9bd5e3a). Перенесено и в `claude/great-bell-pohe0j`.
+
+Incidental:
+- [layout] Добавлен apple-touch-icon (180 px).
+
+### 2026-10-27 · 7b6b7e0 · Домены cartium.store и docs.cartium.store
+Requested:
+- [ci] Сайт на Vercel на cartium.store, документация на docs.cartium.store, ссылки сайта туда.
+- [ci] Изменения хостинга отдельно от дизайна, на ветке от `main`; в `main` пока не вливать
+  без подтверждения.
+
+Incidental:
+- [docs] README: Vercel, DNS в Namecheap, документация.
+
 ## Ветка `claude/great-bell-pohe0j` (человек: BHy4uk)
 
 ### 2026-10-27 · Правила совместной работы
