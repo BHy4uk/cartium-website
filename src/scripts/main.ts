@@ -19,16 +19,19 @@ const $$ = <T extends Element = HTMLElement>(sel: string, scope: ParentNode = do
 /* ---------- Smooth scroll ---------- */
 let lenis: Lenis | null = null;
 if (!reduceMotion) {
-  lenis = new Lenis({ lerp: 0.11, wheelMultiplier: 1 });
+  // A slightly heavier glide than the default: the page coasts to a stop instead of halting.
+  lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.95, touchMultiplier: 1.4 });
   lenis.on('scroll', ScrollTrigger.update);
   gsap.ticker.add((t) => lenis?.raf(t * 1000));
   gsap.ticker.lagSmoothing(0);
 }
 
+// Anchor jumps: a long, quiet deceleration (expo out), never a linear slide.
+const glide = (t: number) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
 function scrollToHash(hash: string) {
   const target = hash === '#top' ? document.body : $(hash);
   if (!target) return;
-  if (lenis) lenis.scrollTo(target as HTMLElement, { offset: hash === '#top' ? 0 : -24, duration: 1.2 });
+  if (lenis) lenis.scrollTo(target as HTMLElement, { offset: hash === '#top' ? 0 : -24, duration: 1.6, easing: glide });
   else target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
 }
 
@@ -80,6 +83,8 @@ document.addEventListener('keydown', (e) => {
 });
 window.matchMedia('(min-width: 961px)').addEventListener('change', (e) => e.matches && closeMenu());
 
+const navProgress = $('[data-nav-progress]');
+const setProgress = navProgress ? gsap.quickSetter(navProgress, 'scaleX') : null;
 if (navWrap) {
   ScrollTrigger.create({
     start: 0,
@@ -87,6 +92,7 @@ if (navWrap) {
     onUpdate(self) {
       const hide = self.direction === 1 && self.scroll() > 480 && !menuOpen;
       navWrap.classList.toggle('is-hidden', hide);
+      setProgress?.(self.progress);
     },
   });
 }
@@ -104,10 +110,25 @@ function applyTheme(theme: 'light' | 'dark') {
 applyTheme(root.dataset.theme === 'dark' ? 'dark' : 'light');
 themeToggle?.addEventListener('click', () => {
   const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-  applyTheme(next);
   try {
     localStorage.setItem('cartium-theme', next);
   } catch {}
+  // The new theme spreads out from the toggle as a circle (View Transitions where supported).
+  if (reduceMotion || typeof document.startViewTransition !== 'function') {
+    applyTheme(next);
+    return;
+  }
+  const r = themeToggle.getBoundingClientRect();
+  const x = r.left + r.width / 2;
+  const y = r.top + r.height / 2;
+  const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+  const t = document.startViewTransition(() => applyTheme(next));
+  t.ready.then(() =>
+    root.animate(
+      { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+      { duration: 900, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', pseudoElement: '::view-transition-new(root)' },
+    ),
+  );
 });
 systemDark.addEventListener('change', (e) => {
   let stored: string | null = null;
@@ -156,13 +177,33 @@ function startNotifCycle() {
     const next = items[i];
     gsap
       .timeline()
-      .to(cur, { autoAlpha: 0, y: -10, duration: 0.35, ease: 'power2.in' })
-      .set(cur, { y: 0 })
-      .fromTo(next, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: EASE })
-      .fromTo(notif, { scale: 0.97 }, { scale: 1, duration: 0.6, ease: 'back.out(2)' }, '<');
+      .to(cur, { autoAlpha: 0, y: -10, filter: 'blur(4px)', duration: 0.35, ease: 'power2.in' })
+      .set(cur, { y: 0, filter: 'blur(0px)' })
+      .fromTo(next, { autoAlpha: 0, y: 12, filter: 'blur(6px)' }, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.7, ease: EASE })
+      .fromTo(notif, { scale: 0.97 }, { scale: 1, duration: 0.7, ease: EASE }, '<')
+      .add(() => orderLanded(notif), '<');
     cur.classList.remove('is-active');
     next.classList.add('is-active');
   }, 4200);
+}
+
+// Each paid order: a ring leaves the notification and the light behind the phones flares once.
+function orderLanded(notif: HTMLElement) {
+  notif.classList.remove('is-ping');
+  void notif.offsetWidth;
+  notif.classList.add('is-ping');
+  const aura = $('[data-hero-aura]');
+  if (aura)
+    gsap.fromTo(aura, { '--flare': 1.45, '--flare-s': 1.06 }, { '--flare': 1, '--flare-s': 1, duration: 1.8, ease: 'power3.out' });
+}
+
+// Ambient light loops only while it is on screen.
+function auras() {
+  if (reduceMotion) return;
+  const io = new IntersectionObserver((entries) =>
+    entries.forEach((e) => e.target.classList.toggle('is-still', !e.isIntersecting)),
+  );
+  $$('.aura').forEach((el) => io.observe(el));
 }
 
 function heroMotion() {
@@ -186,6 +227,12 @@ function heroMotion() {
   const ry = gsap.quickTo(tilt, 'rotationY', { duration: 0.9, ease: 'power3.out' });
   const nx = notif ? gsap.quickTo(notif, 'x', { duration: 1.1, ease: 'power3.out' }) : null;
   const ny = notif ? gsap.quickTo(notif, 'y', { duration: 1.1, ease: 'power3.out' }) : null;
+  // The light trails the pointer slowly, on `translate` so it never fights the CSS drift.
+  const aura = $('[data-hero-aura]');
+  const light = { x: 0, y: 0 };
+  const paint = () => aura && (aura.style.translate = `${light.x.toFixed(1)}px ${light.y.toFixed(1)}px`);
+  const lx = gsap.quickTo(light, 'x', { duration: 2.2, ease: 'power3.out', onUpdate: paint });
+  const ly = gsap.quickTo(light, 'y', { duration: 2.2, ease: 'power3.out', onUpdate: paint });
   hero.addEventListener('pointermove', (e) => {
     const r = stage.getBoundingClientRect();
     const px = gsap.utils.clamp(-1, 1, (e.clientX - (r.left + r.width / 2)) / r.width);
@@ -194,12 +241,16 @@ function heroMotion() {
     rx(py * -7);
     nx?.(px * 18);
     ny?.(py * 12);
+    lx(px * 90);
+    ly(py * 50);
   });
   hero.addEventListener('pointerleave', () => {
     rx(0);
     ry(0);
     nx?.(0);
     ny?.(0);
+    lx(0);
+    ly(0);
   });
 }
 
@@ -486,12 +537,14 @@ function showcase() {
 function stages() {
   if (reduceMotion) return;
   $$('[data-stage]').forEach((el) => {
+    // ...and its violet light comes up as it opens, as if the stage were switched on.
     gsap.fromTo(
       el,
-      { '--stage-x': () => `${Math.min(48, window.innerWidth * 0.03)}px`, '--stage-r': '40px' },
+      { '--stage-x': () => `${Math.min(48, window.innerWidth * 0.03)}px`, '--stage-r': '40px', '--stage-glow': 0 },
       {
         '--stage-x': '0px',
         '--stage-r': '0px',
+        '--stage-glow': 1,
         ease: 'none',
         scrollTrigger: { trigger: el, start: 'top bottom', end: 'top 10%', scrub: true, invalidateOnRefresh: true },
       },
@@ -612,11 +665,25 @@ function reveals() {
   groups.forEach((sel) => {
     const items = $$(sel);
     if (!items.length) return;
-    gsap.set(items, { autoAlpha: 0, y: 36 });
-    ScrollTrigger.batch(items, {
-      start: 'top 88%',
+    // Cards come into focus rather than just fading: a short rise out of a soft blur.
+    // Anything already on screen (a deep link, a reload mid-page) is left as it is.
+    const below = items.filter((el) => el.getBoundingClientRect().top > window.innerHeight * 0.9);
+    if (!below.length) return;
+    gsap.set(below, { autoAlpha: 0, y: 32, filter: 'blur(10px)' });
+    ScrollTrigger.batch(below, {
+      start: 'top 90%',
       once: true,
-      onEnter: (batch) => gsap.to(batch, { autoAlpha: 1, y: 0, duration: 1, stagger: 0.08, ease: EASE, overwrite: true }),
+      onEnter: (batch) =>
+        gsap.to(batch, {
+          autoAlpha: 1,
+          y: 0,
+          filter: 'blur(0px)',
+          duration: 1.1,
+          stagger: 0.07,
+          ease: EASE,
+          overwrite: true,
+          clearProps: 'filter',
+        }),
     });
   });
 
@@ -693,6 +760,7 @@ const idle = (fn: () => void) => {
 heroMotion();
 magnetic();
 spotlight();
+auras();
 window.setTimeout(startNotifCycle, 2200);
 
 idle(() => {
