@@ -4,6 +4,7 @@
 для владельцев магазинов, которые сейчас продают через директ.
 
 Бриф, проверенные факты и дизайн-решения: [docs/BRIEF.md](docs/BRIEF.md).
+Структура Telegram-канала и готовые посты: [docs/TELEGRAM_CHANNEL.md](docs/TELEGRAM_CHANNEL.md).
 
 ## Стек
 
