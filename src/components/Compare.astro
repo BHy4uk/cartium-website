@@ -1,0 +1,467 @@
+---
+import Icon from './Icon.astro';
+import { SIGNUP_URL, TRIAL_DAYS, PLANS } from '../config';
+
+// Shopify facts: shopify.com/pricing (Basic, third-party gateway fee) and the Shopify Payments
+// supported-countries list in Shopify Help (Ukraine is not on it), checked October 2026.
+// Shopify keeps two honest wins (own website with Google search, apps and themes).
+type Mark = 'yes' | 'part' | 'no';
+type Cell = { mark: Mark; text: string };
+type Row = { label: string; cartium: Cell; shopify: Cell; direct: Cell };
+
+const from = PLANS[0].monthly;
+const rows: Row[] = [
+  {
+    label: 'Де купує покупець',
+    cartium: { mark: 'yes', text: 'У Telegram, не виходячи з чату' },
+    shopify: { mark: 'part', text: 'На окремому сайті в браузері' },
+    direct: { mark: 'part', text: 'У переписці з вами' },
+  },
+  {
+    label: 'Запуск',
+    cartium: { mark: 'yes', text: 'За вечір, кнопками в боті' },
+    shopify: { mark: 'part', text: 'Тема, домен і налаштування, українські сервіси через застосунки' },
+    direct: { mark: 'yes', text: 'Одразу, але кожен продаж вручну' },
+  },
+  {
+    label: 'Оплата карткою',
+    cartium: { mark: 'yes', text: 'LiqPay і plata by mono з автопідтвердженням' },
+    shopify: { mark: 'part', text: 'Лише сторонні шлюзи: Shopify Payments в Україні недоступний' },
+    direct: { mark: 'no', text: 'Реквізити і скрін оплати, перевіряєте самі' },
+  },
+  {
+    label: 'ТТН Нової пошти',
+    cartium: { mark: 'yes', text: 'Кнопкою з картки замовлення (Pro)' },
+    shopify: { mark: 'part', text: 'Через окремий застосунок' },
+    direct: { mark: 'no', text: 'Вручну, переписуючи адресу з чату' },
+  },
+  {
+    label: 'Відсоток з продажів',
+    cartium: { mark: 'yes', text: 'Cartium не бере відсоток' },
+    shopify: { mark: 'no', text: '+2% з продажу на Basic зі стороннім шлюзом' },
+    direct: { mark: 'yes', text: 'Немає, платите своїм часом' },
+  },
+  {
+    label: 'Ціна',
+    cartium: { mark: 'yes', text: `Від $${from} на місяць` },
+    shopify: { mark: 'part', text: 'Від $39 на місяць (Basic), плюс платні застосунки' },
+    direct: { mark: 'yes', text: 'Безкоштовно' },
+  },
+  {
+    label: 'Інструменти росту',
+    cartium: { mark: 'yes', text: 'Вже всередині: промокоди, розсилки, кошик, AI-фото' },
+    shopify: { mark: 'yes', text: 'Тисячі застосунків і тем' },
+    direct: { mark: 'no', text: 'Немає' },
+  },
+  {
+    label: 'Сайт і пошук у Google',
+    cartium: { mark: 'no', text: 'Ні, магазин живе в Telegram' },
+    shopify: { mark: 'yes', text: 'Власний сайт, домен і SEO' },
+    direct: { mark: 'no', text: 'Ні' },
+  },
+];
+const cols = [
+  { id: 'cartium', name: 'Cartium' },
+  { id: 'shopify', name: 'Shopify' },
+  { id: 'direct', name: 'Директ' },
+] as const;
+const markIcon: Record<Mark, string> = { yes: 'check', part: 'minus', no: 'x' };
+const markLabel: Record<Mark, string> = { yes: 'Так', part: 'Частково', no: 'Ні' };
+---
+<section class="section compare" id="compare" aria-labelledby="compare-title" data-compare>
+  <div class="container">
+    <div class="section-head is-center" data-snap>
+      <h2 id="compare-title" class="display h2">Cartium, Shopify чи директ?</h2>
+      <p class="lead">
+        Чесне порівняння для тих, хто продає в Instagram і Telegram. У Shopify є свої сильні сторони, і ми їх не ховаємо.
+      </p>
+    </div>
+
+    <div class="rival" role="radiogroup" aria-label="Порівняти Cartium з">
+      <span class="rival-label">Порівняти з</span>
+      <button type="button" class="rival-opt" role="radio" aria-checked="true" data-rival="shopify">Shopify</button>
+      <button type="button" class="rival-opt" role="radio" aria-checked="false" data-rival="direct">Директ</button>
+    </div>
+
+    <div class="compare-frame" data-rise data-snap>
+      <table class="compare-table" data-compare-table data-show="shopify">
+        <caption class="sr-only">Порівняння Cartium, Shopify і продажів у директі</caption>
+        <thead>
+          <tr>
+            <td class="c-corner"></td>
+            {cols.map((c) => (
+              <th scope="col" class:list={['c-head', `c-${c.id}`]} data-col={c.id}>
+                {c.id === 'cartium' && <span class="c-tag">Для продажів у Telegram</span>}
+                <span class="c-name">{c.name}</span>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr class="c-row" data-compare-row>
+              <th scope="row" class="c-label">{r.label}</th>
+              {cols.map((c) => {
+                const cell = r[c.id];
+                return (
+                  <td class:list={['c-cell', `c-${c.id}`, `is-${cell.mark}`]} data-col={c.id}>
+                    <span class="c-inner">
+                      <span class="c-mark" role="img" aria-label={markLabel[cell.mark]}><Icon name={markIcon[cell.mark]} /></span>
+                      <span class="c-text">{cell.text}</span>
+                    </span>
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="verdicts">
+      <p class="verdict-card">
+        <strong>Shopify</strong> Якщо вам потрібен окремий сайт з доменом і покупці з пошуку Google.
+      </p>
+      <p class="verdict-card">
+        <strong>Директ</strong> Якщо продаєте кілька разів на місяць і готові відповідати кожному.
+      </p>
+      <p class="verdict-card verdict-card--cartium">
+        <strong>Cartium</strong> Якщо покупці вже пишуть вам в Instagram і Telegram: вони самі оформлять і оплатять замовлення.
+      </p>
+    </div>
+
+    <div class="compare-cta">
+      <a class="btn btn-primary" href={SIGNUP_URL} target="_blank" rel="noopener" data-magnetic>
+        Спробувати Cartium
+        <span class="btn-icon"><Icon name="paper-plane-tilt" /></span>
+      </a>
+      <p class="compare-note">{TRIAL_DAYS} днів безкоштовно. Дані Shopify з shopify.com станом на жовтень 2026.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .rival {
+    display: none;
+  }
+  .compare-frame {
+    position: relative;
+  }
+  .compare-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+  }
+  .c-corner {
+    width: 22%;
+  }
+  .c-head {
+    padding: 22px 20px 18px;
+    text-align: left;
+    vertical-align: bottom;
+  }
+  .c-name {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.3rem, 1.1rem + 0.7vw, 1.75rem);
+    letter-spacing: -0.03em;
+  }
+  .c-tag {
+    display: inline-block;
+    margin-bottom: 10px;
+    padding: 4px 10px;
+    border-radius: var(--r-pill);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .c-label,
+  .c-cell {
+    padding: 18px 20px;
+    border-top: 1px solid var(--line);
+    vertical-align: top;
+    text-align: left;
+  }
+  .c-label {
+    padding-left: 4px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .c-cell {
+    color: var(--ink-2);
+    line-height: 1.4;
+  }
+  .c-mark {
+    display: inline-grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    margin-bottom: 8px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: var(--muted);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .c-mark :global(svg) {
+    width: 15px;
+    height: 15px;
+  }
+  .c-text {
+    display: block;
+    font-size: 0.95rem;
+  }
+  .is-no .c-text {
+    color: var(--muted);
+  }
+  .c-shopify.is-yes .c-mark,
+  .c-direct.is-yes .c-mark {
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: none;
+  }
+
+  /* The Cartium column is one raised card running the height of the table. */
+  .c-cartium {
+    position: relative;
+    background: var(--surface);
+  }
+  .c-head.c-cartium {
+    border-radius: 24px 24px 0 0;
+    box-shadow:
+      inset 1px 0 0 color-mix(in srgb, var(--accent) 45%, transparent),
+      inset -1px 0 0 color-mix(in srgb, var(--accent) 45%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+  .c-cell.c-cartium {
+    color: var(--ink);
+    font-weight: 500;
+    box-shadow:
+      inset 1px 0 0 color-mix(in srgb, var(--accent) 45%, transparent),
+      inset -1px 0 0 color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+  .c-row:last-child .c-cartium {
+    border-radius: 0 0 24px 24px;
+    box-shadow:
+      inset 1px 0 0 color-mix(in srgb, var(--accent) 45%, transparent),
+      inset -1px 0 0 color-mix(in srgb, var(--accent) 45%, transparent),
+      inset 0 -1px 0 color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+  .c-cartium.is-yes .c-mark {
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: 0 6px 16px -6px var(--accent-glow);
+  }
+  /* A soft violet light under the Cartium column. */
+  .compare-frame::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    bottom: 0;
+    left: 22%;
+    width: 26%;
+    background: radial-gradient(60% 50% at 50% 30%, var(--aura), transparent 70%);
+    filter: blur(40px);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  .c-row {
+    transition: background-color 0.3s var(--ease-out);
+  }
+  .c-row:hover .c-label,
+  .c-row:hover .c-cell:not(.c-cartium) {
+    background: var(--hover-soft);
+  }
+
+  .verdicts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: clamp(32px, 4vw, 56px);
+  }
+  .verdict-card {
+    padding: 22px 24px;
+    border-radius: var(--r-card);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+  .verdict-card strong {
+    display: block;
+    margin-bottom: 4px;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .verdict-card--cartium {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent),
+      0 30px 60px -36px var(--accent-glow);
+  }
+  .verdict-card--cartium strong {
+    color: var(--accent-text);
+  }
+  .compare-cta {
+    display: grid;
+    justify-items: center;
+    gap: 14px;
+    margin-top: clamp(32px, 4vw, 48px);
+  }
+  .compare-note {
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  /* Cells arrive row by row once the table is in view (set by main.ts when motion is allowed). */
+  :global(.compare-ready) .c-cell,
+  :global(.compare-ready) .c-label {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  :global(.compare-ready) .c-row.is-in .c-cell,
+  :global(.compare-ready) .c-row.is-in .c-label {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.6s var(--ease-out),
+      transform 0.8s var(--ease-out),
+      background-color 0.3s var(--ease-out);
+  }
+  :global(.compare-ready) .c-row.is-in .c-cartium {
+    transition-delay: 0.08s;
+  }
+  :global(.compare-ready) .c-row.is-in .c-shopify {
+    transition-delay: 0.16s;
+  }
+  :global(.compare-ready) .c-row.is-in .c-direct {
+    transition-delay: 0.24s;
+  }
+  :global(.compare-ready) .c-row.is-in .c-cartium.is-yes .c-mark {
+    animation: mark-pop 0.7s var(--ease-out) 0.2s both;
+  }
+  @keyframes mark-pop {
+    from {
+      transform: scale(0.4);
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent);
+    }
+    60% {
+      transform: scale(1.12);
+    }
+    to {
+      transform: none;
+      box-shadow: 0 0 0 10px color-mix(in srgb, var(--accent) 0%, transparent);
+    }
+  }
+
+  /* Wider screens: the mark sits beside its text, so the whole table fits one laptop screen. */
+  @media (min-width: 761px) {
+    .c-label,
+    .c-cell {
+      padding-block: 14px;
+    }
+    .c-inner {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr);
+      align-items: start;
+      column-gap: 12px;
+    }
+    .c-mark {
+      margin: 0;
+    }
+    .c-text {
+      padding-top: 2px;
+    }
+    .c-head {
+      padding-block: 16px 14px;
+    }
+  }
+
+  /* Phones: Cartium against one rival at a time. */
+  @media (max-width: 760px) {
+    .rival {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      width: fit-content;
+      margin: 0 auto 20px;
+      padding: 4px;
+      border-radius: var(--r-pill);
+      background: var(--surface);
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .rival-label {
+      padding: 0 8px 0 12px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .rival-opt {
+      height: 40px;
+      padding: 0 16px;
+      border-radius: var(--r-pill);
+      font-weight: 600;
+      color: var(--muted);
+      transition:
+        background-color 0.3s var(--ease-out),
+        color 0.3s var(--ease-out);
+    }
+    .rival-opt[aria-checked='true'] {
+      background: var(--ink);
+      color: var(--bg);
+    }
+    .compare-table[data-show='shopify'] [data-col='direct'],
+    .compare-table[data-show='direct'] [data-col='shopify'] {
+      display: none;
+    }
+    .compare-table.is-swapping .c-cell:not(.c-cartium),
+    .compare-table.is-swapping .c-head:not(.c-cartium) {
+      animation: swap-in 0.5s var(--ease-out);
+    }
+    @keyframes swap-in {
+      from {
+        opacity: 0;
+        transform: translateX(14px);
+      }
+    }
+    .c-corner {
+      width: 30%;
+    }
+    .c-head {
+      padding: 14px 10px 12px;
+    }
+    .c-tag {
+      font-size: 0.66rem;
+      padding: 3px 8px;
+    }
+    .c-label,
+    .c-cell {
+      padding: 14px 10px;
+    }
+    .c-label {
+      padding-left: 0;
+      font-size: 0.85rem;
+    }
+    .c-text {
+      font-size: 0.82rem;
+    }
+    .c-mark {
+      width: 22px;
+      height: 22px;
+      margin-bottom: 6px;
+    }
+    .compare-frame::before {
+      left: 30%;
+      width: 35%;
+    }
+    .verdicts {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

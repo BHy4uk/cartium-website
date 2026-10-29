@@ -40,13 +40,13 @@ const faq = [
 ];
 ---
 <section class="section faq" id="faq" aria-labelledby="faq-title">
-  <div class="container faq-grid">
+  <div class="container faq-grid screen" data-snap>
     <div class="faq-aside">
       <h2 id="faq-title" class="display h2">Часті питання</h2>
       <p class="lead">Не знайшли відповідь? Напишіть нам у Telegram.</p>
       <a class="btn btn-ghost" href={BOT_URL} target="_blank" rel="noopener">Написати @{BOT_HANDLE}</a>
     </div>
-    <div class="faq-list">
+    <div class="faq-list" data-fit>
       {faq.map((f, i) => (
         <details class="qa" name="faq" open={i === 0}>
           <summary class="qa-q">
@@ -110,7 +110,7 @@ const faq = [
     justify-content: space-between;
     gap: 16px;
     padding: 20px 22px 20px 26px;
-    cursor: pointer;
+    cursor: var(--cursor-point);
     list-style: none;
     font-family: var(--font-display);
     font-weight: 600;
@@ -162,5 +162,20 @@ const faq = [
     .faq-aside {
       position: static;
     }
+  }
+  /* Short laptop screens: the whole list fits one screen. */
+  @media (min-width: 1024px) and (max-height: 900px) {
+    .faq-list {
+      gap: 6px;
+    }
+    .qa-q {
+      padding-block: 12px;
+      font-size: 1.04rem;
+    }
+  }
+  /* As a screen it stays a grid, centred in the viewport. */
+  .faq-grid.screen {
+    display: grid;
+    align-content: center;
   }
 </style>

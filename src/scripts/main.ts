@@ -1,6 +1,7 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
+import Snap from 'lenis/snap';
 import 'lenis/dist/lenis.css';
 import { initDemo } from './demo';
 
@@ -227,12 +228,6 @@ function heroMotion() {
   const ry = gsap.quickTo(tilt, 'rotationY', { duration: 0.9, ease: 'power3.out' });
   const nx = notif ? gsap.quickTo(notif, 'x', { duration: 1.1, ease: 'power3.out' }) : null;
   const ny = notif ? gsap.quickTo(notif, 'y', { duration: 1.1, ease: 'power3.out' }) : null;
-  // The light trails the pointer slowly, on `translate` so it never fights the CSS drift.
-  const aura = $('[data-hero-aura]');
-  const light = { x: 0, y: 0 };
-  const paint = () => aura && (aura.style.translate = `${light.x.toFixed(1)}px ${light.y.toFixed(1)}px`);
-  const lx = gsap.quickTo(light, 'x', { duration: 2.2, ease: 'power3.out', onUpdate: paint });
-  const ly = gsap.quickTo(light, 'y', { duration: 2.2, ease: 'power3.out', onUpdate: paint });
   hero.addEventListener('pointermove', (e) => {
     const r = stage.getBoundingClientRect();
     const px = gsap.utils.clamp(-1, 1, (e.clientX - (r.left + r.width / 2)) / r.width);
@@ -241,16 +236,12 @@ function heroMotion() {
     rx(py * -7);
     nx?.(px * 18);
     ny?.(py * 12);
-    lx(px * 90);
-    ly(py * 50);
   });
   hero.addEventListener('pointerleave', () => {
     rx(0);
     ry(0);
     nx?.(0);
     ny?.(0);
-    lx(0);
-    ly(0);
   });
 }
 
@@ -272,125 +263,37 @@ function magnetic() {
 }
 
 /* ---------- Chat to order story ---------- */
-function minutes(t: string) {
-  const [h, m] = t.split(':').map(Number);
-  return h * 60 + m;
-}
-function duration(mins: number) {
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return h ? `${h} год ${m} хв` : `${m} хв`;
-}
-
-// Both lanes play the same sale on a clock; each starts when it scrolls into view.
-function storyRace() {
+// Everything is on screen from the start; nothing waits for a timeline. As the screen arrives its
+// parts come into focus one by one, the way Apple opens a section: the two lines of the claim, the
+// Direct window with its messages settling in a quick cascade, then Cartium and its three steps.
+function storyReveal() {
   const section = $('[data-story]');
-  if (!section) return;
-  const direct = $('[data-lane="direct"]', section)!;
-  const cartium = $('[data-lane="cartium"]', section)!;
-  const msgs = $$('[data-msg]', direct);
-  const win = $('[data-chat-window]', direct)!;
-  const clock = $('[data-chat-clock]', direct)!;
-  const countMine = $('[data-count-mine]', direct)!;
-  const countTime = $('[data-count-time]', direct)!;
-  const steps = $$('[data-flow-step]', cartium);
-  const order = $('[data-order]', cartium)!;
-  const ttnBtn = $('[data-ttn-btn]', cartium)!;
-  const ttnLabel = $('[data-ttn-label]', cartium)!;
-  const cartiumTime = $('[data-cartium-time]', cartium)!;
-  const summary = $('[data-race-summary]', section)!;
-  const times = msgs.map((m) => minutes(m.querySelector('time')?.textContent ?? '0:00'));
-  win.scrollTop = win.scrollHeight;
-  // Without motion the markup already shows the finished race.
-  if (reduceMotion) return;
-  root.classList.add('race-ready');
-
-  type Lane = { reset(): void; play(): void; played: boolean; visible: boolean; timers: number[] };
-  const later = (lane: Lane, ms: number, fn: () => void) => lane.timers.push(window.setTimeout(fn, ms));
-  const STEP = 430;
-
-  const directLane: Lane = {
-    played: false,
-    visible: false,
-    timers: [],
-    reset() {
-      this.timers.forEach(clearTimeout);
-      this.timers = [];
-      msgs.forEach((m) => m.classList.remove('is-in'));
-      direct.querySelector('[data-lane-done]')!.classList.remove('is-in');
-      summary.classList.remove('is-in');
-      countMine.textContent = '0';
-      countTime.textContent = '0 хв';
-      clock.textContent = '10:02';
-      win.scrollTop = 0;
-    },
-    play() {
-      this.played = true;
-      msgs.forEach((m, i) =>
-        later(this, 250 + i * STEP, () => {
-          m.classList.add('is-in');
-          countMine.textContent = String(msgs.slice(0, i + 1).filter((x) => x.dataset.from === 'me').length);
-          countTime.textContent = duration(times[i] - times[0]);
-          clock.textContent = m.querySelector('time')?.textContent ?? '';
-          win.scrollTo({ top: win.scrollHeight, behavior: 'smooth' });
-        }),
-      );
-      const end = 250 + msgs.length * STEP;
-      later(this, end, () => direct.querySelector('[data-lane-done]')!.classList.add('is-in'));
-      later(this, end + 300, () => summary.classList.add('is-in'));
-    },
-  };
-  const cartiumLane: Lane = {
-    played: false,
-    visible: false,
-    timers: [],
-    reset() {
-      this.timers.forEach(clearTimeout);
-      this.timers = [];
-      [...steps, order, cartium.querySelector('[data-lane-done]')!].forEach((el) => el.classList.remove('is-in'));
-      cartiumTime.textContent = '0 хв';
-      ttnBtn.classList.remove('is-done');
-      ttnLabel.textContent = 'Створити ТТН';
-    },
-    play() {
-      this.played = true;
-      steps.forEach((el, i) =>
-        later(this, 250 + i * 520, () => {
-          el.classList.add('is-in');
-          cartiumTime.textContent = `${i} хв`;
-        }),
-      );
-      later(this, 1300, () => order.classList.add('is-in'));
-      later(this, 2050, () => {
-        ttnBtn.classList.add('is-done');
-        ttnLabel.textContent = 'ТТН 20451386942762';
-      });
-      later(this, 2300, () => cartium.querySelector('[data-lane-done]')!.classList.add('is-in'));
-    },
-  };
-
-  const lanes = new Map<Element, Lane>([
-    [direct, directLane],
-    [cartium, cartiumLane],
-  ]);
-  lanes.forEach((lane) => lane.reset());
-  const io = new IntersectionObserver(
-    (entries) =>
-      entries.forEach((e) => {
-        const lane = lanes.get(e.target)!;
-        lane.visible = e.isIntersecting;
-        if (e.isIntersecting && !lane.played) lane.play();
-      }),
-    { threshold: 0.35 },
-  );
-  lanes.forEach((_, el) => io.observe(el));
-
-  $('[data-story-replay]', section)?.addEventListener('click', () => {
-    lanes.forEach((lane) => {
-      lane.reset();
-      lane.played = false;
-      if (lane.visible) lane.play();
-    });
+  if (!section || reduceMotion) return;
+  const grid = $('[data-story-grid]', section)!;
+  // A deep link or a reload mid-page leaves the screen as it is.
+  if (grid.getBoundingClientRect().top < window.innerHeight * 0.75) return;
+  const claim = $$('[data-claim]', section);
+  const ig = $('[data-ig]', section)!;
+  const bubbles = $$('[data-bubble]', ig);
+  const cart = $('[data-cart]', section)!;
+  const steps = $$('[data-cart-step]', cart);
+  const panel = { autoAlpha: 0, y: 56, scale: 0.96, filter: 'blur(14px)' };
+  const piece = { autoAlpha: 0, y: 18, filter: 'blur(8px)' };
+  gsap.set([...claim, ig, cart], panel);
+  gsap.set([...bubbles, ...steps], piece);
+  const into = { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)', ease: EASE, clearProps: 'filter,transform' };
+  ScrollTrigger.create({
+    trigger: grid,
+    start: 'top 72%',
+    once: true,
+    onEnter: () =>
+      gsap
+        .timeline()
+        .to(ig, { ...into, duration: 1.5 }, 0.1)
+        .to(bubbles, { ...into, duration: 0.9, stagger: 0.045 }, 0.4)
+        .to(cart, { ...into, duration: 1.5 }, 0.3)
+        .to(steps, { ...into, duration: 1.1, stagger: 0.12 }, 0.65)
+        .to(claim, { ...into, duration: 1.4, stagger: 0.22 }, 0.5),
   });
 }
 
@@ -661,7 +564,7 @@ function pricing() {
 /* ---------- Grid reveals ---------- */
 function reveals() {
   if (reduceMotion) return;
-  const groups = ['.bento .tile', '.ways-grid .way', '.plans .plan', '.faq-list .qa', '.rails-list .rail'];
+  const groups = ['.bento .tile', '.ways-grid .way', '.plans .plan', '.faq-list .qa', '.rails-list .rail', '.verdicts .verdict-card'];
   groups.forEach((sel) => {
     const items = $$(sel);
     if (!items.length) return;
@@ -669,7 +572,7 @@ function reveals() {
     // Anything already on screen (a deep link, a reload mid-page) is left as it is.
     const below = items.filter((el) => el.getBoundingClientRect().top > window.innerHeight * 0.9);
     if (!below.length) return;
-    gsap.set(below, { autoAlpha: 0, y: 32, filter: 'blur(10px)' });
+    gsap.set(below, { autoAlpha: 0, y: 48, scale: 0.97, filter: 'blur(14px)' });
     ScrollTrigger.batch(below, {
       start: 'top 90%',
       once: true,
@@ -677,12 +580,13 @@ function reveals() {
         gsap.to(batch, {
           autoAlpha: 1,
           y: 0,
+          scale: 1,
           filter: 'blur(0px)',
-          duration: 1.1,
-          stagger: 0.07,
+          duration: 1.4,
+          stagger: 0.12,
           ease: EASE,
           overwrite: true,
-          clearProps: 'filter',
+          clearProps: 'filter,transform',
         }),
     });
   });
@@ -697,6 +601,132 @@ function reveals() {
     );
     gsap.fromTo('.final-mark', { rotation: -8, yPercent: 10 }, { rotation: 0, yPercent: -6, ease: 'none', scrollTrigger: { trigger: final, start: 'top bottom', end: 'bottom top', scrub: true } });
   }
+}
+
+/* ---------- Comparison table ---------- */
+function compare() {
+  const section = $('[data-compare]');
+  if (!section) return;
+  const table = $('[data-compare-table]', section)!;
+  const group = $('[role="radiogroup"]', section)!;
+  // On phones Cartium faces one rival at a time; the rival column slides in on each switch.
+  radioGroup(group, (btn) => {
+    table.dataset.show = btn.dataset.rival;
+    if (reduceMotion) return;
+    table.classList.remove('is-swapping');
+    void table.offsetWidth;
+    table.classList.add('is-swapping');
+  });
+  if (reduceMotion || table.getBoundingClientRect().top < window.innerHeight * 0.9) return;
+  // Rows fill in one after another, Cartium's cell first in each.
+  root.classList.add('compare-ready');
+  ScrollTrigger.batch($$('[data-compare-row]', table), {
+    start: 'top 90%',
+    once: true,
+    onEnter: (batch) => batch.forEach((row, i) => window.setTimeout(() => row.classList.add('is-in'), i * 110)),
+  });
+}
+
+/* ---------- Headlines ---------- */
+// Wrap each word of a heading in a mask so it can rise into place. Non-breaking spaces stay
+// inside a word, so pairs like «за вечір» move as one.
+function splitWords(el: HTMLElement) {
+  el.setAttribute('aria-label', el.textContent?.replace(/\s+/g, ' ').trim() ?? '');
+  const walk = (node: Node) => {
+    [...node.childNodes].forEach((child) => {
+      if (child.nodeType === Node.TEXT_NODE) {
+        const frag = document.createDocumentFragment();
+        (child.textContent ?? '').split(/( +)/).forEach((part) => {
+          if (!part) return;
+          if (/^ +$/.test(part)) {
+            frag.append(part);
+            return;
+          }
+          const outer = document.createElement('span');
+          outer.className = 'rw';
+          outer.setAttribute('aria-hidden', 'true');
+          const inner = document.createElement('span');
+          inner.className = 'rw-i';
+          inner.textContent = part;
+          outer.append(inner);
+          frag.append(outer);
+        });
+        child.replaceWith(frag);
+      } else if (child.nodeType === Node.ELEMENT_NODE) walk(child);
+    });
+  };
+  walk(el);
+}
+
+// Section headlines rise word by word out of a mask as they come into view, then the copy and
+// buttons beside them follow out of a soft blur, the way Apple's product pages open a section.
+// Big panels marked data-rise grow into place with the scroll.
+function headlines() {
+  if (reduceMotion) return;
+  $$('main section:not([data-hero]) .h2').forEach((h) => {
+    if (h.getBoundingClientRect().top < window.innerHeight * 0.9) return;
+    // Chrome headings paint their gradient across the whole line, so they rise as one block.
+    const chrome = h.querySelector('.chrome-text');
+    if (!chrome) splitWords(h);
+    const words = chrome ? [] : $$('.rw-i', h);
+    const followers = [...(h.parentElement?.children ?? [])].filter((el) => el !== h) as HTMLElement[];
+    if (chrome) gsap.set(h, { clipPath: 'inset(0 0 100% 0)', y: 40 });
+    else gsap.set(words, { yPercent: 115 });
+    gsap.set(followers, { autoAlpha: 0, y: 40, filter: 'blur(14px)' });
+    ScrollTrigger.create({
+      trigger: h,
+      start: 'top 88%',
+      once: true,
+      onEnter: () => {
+        const tl = gsap.timeline();
+        if (chrome) tl.to(h, { clipPath: 'inset(0 0 -20% 0)', y: 0, duration: 1.3, ease: EASE });
+        else tl.to(words, { yPercent: 0, duration: 1.2, stagger: 0.055, ease: EASE });
+        tl.to(
+          followers,
+          { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 1.4, stagger: 0.16, ease: EASE, clearProps: 'filter' },
+          0.35,
+        );
+      },
+    });
+  });
+
+  $$('[data-rise]').forEach((el) =>
+    gsap.fromTo(
+      el,
+      { scale: 0.93, y: 48, autoAlpha: 0.25 },
+      { scale: 1, y: 0, autoAlpha: 1, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'top 62%', scrub: 0.6 } },
+    ),
+  );
+}
+
+/* ---------- Screens ---------- */
+// The page reads as a run of screens, each a heading with its interface. Scrolling stays free; when
+// it comes to rest near the start of a screen, the page glides the last bit and settles it just
+// under the navigation. Desktop only: on a phone the blocks are taller than the screen.
+function screens() {
+  if (!lenis || !window.matchMedia('(min-width: 1024px) and (hover: hover)').matches) return;
+  const snap = new Snap(lenis, { type: 'proximity', distanceThreshold: '30%', debounce: 260, duration: 1.1, easing: glide });
+  // Layout position, ignoring the scroll-driven transforms (data-rise) some blocks carry.
+  const pageTop = (el: HTMLElement) => {
+    let y = 0;
+    for (let e: HTMLElement | null = el; e; e = e.offsetParent as HTMLElement | null) y += e.offsetTop;
+    return y;
+  };
+  let remove: (() => void)[] = [];
+  const build = () => {
+    remove.forEach((r) => r());
+    // Under the floating nav pill (its height plus its top margin), whether or not it is shown now.
+    const below = (parseFloat(getComputedStyle(root).getPropertyValue('--nav-h')) || 64) + 30;
+    remove = [0, ...$$('[data-snap]').map((el) => Math.max(0, Math.round(pageTop(el) - below)))].map((v) => snap.add(v));
+  };
+  // Images, fonts and open FAQ answers move the screens; keep the points in step with the layout.
+  let pending = 0;
+  new ResizeObserver(() => {
+    window.clearTimeout(pending);
+    pending = window.setTimeout(build, 200);
+  }).observe(document.body);
+  ScrollTrigger.addEventListener('refresh', build);
+  build();
 }
 
 /* ---------- Card spotlight ---------- */
@@ -769,11 +799,14 @@ idle(() => {
   growth();
   pricing();
   const mm = gsap.matchMedia();
-  storyRace();
+  storyReveal();
   launch(mm);
   showcase();
   stages();
+  compare();
+  headlines();
   reveals();
+  screens();
   ScrollTrigger.refresh();
   document.fonts?.ready.then(() => ScrollTrigger.refresh());
   if (location.hash.length > 1) window.setTimeout(() => scrollToHash(location.hash), 300);

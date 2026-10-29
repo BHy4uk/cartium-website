@@ -6,7 +6,7 @@ const perMonthYearly = (yearly: number) => yearly / 12;
 ---
 <section class="section pricing" id="pricing" aria-labelledby="pricing-title" data-pricing>
   <div class="container">
-    <div class="section-head is-center">
+    <div class="section-head is-center" data-snap>
       <h2 id="pricing-title" class="display h2">Фіксована ціна без відсотка з продажів</h2>
       <p class="lead">
         Гроші покупців надходять на ваш рахунок LiqPay чи monobank напряму. Перші {TRIAL_DAYS} днів безкоштовно, далі оплата в гривнях за поточним курсом.
@@ -19,7 +19,7 @@ const perMonthYearly = (yearly: number) => yearly / 12;
       </div>
     </div>
 
-    <div class="plans">
+    <div class="plans" data-snap>
       {PLANS.map((p) => (
         <article class:list={['plan spot', { 'plan--featured stage': p.badge }]} aria-labelledby={`plan-${p.id}`}>
           <header class="plan-head">

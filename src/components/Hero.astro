@@ -187,21 +187,18 @@ let w = 0;
     margin-top: clamp(28px, 4vw, 56px);
     perspective: 1600px;
   }
-  /* The light the phones stand in. It leans with the pointer and flares when an order lands. */
+  /* The light the phones stand in: centred behind the fan, wider than it, so it seems to come
+     from the screens. It drifts on its own and flares when an order lands. */
   .hero-aura {
     left: 50%;
-    top: -14%;
-    width: min(1180px, 110vw);
-    aspect-ratio: 2.1 / 1;
-    margin-left: calc(min(1180px, 110vw) / -2);
-    background:
-      radial-gradient(closest-side at 30% 52%, color-mix(in srgb, var(--aura), var(--violet) var(--aura-boost)), transparent 72%),
-      radial-gradient(closest-side at 72% 46%, color-mix(in srgb, var(--aura) 80%, #3d5bff 20%), transparent 70%),
-      radial-gradient(closest-side at 50% 60%, color-mix(in srgb, var(--aura) 60%, transparent), transparent 80%);
-    --aura-boost: 40%;
+    top: 44%;
+    width: min(1500px, 135vw);
+    aspect-ratio: 1.75 / 1;
+    translate: -50% -50%;
+    --aura-boost: 62%;
   }
   :global([data-theme='dark']) .hero-aura {
-    --aura-boost: 55%;
+    --aura-boost: 70%;
   }
   .hero-tilt {
     position: absolute;
@@ -361,9 +358,7 @@ let w = 0;
       animation: hero-notif 0.9s var(--ease-out) 1.2s backwards;
     }
     .hero-aura {
-      animation:
-        hero-aura-in 2.4s var(--ease-out) 0.5s backwards,
-        aura-drift 18s ease-in-out 2.9s infinite alternate;
+      animation: hero-aura-in 2.4s var(--ease-out) 0.5s backwards;
     }
   }
   @keyframes hero-rise {

@@ -37,12 +37,13 @@ const reminders = [
 ---
 <section class="section growth" aria-labelledby="growth-title">
   <div class="container">
+    <div class="screen" data-snap>
     <div class="section-head">
       <h2 id="growth-title" class="display h2">Коли продажі пішли, вмикайте інструменти росту</h2>
       <p class="lead">Нагадування про кошик, бонуси, імпорт і AI-фото вже вбудовані в магазин. Спробуйте прямо тут.</p>
     </div>
 
-    <div class="bento">
+    <div class="bento" data-fit>
       <article class="tile spot tile--ai" data-ai>
         <div class="ai-compare" data-ai-compare style="--split:50%">
           <div class="ai-before">
@@ -182,6 +183,11 @@ const reminders = [
         </ul>
       </article>
     </div>
+    <div class="bento-nav" data-bento-nav>
+      <button type="button" class="bento-arrow" data-bento-step="-1" aria-label="Попередні інструменти"><Icon name="caret-left" /></button>
+      <button type="button" class="bento-arrow" data-bento-step="1" aria-label="Наступні інструменти"><Icon name="caret-right" /></button>
+    </div>
+    </div>
   </div>
 </section>
 
@@ -216,7 +222,8 @@ const reminders = [
   .tile--ai {
     grid-column: span 7;
     grid-row: span 2;
-    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    /* A wider text column keeps the controls from wrapping, so the tile fits a laptop screen. */
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
     align-items: stretch;
     align-content: stretch;
   }
@@ -504,14 +511,14 @@ const reminders = [
     font-size: 0.88rem;
     font-weight: 600;
     color: var(--ink-2);
-    cursor: pointer;
+    cursor: var(--cursor-point);
   }
   .scene input {
     position: absolute;
     inset: 0;
     margin: 0;
     opacity: 0;
-    cursor: pointer;
+    cursor: var(--cursor-point);
   }
   .scene:has(input:checked) {
     background: var(--surface-3);
@@ -574,14 +581,14 @@ const reminders = [
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    cursor: pointer;
+    cursor: var(--cursor-point);
   }
   .swatch input {
     position: absolute;
     inset: 0;
     opacity: 0;
     margin: 0;
-    cursor: pointer;
+    cursor: var(--cursor-point);
   }
   .swatch-dot {
     width: 30px;
@@ -894,6 +901,16 @@ const reminders = [
     color: var(--muted);
   }
 
+  /* Short laptop screens: tighter tiles, so the tall AI tile (two rows) fits one screen. */
+  @media (min-width: 1081px) and (max-height: 900px) {
+    .bento {
+      gap: 12px;
+    }
+    .tile {
+      gap: 12px;
+      padding: 20px;
+    }
+  }
   @media (max-width: 1080px) {
     .tile--ai,
     .tile--account {
@@ -918,6 +935,63 @@ const reminders = [
     .tile--account {
       grid-column: auto;
       grid-row: auto;
+    }
+  }
+  .bento-nav {
+    display: none;
+  }
+  /* Laptop-height screens: the tools become one row you slide through (as on apple.com), so the
+     heading and the tools share a screen instead of a tall grid. */
+  @media (min-width: 1024px) and (hover: hover) and (min-height: 600px) and (max-height: 920px) {
+    .bento {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      padding-bottom: 4px;
+    }
+    .bento::-webkit-scrollbar {
+      display: none;
+    }
+    .bento .tile {
+      flex: 0 0 400px;
+      scroll-snap-align: start;
+    }
+    .bento .tile--ai {
+      flex-basis: 720px;
+    }
+    .bento .tile--account {
+      flex-basis: 560px;
+    }
+    .bento-nav {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .bento-arrow {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--surface);
+      box-shadow: inset 0 0 0 1px var(--line);
+      color: var(--ink);
+      transition:
+        background-color 0.25s var(--ease-out),
+        opacity 0.25s var(--ease-out);
+    }
+    .bento-arrow:hover {
+      background: var(--hover-soft);
+    }
+    .bento-arrow:disabled {
+      opacity: 0.35;
+    }
+    .bento-arrow :global(svg) {
+      width: 18px;
+      height: 18px;
     }
   }
 </style>

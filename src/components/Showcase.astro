@@ -30,7 +30,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 ---
 <section class="section showcase" id="features" aria-labelledby="showcase-title" data-showcase>
   <div class="container">
-    <div class="sc-head">
+    <div class="sc-head" data-snap>
       <h2 id="showcase-title" class="display h2">Від вітрини до аналітики. В одному боті.</h2>
       <p class="lead">Справжні екрани Cartium, без макетів. Оберіть функцію, щоб побачити її.</p>
     </div>
@@ -101,7 +101,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
   }
 
   .sc-grid {
-    --dw: min(300px, calc((100dvh - 220px) * 0.491));
+    --dw: min(300px, calc((100dvh - 300px) * 0.491));
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
@@ -349,6 +349,15 @@ const pad = (n: number) => String(n).padStart(2, '0');
       text-align: center;
       color: var(--muted);
       text-wrap: balance;
+    }
+  }
+  /* Short laptop screens: a tighter list, so the heading, all ten tabs and the phone share a screen. */
+  @media (min-width: 861px) and (max-height: 900px) {
+    .sc-tab {
+      padding-block: 8px;
+    }
+    .sc-head {
+      margin-bottom: 20px;
     }
   }
 </style>

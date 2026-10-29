@@ -189,34 +189,80 @@
   z-index: -1;
   inset: 0 var(--stage-x, 0px);
   border-radius: var(--stage-r, 0px) var(--stage-r, 0px) 0 0;
-  background:
-    radial-gradient(60% 46% at 50% 0%, color-mix(in srgb, var(--aura) calc(var(--stage-glow, 1) * 100%), transparent), transparent 72%),
-    var(--bg);
+  background: var(--bg);
 }
 
-/* Ultraviolet light behind a focal object: a soft, slowly breathing field. Size and place it per
-   use; main.ts pauses the drift while it is off screen (.is-still). */
+/* Ultraviolet light that comes from behind a focal object (the phones, the race, the QR code).
+   Two soft fields drift on their own slow, unsynced loops, so the light keeps shifting without
+   ever moving fast. No blur filter: the gradients fall off in several steps, and only transforms
+   animate, so it stays on the GPU. main.ts pauses it off screen (.is-still) and flares it on events
+   (--flare, --flare-s). */
 .aura {
   position: absolute;
   pointer-events: none;
-  border-radius: 50%;
-  background:
-    radial-gradient(closest-side at 38% 46%, color-mix(in srgb, var(--aura), var(--violet) var(--aura-boost, 0%)), transparent 70%),
-    radial-gradient(closest-side at 64% 58%, color-mix(in srgb, var(--aura) 70%, #3d5bff 30%), transparent 72%);
-  filter: blur(36px) brightness(var(--flare, 1));
   opacity: var(--aura-o, 1);
   scale: var(--flare-s, 1);
-  animation: aura-drift 18s ease-in-out infinite alternate;
+  filter: brightness(var(--flare, 1));
 }
-.aura.is-still {
+.aura::before,
+.aura::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+.aura::before {
+  inset: 0;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--aura), var(--violet) var(--aura-boost, 0%)),
+    color-mix(in srgb, var(--aura) 62%, transparent) 34%,
+    color-mix(in srgb, var(--aura) 26%, transparent) 60%,
+    color-mix(in srgb, var(--aura) 8%, transparent) 80%,
+    transparent
+  );
+  animation: aura-a 27s ease-in-out infinite;
+}
+.aura::after {
+  inset: 14% 4% 8% 30%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--aura) 85%, #3d5bff 15%),
+    color-mix(in srgb, var(--aura) 40%, transparent) 45%,
+    color-mix(in srgb, var(--aura) 10%, transparent) 75%,
+    transparent
+  );
+  animation: aura-b 35s ease-in-out infinite;
+}
+.aura.is-still::before,
+.aura.is-still::after {
   animation-play-state: paused;
 }
-@keyframes aura-drift {
-  from {
-    transform: rotate(0deg) scale(1);
+@keyframes aura-a {
+  0%,
+  100% {
+    transform: translate(-3%, 2%) scale(1) rotate(0deg);
   }
-  to {
-    transform: rotate(24deg) scale(1.08);
+  30% {
+    transform: translate(4%, -3%) scale(1.07) rotate(8deg);
+  }
+  55% {
+    transform: translate(5%, 4%) scale(0.96) rotate(-4deg);
+  }
+  80% {
+    transform: translate(-4%, 3%) scale(1.04) rotate(5deg);
+  }
+}
+@keyframes aura-b {
+  0%,
+  100% {
+    transform: translate(5%, -2%) scale(1.04);
+  }
+  35% {
+    transform: translate(-8%, 4%) scale(0.94);
+  }
+  70% {
+    transform: translate(2%, 6%) scale(1.1);
   }
 }
 
@@ -266,7 +312,7 @@ button {
   background: none;
   border: 0;
   padding: 0;
-  cursor: pointer;
+  cursor: var(--cursor-point);
 }
 h1,
 h2,
@@ -706,7 +752,8 @@ code,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aura {
+  .aura::before,
+  .aura::after {
     animation: none;
   }
   *,
@@ -717,4 +764,61 @@ code,
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ---------- Headline word masks (split by main.ts) ---------- */
+.rw {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  /* Room for descenders inside the mask without shifting the line. */
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+.rw-i {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* ---------- Cursor ---------- */
+/* A drawn arrow in the site's palette: black on the light page, white with a violet edge on dark
+   (the dark theme and the graphite stages); over anything clickable it turns violet. The hotspot is
+   the arrow's tip. PNG at 1x and 2x (Safari draws nothing for an SVG cursor with a filter); a
+   browser without image-set falls back to its own arrow. */
+:root {
+  --cursor-ink: -webkit-image-set(url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAACuElEQVR42uWWT2iSYRzH1a1ZrblVEi0H4Z+DBa2IjHBEMPNsQRdjgYyGl0bImEENIQyCbjG6BAsXHjx4sYPgQQ8qCLLL9KCgzoEoyPSiU+ffp9/v5XmhZJXvq5564Xvw9z7v8/H3e76/53kEgv/xEYJEoAkqEY2N7Zmw2WySer2+XavVti0WyxzEJscFxUnFmUzmOYHn6KhEms1mzOFwKCB+ZhxQLN90LBYzI3Bx8Q5JJpOk3W4XgsHgA3g3RceMrpwgSTQafYVAqfQKkcuVJBAIkG63W00kEs/g/dlRQhE4G4lE1lkgSiZbIDs730iv12vm83krjDlHxwrHAmS1tWXDMCmVSp9h3PlRQP8KRK2svCAnJ01SrVZ/mEymy8M6+J9A1PKyjnFwo9HYG9bBAwFRGs19xsGtVuswFArxdvDAQJRafYNxcKfTKQGcl4M5AVkHO51OxsG5XO41VwdzBrKy2z8wDi6Xy5wczBuIWl19yTgY2ubToOUdGIjtgabpV6VSQeAuzHOBzscPiGtlMDz57TfsOqRQKOy5XK73brfb5vF43vr9/g2j0ageCsi6EQEIYuNW6xvc2I+1Wu0j+O4mSAlaAF3iXVKEYalgZynA5DWE9GeZSqW+wHfXQHM0MzEv0ywtPSQHB1lcl0OdTvcUTpHd07KEPqyazWYlzYrT/socT+FweI09gIvFYtRgMDyG+C0sHZbwtCyhBz/SdhBxPoA1Go0im81+T6fTTpVKdRdi10HzIEU8Hv/KZokVwGMLWwFuCXZ4P8MVKKT1v0gXH0FXMWv8IyCpXq+/ByU83t+PMY0Oa5v1+XybdPw03/1UTBd/hm5VkzSOE8q8Xu86tIMf2uAd/L4NklNnivmcGn+6JgrpMTSLUCwvBc3TmHiQvuNzyZqimUr6KiASjOkR/pI95yvGT+0kOWmg0bvXAAAAAElFTkSuQmCC") 1x, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4CAYAAACohjseAAAFVUlEQVR42u2abUhbVxjHjdo2qZq003WpL5l2bXyZdW6TuWFbNkY/bdBtWVmHIAzHSrcvpYyqrOzDUqQTIR3bB79EVOIXB4JTxAnKPiTaLx1pwU3BqUMEaV58iS+JRu+epzwnnNxFm9jk5l7wwB+juTH3d//P+Z9z7j0pKYftsB22wyaTpgKlktJI7HcVSbFgKgI60tzcrF1aWjJ5vV6T2WzW4t84WJVSARHg6MDAgCEYDP4tUMPXTqezCt5TE6jiIFlZ4skfX15evieI2s7OjmtqauoDfB8vAl0MlZIA08khnc/n+42B2Wy2EOTu7m5gfn7+OhyToTRIFbmHJ54DDg4wqJycU4LZfDfMTY/H8yMclwk6RhdG9iWbSo5kgfQQLIM8IOrGja8Fvz8QglxbW+upra3NIddlD5lKbuhAuW63e0gMiLpy5SPB5XKHIP1+v6O9vf2MEiAZ4AlQvsvligiIqqm5KExOToYgt7a2Ju12ezV8TiPnhE0lF54JiCopKRXsdgefsO6JiYkP5ZywYsDf9wNE5eXlCz09vyomYWMGZGppaVFEwh4YUCkJ+1yASkjY5waUe8LGBVDOCRs3QLkmbFwB5ZiwCQGUU8ImDFAuCZtQwL0Sdnh4+HWpEjbhgHslrNPpvCxFwkoCuFfCzs3NfZHohJUMcK+EhTXoD1zCxh1ScsBICevz+Wx1dXXZiYBMCiDq6tXPxAk7Sk7GtVyTBsgSdmZmNgQJafspBQ9LV/kBFhW9Ijx69Pjp0BCNFhYWeMAv6QbYUdkCoqzWdiHWBkOHr7Gx8TzdAFNTmSYPEGN/r/cqKirDQmRlZeVfptXV1TkmCJdZmMLNwPf+YbVaP8Y7e3QuyQVEACwv7EPRuGiz2e7C/38f9C7oEugCqAb0NuhNUDkIp3AvgbSUpskpUYRi6dfX1xeVi+gUAb0FegP0GqgC9CqoGFRE7r2Q1JART56xRevi4OBgAwGdI6CXQQUEdgp0kmY1x5IyTOC4xfcr1qJ1EfraX/AdZ/F7CCiboHSUnBpKz7iuMqICvH27IQzO4XB0Ly4uPo7VxaGhoWvUz3TklpocY2Bxf9D6TMA7d74PcwxO8mc49nJra+u3B3DxAbmXJVrdJ+wx+b637vmrD+PUVldX13dw3EVKwUtwvDMaF/ECsDY2NvZJvJPyQA9f+KXN9vb2OqzEb1EK4mK1EuO9ra3tm2hcRHjW1tfXxyktNeSgSgrAp4/PpqenfxGHSCAQWGpoaKileC+jFMSwKEFYj8fzZ6wudnd3V9PE+ogUgKEHoPX19dUbGxv/cMuY2aamps9p3DKCDKDTJHxdAs5e389FnJviGpAfXmDW8o5UZRr2CBvHJqPRWAknerO3t/dWYWEhzjTOk2N5FO06KmkMi0J8P5KLDAymZGEV4fV6R2js00kFGNqEgC7SIGykEjQShJ4biNXUf3Tk5LmOjo6vGMDo6Khw//5P/wOD9d6T8fHxe6WlpeX0OckcDG0j4ZzJJcdOk7M67i5YOnd8NpVqOTjzMNIqYXNz8wlAWwwGwwWac+IFfJFb3CY8SUMbgeiks7gy1HKu8bf40ujqa8ndsxaL5VowGFxjYLhaGBkZseTn5+MEu4qmaWfoop2QKkVTUkRbuejE1dwsI9JWLlbaGipdnH4Vm0ym9/r7+5s6Oztv0kqhiibVxTT31BNcUh7IxLoZjyVwJpVxAYVRGZViGdeHc+kYLTfnlP1mIr5UM6k/6snNAvqp5/pwRoqCNhDxLqbTiWeQQydJrA8fF5W6orZmqriS5vuvhn7yqwTF7jlViUDTRH1Y0Ztpk97+AwL+Pu4DNWGmAAAAAElFTkSuQmCC") 2x) 7 5, auto;
+  --cursor-ink-point: -webkit-image-set(url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAACvUlEQVR42uWWTYhSURTH1ZnGahpn+lg0FUSOiwgiiIRw08JcSzAbW4QQIcRMYdEsEhyGIQZmEzEEQxQ4QwsXLrKFIOEiNQQZWiikoKL58pWTzoRvVPy8nfO4D0qmeu+pqy78F5533/15zvufe69C8T8OJUgFGqFS0djQxojT6dTUarW1arW6ZrfbpyA2OiwoLqrOZDI3CQzuR5s0Go2Yy+XSQvzAMKBYvvFYLGZDoOM2Q9h8k7RaLTYYDF6FZ2N0zuDKCdJEo9E5BN4158gDS558+lgjnU6HSyQSs/D84CChCJyMRCLzAhB1b/Yzee+rkG632ygUCgsw5xCdqxwKUJDn1Q6GSalUegbzDg8C+lcgav1JkbSaXcJx3Fur1Xq8Xwf/E4hasbO8g+v1+la/DhYFRC3avvAObjabuVAoJNvBooGohVsM7+B2u11KJpOyHCwJKDj4wzuOdzDDMPelOlgyUNCbzV3eweVyWZKDZQNRL1e3eQdD26yKLa9oILYHmqZX9WoHgRuwzhG6njwgfqunjm+//d753iYsy2653e4lj8fj9Hq9jwOBwEOLxXK+L6DgRgQgSIi718u4se8ZDIZr8N4F0AzoDOiY7JIiDEsFOwsLi1cR0ptlKpV6Du+dAk3RzNSyTLM8VyDbX1ukUqnkjEbjDThFNvbLEvqQs9lsMzQrSfsrfzyFw+E7wgFcLBajZrP5OsQvYumwhPtlCT24QttBJfkA1uv12mw2u5lOp1/rdLrLEDsLmgZp4/H4CyFLrAAeW9gKcEtYhucTUoFKWv+j9OMj6CRmjX8EdMJkMl2BEu7lMw2+0eHbZv1+/yM6f1zufqqmH3+CblWjNI4Lnvb5fPPQDgFoAwf8vgQ6R52plnNq/OmaqKTH0CRCsbwUNE1jajF9J+eSNUYz1fRUQKUY0lD+kr3kK8ZPZ6XWLIE5PykAAAAASUVORK5CYII=") 1x, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4CAYAAACohjseAAAFV0lEQVR42u2aX0xbVRzHW2BbO6DdZGqHgLhsZSDTqUQ0zkVj9qSJ0e5hCwmJwbhEjVmIEQgvRgyZCUkf5gMvECAQjVmISNMwDKgJBX3Y0miYYJjraFSk9A+UUvoHrr/f8jvN6bVlLWtv7004yTcUekvv535/53vOufeoVHttr+21vSaTpgblkfJJ7Hc1SbFgagLa19nZqfN6vSaPx2Pq6OjQ4d84WLVSARFgv8ViqYhGo78L1PC13W6vg/c0BKo4SFaWePIHfT7fFUHUtra2XPPz86/j+3gR6GKolQRYQA7p/X7/dwzM9r0/Brm9vR1yOp2X4JhCpUGqyT088SPgoIVBvf+mQ/h2wBvnptvt/gKOKwIdoAsj+5LNI0eKQQYIFisPiOozu4RIeDsGub6+/k1DQ8MRcl32kHnkhh5UurKyMiYGRJnblwS/LxqD3NzctPX29h5TAiQDPAQqc7lcCQFRHR/+Jfy9GI5BhsPhuampqXr4nFbOCZtHLtwXEPVJo1P447cgn7Ars7Ozb8g5YcWA13cCRH10/q7wyw/riknYtAGZLF/5FJGwuwZUSsI+EKASEvaBAeWesBkBlHPCZgxQrgmbUUA5JmxWAOWUsFkDlEvCZhUwWcKOj48/I1XCZh0wWcLa7fZzUiSsJIDJEtbhcLyT7YSVDDBZwsIa9DMuYTMOKTlgooT1+/2DjY2NJdmAzAkg6uqn/4oTdpKczGi55gyQJezyP5EY5Nzc3HkKHpau8gNsvrgoLN4O3RsaUpHHFeUB36UbYPtlC4j6ybompNtg6PC3traeohtgGirT3AFi7Cd7r73JGRciq6urd5nW1tYcTBAud2AK9yd87489PT1v4Z09OpfcAiIAlhf2oVRcHBwc/Bz+/2ugV0BnQWdAL4FeAD0HqgXhFO5RkI7SNDclilAs/W5MBVJyEZ0ioOdBz4KeBj0FehJUBXqC3HsopyEjnjxjS9VFq9XaQkAnCOhxUDmBPQI6TLOaAzkZJnDc4vsVa6m6CH3tFnzHcfweAiohKD0lp5bSM6OrjJQAv+52x8HZbLahpaWlX9N1cWxs7AL1Mz25pSHHGFjGH7TeF/BajyfOMTjJq3Dsua6uro934eLP5F6xaHWftcfkO966568+jFPhgYGBdjjuZUrBs3C8PRUX8QKwNj09/Xamk3JXD1/4pU0kEgnASryZUhAXq6cx3ru7uz9IxUWEZy0QCMxQWmrJQbUUgPceny0sLHwpDpFQKORtaWlpoHivoRTEsDiJsG63+2a6Lg4NDdXTxHqfFICxB6BNTU31Gxsbt7llzJ22traLNG4ZQRWgoyR8fRKcvbSTizg3xTUgP7zArOVFqco07hE2jk1Go/H0yMjI5eHh4ebKykqcaZwixx6jaNdTSWNYVOL7iVxkYMHAVlxFeDyeCRr79FIBxjYhoIs0CBupBI0EYeAGYg31Hz05eaKvr+89BnDr5oZw/dr/wWC9tzwzM3Olurq6lj4nmYOxbSScM6Xk2FFyVs/dBSvgji+hUq0FZ24kWiUEg8HlyclJc0VFxRmac+IFfJhb3GY9SWMbgeiki7ky1HGu8bf48unq68jd42az+UI0Go1FL64WJiYmzGVlZTjBrqNp2jG6aIekSlGVSrSVi05cw80yEm3lYqWtpdLF6VeVyWR6dXR0tK2/v/8yrRTqaFJdRXNPA8Hl5IFMupvxWAIXURmXUxjVUCnWcH24lI7RcXNO2W8m4ku1iPqjgdwsp58Grg8XqhS0gYh3sYBOvJAcOkxiffigqNQVtTVTzZU033+19JNfJSh2z6laBJov6sOK3kyb8/YfC9CuAUN73LgAAAAASUVORK5CYII=") 2x) 7 5, pointer;
+  --cursor-light: -webkit-image-set(url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAACu0lEQVR42mNgGImAEYiZgZgFipmhYjSzjCXQZrVqht+dUyAc5rDVFCjGBsRMtLAQZChnosfZliz/B//L4h7/z/S79ybKeV8wUJyDFpaCgo8vzu34BJCF717/+d+c8/R/lv/9n0CxfJBjqB3EoDgTjHE9NBlkIQh8//r3/+SGl/9B/CTPCxOB8lzUtJQViIWiXQ5OgVkIAr9//fu/YsZbsKWp3tc2aciFCkMdx0gTC2Fg78aPYEvTfW+ecTbqVYKqZ6SZhSBw8eS3/3khD/9n+N6+GWi7xpzSFEzQQhB4dPcnNAXffRPhuMsXqIedXEuJshAEXj3/DU/Bsa5HM8lNwURbCAKfP/xBSsHnuslJwSRZCEvBSya/gabgK2s05cKESEnBJFsIAzvXfABbmuZz45iL8QRFYi0l20IQOHvkKzgFAy3djxS81LEQlD1AiQYdF0U++p/uc/MK0Bx+qC/JsxAUV7cuf0fhVyeDC/dfsa5HDsW6HTsILG/3x7kd22Cv3+YONEeAbAthqRFkAcgiGDi47RM43uz0mvKA+kyAWAeIlYFYHIi5yQpSkGWgoAL5BCQGsgTdl8lel85ALZKA+oyL2GIPxcJnj379r09/ArbMTq+5ElhPXsTlS3/rZWGgqg1qBhOx2QJcPUW77O+FVcDAMvO9kWpWFCjI7PVbs3H5MsX7ym6ohcwkV8Cm6vmWQAMupXhdvmymURgCFFMFYgUg1gTWiedgvgSFAKjaAmUFYLDuBTmWmISC0cQAYlEgVoJaJAsKZmgyl3I1npgE8mV74TNwUIKCG1hhr9ZWiDIlNitgNKKgkS4AxTzQKogVaqACMI6XACvi+8AG1jxgZewNFFODpkxOcmoNXM1ERmg1JAwNXg2oRXJQMS5qtQLQ45gDmjiEoHEGCwGatF8ZoUHGAg1iFlKyAAgAAFOJ/gizVfPlAAAAAElFTkSuQmCC") 1x, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4CAYAAACohjseAAAFUUlEQVR42u1ae2xTdRRm7R60XTdkDwcbjL3KWvaSsTnnEIe4dU8ER3BTtm4dG6AxGSqJwTiNiU7/wQSNqJgYQpREYiQaEhKxisa56RaFqUB8bKhEBHE+iYjWc8x34de7rnSlt73X7CRftnS3u/e73/l95/weM2ZMx3RMh5YiYhL8L4jpCHpCJCEKiMRnOi0TlcgxoZjO2iMbNzR+eYjBv9NnM/E3vRYVFckZnLWH79+0ctQtoqv+6C5b+m2zmTwU1ZSaEXhoViluY+NXZ+QEGd0Nx94qs21JxXWaIimpZyIkiqR2bz/jQXJD4xdH7aU7bKw0vqMJkjqkXhxhjkiI48DecQ+SrHDTsn3L6FqjbFyqNvRIu6sI8+QEOQZcv7nvbhoTiH795x0rDrVA9Wi1k9Qj5dhE0r0R5Dh+5Jx7S+s3Hmq224ceoO/EIgNU67B6pFsCYcFkBDlOnjjvfuSu7zxIdtaNvLBw3qoENTusRDCRkOGLIMev4xfc27Z+P8Fhr7Xeq1qHnRJBjr/O/+N+cdtpzTjslAlK8cbL2nDYgAlqxWGviKAWHPaKCardYYNCUM0OGzSCanXYoBJUo8MqQlBNDqsYQbU4rKIE1eCwihP07bD3Ke6wISHoy2Eri/qylHTYkBH05bCrKl4pExw2qCRDTnAyh719xdu3KkEyLAQ5Phv+Y4LDNi9/sx7pKo1J7RKUHLa3+1txDdaFBbCYYNXJoBM89/vf7sd6Tv5XGvzBVuclFbvrjw1hfcgIFSNUqeCeHT+6vS0gXw6tVe8/Sc+RhG4nKqwE2fYni7OnL8hM5PJw2D98PSHOulAVBJkApxePIX9UpM5lLC9jXVd+pqOzILOjozDL6SjM6mwryu5qXZyzqcWavraG7m/ltVms8IUvRZmU5H47n/jBbxUr8nt76B4VBK55JYRiwjWEAkIuL1sSrobJzAyLyXhrnv1V0Vnz8TDdYzEhj8CpmE3I5AVnArdsyYT4YNdCvwly3fI2rqaiYtWSpxx0H27N0ggpGG+ckrMIZqFl04e00L+z/xePB+1uOD4eiIrr6z4doPvMB7F4TJuMSMloYUc5dK3awX0/y6c6Y5a0W5zrbn7v3UBUXHn9njWodSYZKZ0Sc0OfBOX1bH3dyGhqYvlqunZ5QabD6a+K/AIudSuf9wfbKQPafJFPbRz2jwZNhpRKuCCjvLWq3+WPikxe/F/20mdvwJiLDlbP6df2Gc3PznrvMPpdsYa5S2HreUBRseXO5kBUbK8Zfg57klI5CM0G6NrKA4/LybXc5HoVdSsP1r4AyCEUtlUPHPSlIvemPAcUywtlw85QpanHFjbBsnrp3oedtZ8MdVDdaix/6VEUZBtIzYEDJsPqLSW5PWu8qSgR29x8wnOCS3O/G4v6qjDuTaEgePEQAiyci3A+q4OfFnyeLFi7Wbh+UVv14EUVtz90yv3arp8mEEN5OUUv7R4U95Ao6HGMBCS4H8xAl8GqzcXDmIV6JV3PrVV2ae7mJl+NNNW/0Yby3X1mY1oZXmAqirtB6fVRj4NAeOjZSEOpy4iHwjFCzYoUzIlfiK2t+oP93ohVlzzdy46LNs0K9ZKQCYq7qJxkDNLGBEhdhvwolw4PZ4bqGfGm9GIyqeedtYdH2u1Dg/aSZx6kz68jLEGq5+BlJAkNdWQoCIok/T2MJ6b2LJgP95iLuHxALamkWASDElM9LFvdUzlOKaluRJlJQfplCTOF+SCWKMwUNHPmLQLqRuPB46FQMswnCWM0TiCmuVOLEskopJ0R5hGLMWyQmZMmD9iK4zdKBsVmCeEgGZbj0P8Ck1KLZUsF5S4AAAAASUVORK5CYII=") 2x) 7 5, auto;
+  --cursor-light-point: -webkit-image-set(url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAACkUlEQVR42uWWzYsScRjHV93dtje3N/ZQbZvVEp3KOtQxOnf0IF20vHQwO3vrD/DSCwQbwpAUvSwoUhHLHhpUVCwUIbFItxAUJwtRUmd8efZ59De0u7TljOOpH3wZ5jcvn3me33d+zzMx8T8OHUqPmmTSs7mxDYPP55trtVp+UiAQWMC5qXFB6aU78vn8dcDRagC02+21cDh8EeenWbSaDnrhnlQqdZOAfg6g+gOg0+lUstmsBa/NaA01oIzxeNxJwCcPAF4sARS/AfR6PbFQKNzG6zvZfTqtgLPRaPSWDCQ9ewjwOQ39UalU7uI9u7SC/hEo60N4AK3X60G73X6QuVg3NiDp3WtaU4Bms/me47gTozr4n0DSm+cDB0uS9DUUCl0axcFDAUlBnzYOHhpIWvaO7mBFQNnBXz6qd7BioKxU9LeDHQ7HgWEdrBpICr0dOLhWq71k6dVrBqTfg0yzVZLYj5KnHYtFqQ5Ia7Xq33z+qw7QaDS+x2Kxx4lEgksmk950On3P6XSeHwkou5EABJLnE/xg3dxu9zV87izqNOo46pDqlBKMUoW1sdrtdiWCbI2yXC6v4HMLDGRkMOWmefUU16MKIIpi1eVy3chkMsHtovR4PBfw2d1Ku4RN5Ym2LzTAms1mu4rz5+j4lygfUS1Vutv0C7DVaj0jCMJKqVRatVgsl3HOhDqKWszlcstylJQBKlv0KxSLRS9Lp0Fxi4Gi0nOMgQ6j9rGvn8PUXqEofwqDVGLVELBDuG82mxfx+l6lQDmtM+xrjWyrmmJrQ9D5SCRyB3/uTzzPe0wmE/U7J5lhVG3g27WJOlaGKNp5Si/qFOoIar/WrcfGNZ5mqSPw7IYMjK1/1bNIJtlRUQrXAVhWMqe0kMqXAAAAAElFTkSuQmCC") 1x, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4CAYAAACohjseAAAFLUlEQVR42u2a7UtkVRzH15n1YbTMp8wy29Z129x2y9ntwdi0ZSEjKFgIdBEp7EVv/APyhSEsiBDUCwmCwmZf7KwVxWQEga1asjGgmcNQqDNDPuKsocvK7OrsOHr6Hfpe5tzrqHdm5965NzzwRbh31POZ7+98z+8+HDp0MA7GwTDbyFDofwVlIVlJhyErjlnMDCuBcaCsQCBgD4fDPRsbGz0+n+8MHcvGOdNCSnDZBHeBMRZmsREOBoPv0Dkbh4ejGWZzzwqXHiDXfmJxxurq6mV+Hp+zmsnNDLiXSyqMRCLTElTgLzlkKBS62tLSUkKfyzFTyVpQeg+SSmnt+SQg56eMedxySHJ4yOFwVJoJ0oKye4j0GAH4RUCu335mLBqNQZLLUwMDAzVYl5lGh7TAjUJSBQEGlIBc112UNusxyK2trRWPx/MaStvQ4WMFYBHpifX19biAXD9eY+z2agxye3v73uzsbCv9Xp6RIa0otX0Bub7tZezmonxdrqysGDphEwLk+uozxv6eMk/CJgwoyTtqjoRNGtAsCXtfgGZI2PsGNHrCpgTQyAmbMkCjJmxKAY2YsJoAGilhNQNUkbCZeoSPpoBGSFjNAXdL2OXl5Q5FwmpyF08XwN0Sdm1trRcJq9mNLd0A90rYrq6ucq0SVnfAeAm7ubk55XK5qrWATAsg19APOxO2v79fhDQ3oJSwoduy1u4jBE8WXDQe4DefM3brn/+2BjW6G5Ldf71C8yiAiynZPjRx0OdlSY3BwcFGzMWWqjJNGpDH/m7nXFfkIbLfoDbu1ujo6Id8DphLbloBOQAvL76G1Lg4Njb2Nf193qJdIJ0nvUqqJ50jvUh6jnSc35tFidrSVqIcSkq/Ob86F2kbuGu329+g//Ey6QXSWZIdYM8AroJUEqe70Q9Q2TzzodZFr9f7Bf2PZ0lPk6pIR0lHSI+TykjFeIQg7oX6pSjft+KtK7UuRqPROw0NDWcB9SjpYUDxu+r5aL6z07LRj/0qh1tcXPyDl12iLs7MzPRgnRXBrVw4li1cPunbqo3fkDu2sLDgLisre8vtdl9N1EXqVkKtra3H8bAnRwFl0eKKYk9A5X42OTnZL6VgTU3Nm2pdnPPH/sbS0tLHqd7Mk3r4ory0GR8fdwgp+DzpJTr2pRoXObzQc4ba2toqseYytQaUPT6jVmko3kY8PDz8CcBOk6qRhKdra2vPk4t3EnXR4/G8i2DJTlVaqnoA6nQ6L/FbCsK3Henr6/uAzp0B2FHsV1zchVM8/vdykfem/BpQ3F5o438PX6pUpvo8wuaT7u7uvuj3+53T09PXOjo6LtExfifsBNqoUpRzMaK+qq6u7hW+BShdlMAi93a0ZTcbGxtPCj2npoCylxBI5diE+QRO4ecxHC8Woj0PE+SbdLXo4tIcY3/+vhOMj2AweL2zs/N1/J4uDspeIxGcqYBjfCKPYDJ5wn6Vhc/zzbqyvr7+nOiicszPz//S3t7ejNasCp1LvtCSaf6c/rAAWSCUYSFcE18EsgjpWwB3T4yMjFwWofj6pW3l+6amprd54gLuKXxpRcK9UYvWgLJXuTDxXMgWp32SPp8JV0vQfp10OBzvBwKB7yYmJnqbm5svAsyOUq8USj2lDbVayL1exlN2GGJp5yN8npS2D7glbSnHUPKlcFyTnjMZ2P3aJsl1G7aZUpTfEeFKoRzHdyt1Q79EJJZqDgAKUYIl+FmAcpTATPfWYoYipGyK9Zuj1VVCOiCtcdavqcH2W7u6QP0LvRomzZHijT0AAAAASUVORK5CYII=") 2x) 7 5, pointer;
+  --cursor: var(--cursor-ink);
+  --cursor-point: var(--cursor-ink-point);
+}
+:root[data-theme='dark'],
+.stage {
+  --cursor: var(--cursor-light);
+  --cursor-point: var(--cursor-light-point);
+}
+:root:not([data-theme='dark']) .paper {
+  --cursor: var(--cursor-ink);
+  --cursor-point: var(--cursor-ink-point);
+}
+html,
+.stage,
+.paper {
+  cursor: var(--cursor);
+}
+a[href],
+button:not(:disabled),
+summary,
+select,
+label[for],
+[role='button'],
+[role='radio'],
+[role='tab'],
+[role='switch'],
+input[type='checkbox'],
+input[type='radio'],
+input[type='range'],
+input[type='color'] {
+  cursor: var(--cursor-point);
 }
