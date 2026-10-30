@@ -113,8 +113,7 @@ export function initDemo() {
   const sheet = q('[data-sheet]');
   const toast = q('[data-toast]');
   const log = q('[data-chat-log]');
-  const hint = q('[data-chat-hint]');
-  const hintText = q('[data-chat-hint-text]');
+  const stats = q('[data-stats]');
   const finale = q('[data-finale]');
   const initialLog = log.innerHTML;
 
@@ -132,24 +131,74 @@ export function initDemo() {
     logoUrl: '',
   };
 
+  /* ----- Stopwatch ----- */
+  // Runs from the visitor's first touch of the studio to the TTN, so they time the sale themself.
+  const clock = q('[data-clock]');
+  const clockTime = q('[data-clock-time]');
+  const clockNote = q('[data-clock-note]');
+  const CLOCK_NOTES = {
+    idle: 'Рахує час від першого кліку до ТТН.',
+    running: 'Від першого кліку. Зупиниться на ТТН.',
+    done: 'Від першого кліку до ТТН. Справжній запуск з товарами й оплатою: близько 35 хв.',
+  };
+  let clockStart = 0;
+  let clockTimer = 0;
+  const clockText = (ms: number) => {
+    const sec = Math.floor(ms / 1000);
+    return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+  };
+  const setClock = (state: keyof typeof CLOCK_NOTES) => {
+    clock.dataset.state = state;
+    clockNote.textContent = CLOCK_NOTES[state];
+  };
+  const startClock = () => {
+    if (clock.dataset.state !== 'idle') return;
+    clockStart = performance.now();
+    setClock('running');
+    clockTimer = window.setInterval(() => (clockTime.textContent = clockText(performance.now() - clockStart)), 250);
+  };
+  const stopClock = () => {
+    window.clearInterval(clockTimer);
+    const text = clockText(performance.now() - clockStart);
+    clockTime.textContent = text;
+    q('[data-finale-time]').textContent = text;
+    setClock('done');
+  };
+  const resetClock = () => {
+    window.clearInterval(clockTimer);
+    clockTime.textContent = '0:00';
+    setClock('idle');
+  };
+  const studio = q('.studio-grid');
+  ['pointerdown', 'keydown', 'input'].forEach((type) => studio.addEventListener(type, startClock));
+
   /* ----- Progress ----- */
   const flags = { style: false, buy: false, ship: false };
   const markCurrent = () => {
     const next = (Object.keys(flags) as (keyof typeof flags)[]).find((k) => !flags[k]);
     qa('[data-step-flag]').forEach((el) => el.classList.toggle('is-current', el.dataset.stepFlag === next));
   };
+  const showFinale = (on: boolean) => {
+    finale.classList.toggle('is-ready', on);
+    finale.setAttribute('aria-hidden', String(!on));
+    finale.toggleAttribute('inert', !on);
+  };
   const flag = (key: keyof typeof flags) => {
     if (flags[key]) return;
     flags[key] = true;
     root.querySelector(`[data-step-flag="${key}"]`)?.classList.add('is-done');
+    root.querySelector(`[data-clock-step="${key}"]`)?.classList.add('is-done');
     markCurrent();
-    if (flags.style && flags.buy && flags.ship) finale.classList.add('is-ready');
+    if (flags.style && flags.buy && flags.ship) {
+      stopClock();
+      window.setTimeout(() => showFinale(true), reduceMotion ? 0 : 900);
+    }
   };
   const resetFlags = () => {
     (Object.keys(flags) as (keyof typeof flags)[]).forEach((k) => (flags[k] = false));
-    qa('[data-step-flag]').forEach((el) => el.classList.remove('is-done'));
+    qa('[data-step-flag], [data-clock-step]').forEach((el) => el.classList.remove('is-done'));
     markCurrent();
-    finale.classList.remove('is-ready');
+    showFinale(false);
   };
 
   /* ----- Tabs ----- */
@@ -418,7 +467,6 @@ export function initDemo() {
     sheet.setAttribute('aria-hidden', 'true');
     updateBadge(true);
     say('Додано в кошик');
-    hintText.textContent = 'Тепер відкрийте кошик і оформіть замовлення';
   });
 
   /* ----- Cart ----- */
@@ -534,7 +582,8 @@ export function initDemo() {
 
   const tpl = root.querySelector<HTMLTemplateElement>('[data-tpl-order]')!;
   const notifyOwner = (n: number, sum: number, lines: Line[], pay: Pay) => {
-    hint.hidden = true;
+    log.querySelector('[data-chat-empty]')?.remove();
+    stats.hidden = false;
     const node = tpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
     const set = (f: string, text: string) => (node.querySelector(`[data-f="${f}"]`)!.textContent = text);
     set('title', pay === 'cod' ? `📦 Нове замовлення #${n} (накладений платіж)` : `📦 Нове замовлення #${n}`);
@@ -579,7 +628,7 @@ export function initDemo() {
   });
 
   /* ----- Reset ----- */
-  q('[data-demo-reset]').addEventListener('click', () => {
+  const reset = () => {
     Object.assign(look, DEFAULT_LOOK);
     lastPromoMode = look.promo;
     promoToggle.setAttribute('aria-checked', 'true');
@@ -600,19 +649,29 @@ export function initDemo() {
     renderPromo();
     statOrders.textContent = '0';
     statRevenue.textContent = fmt(0);
-    hint.hidden = false;
-    hintText.textContent = 'Додайте товар у кошик і оформіть замовлення';
+    stats.hidden = true;
     filter('all');
     show('catalog');
     resetFlags();
-  });
+    resetClock();
+  };
+  qa('[data-demo-reset]').forEach((b) => b.addEventListener('click', reset));
 
 
-  /* ----- Coach: a ring and a bubble on the next thing to press ----- */
-  // Visitors skim; the coach makes it obvious this is a working storefront, not a picture.
+  /* ----- Coach: a ring on the next thing to press, the words in the step's header ----- */
+  // Visitors skim; the coach makes it obvious this is a working storefront, not a picture. The
+  // instruction sits in the current column's header, so nothing floats over the controls; a bubble
+  // appears only when the target is off screen.
   const coach = q('[data-coach]');
   const coachText = q('[data-coach-text]');
   const coachRing = q('[data-coach-ring]');
+  const hints = qa('[data-step-hint]');
+  const setHint = (text: string) =>
+    hints.forEach((el) => {
+      const on = !!text && el.closest('.step-head')!.classList.contains('is-current');
+      const next = on ? text : el.dataset.idle!;
+      if (el.textContent !== next) el.textContent = next;
+    });
   let studioVisible = false;
   let lastTarget: HTMLElement | null = null;
   const nextStep = (): [HTMLElement | null, string] => {
@@ -622,7 +681,7 @@ export function initDemo() {
         pane?.dataset.pane === 'tpl'
           ? root.querySelector<HTMLElement>(`[data-set="template"]:not([data-value="${look.template}"])`)
           : pane?.querySelector<HTMLElement>('[data-set][aria-checked="false"]');
-      return [option ?? null, 'Натисніть, щоб змінити вітрину'];
+      return [option ?? null, 'Натисніть шаблон, колір чи шрифт'];
     }
     if (!flags.buy) {
       if (sheet.classList.contains('is-open')) return [q<HTMLElement>('[data-sheet-add]'), 'Додайте в кошик'];
@@ -630,15 +689,16 @@ export function initDemo() {
       if (at === 'catalog')
         return state.cart.length
           ? [q<HTMLElement>('.ds-tab[data-tab-id="cart"]'), 'Відкрийте кошик']
-          : [root.querySelector<HTMLElement>('.ds-card:not([hidden]) .ds-add'), 'Тепер купіть товар: натисніть +'];
+          : [root.querySelector<HTMLElement>('.ds-card:not([hidden]) .ds-add'), 'Натисніть + на товарі'];
       if (at === 'cart')
         return state.cart.length
           ? [q<HTMLElement>('[data-cart-footer] [data-go="checkout"]'), 'Оформіть замовлення']
           : [q<HTMLElement>('.ds-tab[data-tab-id="catalog"]'), 'Поверніться в каталог'];
       if (at === 'checkout') return [q<HTMLElement>('[data-pay-submit]'), 'Оберіть оплату й оплатіть'];
+      if (at === 'done') return [null, 'Замовлення вже летить вам у бот'];
       return [null, ''];
     }
-    if (!flags.ship) return [root.querySelector<HTMLElement>('[data-ttn]:not(:disabled)'), 'Створіть ТТН для покупця'];
+    if (!flags.ship) return [root.querySelector<HTMLElement>('[data-ttn]:not(:disabled)'), 'Натисніть «Створити ТТН»'];
     return [null, ''];
   };
   const hideCoach = () => {
@@ -649,40 +709,34 @@ export function initDemo() {
     if (!studioVisible) return;
     requestAnimationFrame(placeCoach);
     const [el, text] = nextStep();
+    setHint(text);
     if (!el) return hideCoach();
     const r = el.getBoundingClientRect();
     if (!r.width) return hideCoach();
     const off = r.top > innerHeight - 40 ? 'down' : r.bottom < 72 ? 'up' : '';
-    const label = off ? `${off === 'down' ? '↓' : '↑'} ${text}` : text;
-    if (el !== lastTarget || coachText.textContent !== label) {
+    if (el !== lastTarget) {
       lastTarget = el;
-      coachText.textContent = label;
       coachRing.style.borderRadius = getComputedStyle(el).borderRadius || '14px';
     }
-    const bw = coach.offsetWidth;
-    const bh = coach.offsetHeight;
-    // Off the page: pin the bubble to the edge it is on; a tap scrolls to the control.
+    // Off the page: a bubble pinned to the edge it is on; a tap scrolls to the control.
     if (off) {
+      const label = `${off === 'down' ? '↓' : '↑'} ${text}`;
+      if (coachText.textContent !== label) coachText.textContent = label;
       coach.dataset.side = 'edge';
-      coach.style.transform = `translate(${(innerWidth - bw) / 2}px, ${off === 'down' ? innerHeight - bh - 104 : 84}px)`;
+      coach.style.transform = `translate(${(innerWidth - coach.offsetWidth) / 2}px, ${off === 'down' ? innerHeight - coach.offsetHeight - 104 : 84}px)`;
       coach.classList.add('is-on');
       coachRing.classList.remove('is-on');
       return;
     }
-    // On the page but scrolled out of the phone's own screen: nothing sensible to point at.
+    coach.classList.remove('is-on');
+    // On the page but scrolled out of the phone's own screen: nothing sensible to ring.
     if (screen.contains(el)) {
       const box = screen.getBoundingClientRect();
-      if (r.top > box.bottom - r.height / 2 || r.bottom < box.top + r.height / 2) return hideCoach();
+      if (r.top > box.bottom - r.height / 2 || r.bottom < box.top + r.height / 2) return coachRing.classList.remove('is-on');
     }
     coachRing.style.width = `${r.width + 10}px`;
     coachRing.style.height = `${r.height + 10}px`;
     coachRing.style.transform = `translate(${r.left - 5}px, ${r.top - 5}px)`;
-    const x = Math.min(Math.max(12, r.left + r.width / 2 - 30), innerWidth - bw - 12);
-    const above = r.top - bh - 16 > 72;
-    coach.dataset.side = above ? 'above' : 'below';
-    coach.style.transform = `translate(${x}px, ${above ? r.top - bh - 14 : r.bottom + 14}px)`;
-    coach.style.setProperty('--arrow-x', `${Math.min(Math.max(18, r.left + r.width / 2 - x), bw - 18)}px`);
-    coach.classList.add('is-on');
     coachRing.classList.add('is-on');
   };
   coach.addEventListener('click', () => {
@@ -696,7 +750,7 @@ export function initDemo() {
       if (!studioVisible) hideCoach();
     },
     { threshold: 0.12 },
-  ).observe(q('.studio-grid'));
+  ).observe(studio);
 
   applyName();
   applyLook();

@@ -12,17 +12,25 @@ const qr = await QRCode.toString(SIGNUP_URL, {
   color: { dark: '#0a0a0b', light: '#ffffff' },
 });
 const qrSvg = qr.replace('<svg ', '<svg aria-hidden="true" focusable="false" ');
+
+// The last doubts, answered next to the button (each one is covered in the FAQ).
+const points = ['Без програміста і сайту', '0% з продажів', 'Картка на старті не потрібна', 'Дані зберігаються, навіть якщо зробите паузу'];
 ---
-<section class="final" aria-labelledby="final-title">
+<section class="final" id="start" aria-labelledby="final-title">
   <div class="container">
-    <div class="final-panel stage" data-final data-snap>
+    <div class="final-panel stage" data-final>
       <div class="aura final-aura" data-final-aura aria-hidden="true"></div>
       <div class="final-mark" aria-hidden="true"><Logo wordmark={false} /></div>
       <div class="final-copy">
         <h2 id="final-title" class="display h2"><span class="chrome-text">Запустіть магазин сьогодні ввечері</span></h2>
         <p class="final-lead">
-          Відкрийте бота, натисніть «Створити мій магазин» і через кілька хвилин отримаєте свою адмінку. {TRIAL_DAYS} днів безкоштовно.
+          Відкрийте бота і натисніть «Створити мій магазин». {TRIAL_DAYS} днів безкоштовно.
         </p>
+        <ul class="final-points">
+          {points.map((p) => (
+            <li><Icon name="check" /> {p}</li>
+          ))}
+        </ul>
         <div class="final-ctas">
           <a class="btn btn-primary" href={SIGNUP_URL} target="_blank" rel="noopener" data-magnetic>
             Створити магазин
@@ -101,6 +109,23 @@ const qrSvg = qr.replace('<svg ', '<svg aria-hidden="true" focusable="false" ');
     color: var(--muted);
     font-size: clamp(1.05rem, 1rem + 0.3vw, 1.22rem);
     max-width: 34em;
+  }
+  .final-points {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    color: var(--ink-2);
+    font-size: 0.96rem;
+    font-weight: 500;
+  }
+  .final-points li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .final-points :global(.icon) {
+    color: var(--muted);
+    font-size: 1.05rem;
   }
   .final-ctas {
     display: flex;

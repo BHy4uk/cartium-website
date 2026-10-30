@@ -70,10 +70,10 @@ const markLabel: Record<Mark, string> = { yes: 'Так', part: 'Частково
 ---
 <section class="section compare" id="compare" aria-labelledby="compare-title" data-compare>
   <div class="container">
-    <div class="section-head is-center" data-snap>
+    <div class="section-head is-center">
       <h2 id="compare-title" class="display h2">Cartium, Shopify чи директ?</h2>
       <p class="lead">
-        Чесне порівняння для тих, хто продає в Instagram і Telegram. У Shopify є свої сильні сторони, і ми їх не ховаємо.
+        Чесно, разом із сильними сторонами Shopify.
       </p>
     </div>
 
@@ -83,7 +83,8 @@ const markLabel: Record<Mark, string> = { yes: 'Так', part: 'Частково
       <button type="button" class="rival-opt" role="radio" aria-checked="false" data-rival="direct">Директ</button>
     </div>
 
-    <div class="compare-frame" data-rise data-snap>
+    <div class="compare-frame glow-host" data-rise>
+      <div class="aura glow" data-glow-for="th[data-col='cartium']" data-glow-span=".compare-table" aria-hidden="true"></div>
       <table class="compare-table" data-compare-table data-show="shopify">
         <caption class="sr-only">Порівняння Cartium, Shopify і продажів у директі</caption>
         <thead>

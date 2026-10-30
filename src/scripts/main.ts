@@ -1,7 +1,6 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
-import Snap from 'lenis/snap';
 import 'lenis/dist/lenis.css';
 import { initDemo } from './demo';
 
@@ -43,8 +42,8 @@ document.addEventListener('click', (e) => {
   if (hash.length < 2) return;
   e.preventDefault();
   closeMenu();
+  // The address bar keeps no hash, so a reload starts from the top again.
   scrollToHash(hash);
-  history.replaceState(null, '', hash === '#top' ? location.pathname : hash);
 });
 
 /* ---------- Navigation ---------- */
@@ -86,6 +85,17 @@ window.matchMedia('(min-width: 961px)').addEventListener('change', (e) => e.matc
 
 const navProgress = $('[data-nav-progress]');
 const setProgress = navProgress ? gsap.quickSetter(navProgress, 'scaleX') : null;
+// The left line follows the same progress with a little lag, so it glides rather than ticks.
+const scrollLine = $('[data-scroll-line]');
+const line = { p: 0 };
+const lineTo = scrollLine
+  ? gsap.quickTo(line, 'p', {
+      duration: reduceMotion ? 0 : 0.7,
+      ease: 'power3.out',
+      onUpdate: () => scrollLine.style.setProperty('--p', line.p.toFixed(4)),
+    })
+  : null;
+let lineIdle = 0;
 if (navWrap) {
   ScrollTrigger.create({
     start: 0,
@@ -94,49 +104,77 @@ if (navWrap) {
       const hide = self.direction === 1 && self.scroll() > 480 && !menuOpen;
       navWrap.classList.toggle('is-hidden', hide);
       setProgress?.(self.progress);
+      lineTo?.(self.progress);
+      if (scrollLine) {
+        scrollLine.classList.add('is-moving');
+        window.clearTimeout(lineIdle);
+        lineIdle = window.setTimeout(() => scrollLine.classList.remove('is-moving'), 260);
+      }
     },
   });
 }
 
 /* ---------- Theme ---------- */
 // Base.astro sets data-theme before paint; here the toggle flips it and remembers the choice.
-// Without a stored choice the page keeps following the system setting.
+// Without a stored choice the page is dark.
 const themeToggle = $<HTMLButtonElement>('[data-theme-toggle]');
-const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
 function applyTheme(theme: 'light' | 'dark') {
   root.dataset.theme = theme;
   $<HTMLMetaElement>('meta[name="theme-color"]')!.content = theme === 'dark' ? '#111113' : '#f4f4f5';
   themeToggle?.setAttribute('aria-pressed', String(theme === 'dark'));
 }
 applyTheme(root.dataset.theme === 'dark' ? 'dark' : 'light');
+// The new theme grows out of the toggle: a circle with a feathered edge, slow to start and slow to
+// land, while the old page sinks back a touch underneath it.
+const softReveal = 'CSSPropertyRule' in window;
+let switching = false;
 themeToggle?.addEventListener('click', () => {
+  if (switching) return;
   const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
   try {
-    localStorage.setItem('cartium-theme', next);
+    localStorage.setItem('cartium-theme-v2', next);
   } catch {}
-  // The new theme spreads out from the toggle as a circle (View Transitions where supported).
-  if (reduceMotion || typeof document.startViewTransition !== 'function') {
+  if (reduceMotion) {
     applyTheme(next);
+    return;
+  }
+  if (typeof document.startViewTransition !== 'function') {
+    root.classList.add('theme-fade');
+    applyTheme(next);
+    window.setTimeout(() => root.classList.remove('theme-fade'), 650);
     return;
   }
   const r = themeToggle.getBoundingClientRect();
   const x = r.left + r.width / 2;
   const y = r.top + r.height / 2;
   const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+  const soft = 120;
+  const timing = { duration: 1150, easing: 'cubic-bezier(0.65, 0, 0.25, 1)', fill: 'both' as const };
+  root.style.setProperty('--vt-x', `${x}px`);
+  root.style.setProperty('--vt-y', `${y}px`);
+  root.classList.toggle('vt-hard', !softReveal);
+  switching = true;
   const t = document.startViewTransition(() => applyTheme(next));
-  t.ready.then(() =>
+  t.ready.then(() => {
     root.animate(
-      { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
-      { duration: 900, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', pseudoElement: '::view-transition-new(root)' },
-    ),
-  );
-});
-systemDark.addEventListener('change', (e) => {
-  let stored: string | null = null;
-  try {
-    stored = localStorage.getItem('cartium-theme');
-  } catch {}
-  if (!stored) applyTheme(e.matches ? 'dark' : 'light');
+      softReveal
+        ? { '--vt-r': ['0px', `${radius + soft}px`] }
+        : { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+      { ...timing, pseudoElement: '::view-transition-new(root)' },
+    );
+    root.animate(
+      { transform: ['scale(1)', 'scale(0.985)'], filter: ['brightness(1)', 'brightness(0.8)'] },
+      { ...timing, pseudoElement: '::view-transition-old(root)' },
+    );
+  });
+  // A transition the browser skips (a hidden tab, say) still switches the theme; nothing to report.
+  t.ready.catch(() => {});
+  t.finished
+    .catch(() => {})
+    .finally(() => {
+      switching = false;
+      root.classList.remove('vt-hard');
+    });
 });
 
 /* ---------- Accessible radio groups built from buttons ---------- */
@@ -264,37 +302,102 @@ function magnetic() {
 
 /* ---------- Chat to order story ---------- */
 // Everything is on screen from the start; nothing waits for a timeline. As the screen arrives its
-// parts come into focus one by one, the way Apple opens a section: the two lines of the claim, the
-// Direct window with its messages settling in a quick cascade, then Cartium and its three steps.
-function storyReveal() {
+// parts come into focus one by one, the way Apple opens a section: the Direct window with its
+// messages settling in a quick cascade, the Cartium phone, then the two lines of the claim.
+function storyReveal(onShown: () => void) {
   const section = $('[data-story]');
-  if (!section || reduceMotion) return;
+  if (!section) return;
   const grid = $('[data-story-grid]', section)!;
-  // A deep link or a reload mid-page leaves the screen as it is.
-  if (grid.getBoundingClientRect().top < window.innerHeight * 0.75) return;
+  // Without motion it is simply there; a screen already scrolled past stays as it is.
+  if (reduceMotion || grid.getBoundingClientRect().bottom < 0) return onShown();
   const claim = $$('[data-claim]', section);
   const ig = $('[data-ig]', section)!;
   const bubbles = $$('[data-bubble]', ig);
-  const cart = $('[data-cart]', section)!;
-  const steps = $$('[data-cart-step]', cart);
+  const tg = $('[data-tg]', section)!;
+  const [igLabel, tgLabel] = $$('[data-story-label]', section);
   const panel = { autoAlpha: 0, y: 56, scale: 0.96, filter: 'blur(14px)' };
-  const piece = { autoAlpha: 0, y: 18, filter: 'blur(8px)' };
-  gsap.set([...claim, ig, cart], panel);
-  gsap.set([...bubbles, ...steps], piece);
+  gsap.set([...claim, igLabel, ig, tgLabel, tg], panel);
+  gsap.set(bubbles, { autoAlpha: 0, y: 18, filter: 'blur(8px)' });
   const into = { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)', ease: EASE, clearProps: 'filter,transform' };
   ScrollTrigger.create({
     trigger: grid,
-    start: 'top 72%',
+    start: 'top 85%',
     once: true,
     onEnter: () =>
       gsap
-        .timeline()
-        .to(ig, { ...into, duration: 1.5 }, 0.1)
+        .timeline({ onComplete: onShown })
+        .to([igLabel, ig], { ...into, duration: 1.5 }, 0.1)
         .to(bubbles, { ...into, duration: 0.9, stagger: 0.045 }, 0.4)
-        .to(cart, { ...into, duration: 1.5 }, 0.3)
-        .to(steps, { ...into, duration: 1.1, stagger: 0.12 }, 0.65)
+        .to([tgLabel, tg], { ...into, duration: 1.5 }, 0.3)
         .to(claim, { ...into, duration: 1.4, stagger: 0.22 }, 0.5),
   });
+}
+
+// The Cartium phone buys the same T-shirt on a loop: tap "+", the cart rises, "Оформити
+// замовлення", the Apple Pay sheet, a double press of the side button, paid. It only runs while the
+// phone is on screen; without motion it rests on the Apple Pay sheet.
+function storyShop() {
+  const tg = $('[data-tg]');
+  if (!tg) return;
+  const add = $('[data-tg-add]', tg)!;
+  const badge = $('[data-tg-badge]', tg)!;
+  const dim = $('[data-tg-dim]', tg)!;
+  const cart = $('[data-tg-cart]', tg)!;
+  const pay = $('[data-tg-pay]', tg)!;
+  const press = $('[data-tg-press]', tg)!;
+  const done = $('[data-tg-done]', tg)!;
+  const [tapAdd, tapCheckout] = $$('[data-tg-tap]', tg);
+  const steps = $$('.tg-step-text', tg);
+  const clock = $('[data-tg-time]', tg)!;
+  // The status-bar clock walks the same three minutes as the claim beside it.
+  const times = ['10:02', '10:03', '10:04', '10:04'];
+  const step = (i: number) => {
+    steps.forEach((s, k) => s.classList.toggle('is-on', k === i));
+    clock.textContent = times[i];
+  };
+  if (reduceMotion) {
+    add.classList.add('is-added');
+    gsap.set(badge, { opacity: 1, scale: 1 });
+    gsap.set(dim, { opacity: 1 });
+    gsap.set(pay, { yPercent: 0, y: 0 });
+    step(2);
+    return;
+  }
+  const tap = (el: HTMLElement) =>
+    gsap.timeline().fromTo(el, { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.25, ease: 'power2.out' }).to(el, { scale: 1.5, opacity: 0, duration: 0.45, ease: 'power2.out' });
+  // The sheets start below the screen (CSS); GSAP takes their transform over from here.
+  gsap.set([cart, pay], { y: 0, yPercent: 105 });
+  const sheetUp = { yPercent: 0, duration: 0.75, ease: EASE };
+  const tl = gsap.timeline({ paused: true, repeat: -1, repeatDelay: 0.4 });
+  tl.call(() => {
+    step(0);
+    add.classList.remove('is-added');
+    pay.classList.remove('is-paid');
+  })
+    .set(badge, { opacity: 0, scale: 0.3 })
+    .set([cart, pay], { yPercent: 105 })
+    .set([dim, done], { opacity: 0 })
+    .set(cart, { opacity: 1 })
+    .add(tap(tapAdd), 0.7)
+    .call(() => add.classList.add('is-added'), [], 0.85)
+    .to(badge, { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(3)' }, 0.95)
+    .call(() => step(1), [], 1.5)
+    .to(dim, { opacity: 1, duration: 0.5 }, 1.5)
+    .to(cart, sheetUp, 1.5)
+    .add(tap(tapCheckout), 2.6)
+    .to(cart.querySelector('.tg-cta'), { scale: 0.97, duration: 0.12, yoyo: true, repeat: 1 }, 2.7)
+    .call(() => step(2), [], 3.1)
+    .to(pay, sheetUp, 3.1)
+    // Apple Pay takes the screen: the cart sinks away under it.
+    .to(cart, { opacity: 0, duration: 0.35 }, 3.3)
+    .to(press, { opacity: 1, duration: 0.12, yoyo: true, repeat: 3 }, 4.1)
+    .call(() => pay.classList.add('is-paid'), [], 4.7)
+    .call(() => step(3), [], 5.4)
+    .to(done, { opacity: 1, duration: 0.6, ease: 'power2.out' }, 5.4)
+    .fromTo(done.querySelector('.tg-done-mark'), { scale: 0.5 }, { scale: 1, duration: 0.8, ease: 'back.out(2.2)' }, 5.45)
+    .to({}, { duration: 1.8 });
+  // Off screen it rests; back on screen it carries on.
+  new IntersectionObserver(([e]) => (e.isIntersecting ? tl.play() : tl.pause()), { threshold: 0.35 }).observe(tg);
 }
 
 /* ---------- Launch steps ---------- */
@@ -456,16 +559,13 @@ function stages() {
 }
 
 /* ---------- Growth demos ---------- */
-// AI photo: operation, backdrop or scene, a before/after split and the accept step.
+// AI photo: operation, a before/after split and the accept step.
 function aiPhoto() {
   const tile = $('[data-ai]');
   if (!tile) return;
   const after = $('[data-ai-after]', tile)!;
   const compare = $('[data-ai-compare]', tile)!;
   const range = $<HTMLInputElement>('[data-ai-range]', tile)!;
-  const hint = $('[data-ai-hint]', tile)!;
-  const backgrounds = $('[data-ai-backgrounds]', tile)!;
-  const scenes = $('[data-ai-scenes]', tile)!;
   const status = $('[data-ai-status]', tile)!;
   let busy = 0;
   const regenerate = () => {
@@ -487,28 +587,10 @@ function aiPhoto() {
   radioGroup(group, (btn) => {
     const op = btn.dataset.aiOp!;
     after.dataset.op = op;
-    hint.textContent = btn.title;
-    const lifestyle = op === 'lifestyle';
-    backgrounds.hidden = lifestyle;
-    scenes.hidden = !lifestyle;
     // Show more of the result once the visitor starts choosing.
     if (Number(range.value) > 30) setSplit(30);
     regenerate();
   });
-  $$<HTMLInputElement>('[data-ai-swatch]', tile).forEach((input) =>
-    input.addEventListener('change', () => {
-      if (!input.checked) return;
-      after.style.setProperty('--ai-bg', input.value);
-      regenerate();
-    }),
-  );
-  $$<HTMLInputElement>('[data-ai-scene]', tile).forEach((input) =>
-    input.addEventListener('change', () => {
-      if (!input.checked) return;
-      after.dataset.scene = input.value;
-      regenerate();
-    }),
-  );
   $('[data-ai-accept]', tile)!.addEventListener('click', () => {
     setSplit(0);
     status.textContent = 'Фото додано в товар «Кільце»';
@@ -517,16 +599,6 @@ function aiPhoto() {
 
 function growth() {
   aiPhoto();
-
-  const reminder = $('[data-reminder]');
-  const remindGroup = reminder?.querySelector<HTMLElement>('[role="radiogroup"]');
-  const remindLabel = $('[data-remind-label]');
-  if (remindGroup && remindLabel) {
-    radioGroup(remindGroup, (btn) => {
-      remindLabel.textContent = btn.dataset.remind ?? '';
-      if (!reduceMotion) gsap.fromTo('.remind-msg', { y: 8, autoAlpha: 0.4 }, { y: 0, autoAlpha: 1, duration: 0.5, ease: EASE });
-    });
-  }
 
   const sw = $<HTMLButtonElement>('[data-pause-switch]');
   const shop = $('[data-pause-shop]');
@@ -559,19 +631,33 @@ function pricing() {
     });
     billed.forEach((el) => (el.textContent = el.dataset[`${period}Text`] ?? ''));
   });
+
+  // One lit card at a time: the one under the pointer or focus, back to Pro when you leave.
+  const cards = $$('[data-plan]', section);
+  const home = cards.find((c) => c.classList.contains('plan--featured')) ?? cards[0];
+  const light = (card: HTMLElement) => cards.forEach((c) => c.classList.toggle('is-on', c === card));
+  if (finePointer) {
+    cards.forEach((c) => c.addEventListener('pointerenter', () => light(c)));
+    $('[data-plans]', section)?.addEventListener('pointerleave', () => home && light(home));
+  }
+  section.addEventListener('focusin', (e) => {
+    const card = (e.target as Element).closest<HTMLElement>('[data-plan]');
+    if (card) light(card);
+  });
 }
 
 /* ---------- Grid reveals ---------- */
 function reveals() {
   if (reduceMotion) return;
-  const groups = ['.bento .tile', '.ways-grid .way', '.plans .plan', '.faq-list .qa', '.rails-list .rail', '.verdicts .verdict-card'];
+  const groups = ['.tools .tool', '.ways-grid .way', '.plans .plan', '.faq-list .qa', '.rails-list .rail', '.verdicts .verdict-card', '.facts .fact', '.own-grid .own-card'];
   groups.forEach((sel) => {
     const items = $$(sel);
     if (!items.length) return;
-    // Cards come into focus rather than just fading: a short rise out of a soft blur.
-    // Anything already on screen (a deep link, a reload mid-page) is left as it is.
-    const below = items.filter((el) => el.getBoundingClientRect().top > window.innerHeight * 0.9);
+    // Cards come into focus rather than just fading: a short rise out of a soft blur. Cards on
+    // screen at load come in straight away; only those already scrolled past are left alone.
+    const below = items.filter((el) => el.getBoundingClientRect().bottom > 0);
     if (!below.length) return;
+    below.forEach((el) => el.setAttribute('data-rv', ''));
     gsap.set(below, { autoAlpha: 0, y: 48, scale: 0.97, filter: 'blur(14px)' });
     ScrollTrigger.batch(below, {
       start: 'top 90%',
@@ -617,9 +703,10 @@ function compare() {
     void table.offsetWidth;
     table.classList.add('is-swapping');
   });
-  if (reduceMotion || table.getBoundingClientRect().top < window.innerHeight * 0.9) return;
+  if (reduceMotion || table.getBoundingClientRect().bottom < 0) return;
   // Rows fill in one after another, Cartium's cell first in each.
   root.classList.add('compare-ready');
+  table.setAttribute('data-rv', '');
   ScrollTrigger.batch($$('[data-compare-row]', table), {
     start: 'top 90%',
     once: true,
@@ -664,7 +751,7 @@ function splitWords(el: HTMLElement) {
 function headlines() {
   if (reduceMotion) return;
   $$('main section:not([data-hero]) .h2').forEach((h) => {
-    if (h.getBoundingClientRect().top < window.innerHeight * 0.9) return;
+    if (h.getBoundingClientRect().bottom < 0) return;
     // Chrome headings paint their gradient across the whole line, so they rise as one block.
     const chrome = h.querySelector('.chrome-text');
     if (!chrome) splitWords(h);
@@ -672,6 +759,7 @@ function headlines() {
     const followers = [...(h.parentElement?.children ?? [])].filter((el) => el !== h) as HTMLElement[];
     if (chrome) gsap.set(h, { clipPath: 'inset(0 0 100% 0)', y: 40 });
     else gsap.set(words, { yPercent: 115 });
+    [h, ...followers].forEach((el) => el.setAttribute('data-rv', ''));
     gsap.set(followers, { autoAlpha: 0, y: 40, filter: 'blur(14px)' });
     ScrollTrigger.create({
       trigger: h,
@@ -697,36 +785,6 @@ function headlines() {
       { scale: 1, y: 0, autoAlpha: 1, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'top 62%', scrub: 0.6 } },
     ),
   );
-}
-
-/* ---------- Screens ---------- */
-// The page reads as a run of screens, each a heading with its interface. Scrolling stays free; when
-// it comes to rest near the start of a screen, the page glides the last bit and settles it just
-// under the navigation. Desktop only: on a phone the blocks are taller than the screen.
-function screens() {
-  if (!lenis || !window.matchMedia('(min-width: 1024px) and (hover: hover)').matches) return;
-  const snap = new Snap(lenis, { type: 'proximity', distanceThreshold: '30%', debounce: 260, duration: 1.1, easing: glide });
-  // Layout position, ignoring the scroll-driven transforms (data-rise) some blocks carry.
-  const pageTop = (el: HTMLElement) => {
-    let y = 0;
-    for (let e: HTMLElement | null = el; e; e = e.offsetParent as HTMLElement | null) y += e.offsetTop;
-    return y;
-  };
-  let remove: (() => void)[] = [];
-  const build = () => {
-    remove.forEach((r) => r());
-    // Under the floating nav pill (its height plus its top margin), whether or not it is shown now.
-    const below = (parseFloat(getComputedStyle(root).getPropertyValue('--nav-h')) || 64) + 30;
-    remove = [0, ...$$('[data-snap]').map((el) => Math.max(0, Math.round(pageTop(el) - below)))].map((v) => snap.add(v));
-  };
-  // Images, fonts and open FAQ answers move the screens; keep the points in step with the layout.
-  let pending = 0;
-  new ResizeObserver(() => {
-    window.clearTimeout(pending);
-    pending = window.setTimeout(build, 200);
-  }).observe(document.body);
-  ScrollTrigger.addEventListener('refresh', build);
-  build();
 }
 
 /* ---------- Card spotlight ---------- */
@@ -779,19 +837,119 @@ function stickyCta() {
     }).observe(final);
 }
 
+/* ---------- Everything else ---------- */
+// Every other block on the page (a paragraph, a list item, a button, a card, a phone) comes into
+// focus on its own as it scrolls in: a rise out of a soft blur, neighbours a beat apart. It runs as a
+// Web Animation that is cancelled once it ends, so it never leaves styles behind on the element.
+function autoReveal() {
+  if (reduceMotion || !('animate' in Element.prototype)) return;
+  const blocks = 'h2, h3, h4, p, li, .btn, figure, article, table, picture, img, dl, blockquote, [role="tablist"], [role="radiogroup"], .iphone, .dchat';
+  const skip = '[data-hero], [data-story], [data-rise], [data-rv], [hidden], .sr-only';
+  const found = new Set($$(blocks, document.querySelector('main') ?? document).concat($$(blocks, $('footer') ?? document.body)));
+  const items = [...found].filter((el) => {
+    if (el.closest(skip) || el.querySelector('[data-rv]')) return false;
+    // Only the outermost block moves; whatever sits inside it rides along.
+    for (let up = el.parentElement; up; up = up.parentElement) if (found.has(up)) return false;
+    const r = el.getBoundingClientRect();
+    return r.height > 0 && r.bottom > 0;
+  });
+  const anims = new Map<Element, Animation>();
+  items.forEach((el) => {
+    const a = el.animate([{ opacity: 0, translate: '0 36px', filter: 'blur(10px)' }, {}], {
+      duration: 1150,
+      easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+      fill: 'both',
+    });
+    a.pause();
+    anims.set(el, a);
+  });
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries
+        .filter((e) => e.isIntersecting)
+        .forEach((e, i) => {
+          io.unobserve(e.target);
+          const a = anims.get(e.target)!;
+          a.onfinish = () => a.cancel();
+          window.setTimeout(() => a.play(), Math.min(i * 85, 510));
+        });
+    },
+    { rootMargin: '0px 0px -8% 0px' },
+  );
+  items.forEach((el) => io.observe(el));
+}
+
+/* ---------- Section glows ---------- */
+// Each .glow sits on its object: centred on it and a margin larger all round, so the light falls
+// around the thing it belongs to. data-glow-span borrows the height of another element
+// (the Cartium column of the comparison takes the table's height). data-glow-follow moves the
+// light to the last element that matches it (the number of the launch step reached so far). Kept in step with
+// the layout.
+function glows() {
+  $$('[data-glow-for]').forEach((glow) => {
+    const host = glow.parentElement!;
+    const first = $(glow.dataset.glowFor!, host);
+    if (!first) return;
+    const follow = glow.dataset.glowFollow;
+    let target = first;
+    const span = glow.dataset.glowSpan ? $(glow.dataset.glowSpan, host) : null;
+    // Layout boxes, not screen boxes: some hosts are mid-way through a scroll scale (data-rise).
+    const box = (el: HTMLElement) => {
+      let x = 0;
+      let y = 0;
+      for (let e: HTMLElement | null = el; e && e !== host; e = e.offsetParent as HTMLElement | null) {
+        x += e.offsetLeft;
+        y += e.offsetTop;
+      }
+      return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+    };
+    const place = () => {
+      if (follow) target = $$(follow, host).pop() ?? first;
+      const t = box(target);
+      const v = span ? box(span) : t;
+      if (!t.w || !v.h) return;
+      // A margin of light around the object: generous for a phone, held in for a wide row.
+      const w = t.w + Math.min(t.w * 0.7, 420) + 80;
+      const h = Math.max(v.h * 1.3 + 120, Math.min(w * 0.55, 560));
+      glow.style.setProperty('--g-x', `${t.x + t.w / 2}px`);
+      glow.style.setProperty('--g-y', `${v.y + v.h / 2}px`);
+      glow.style.setProperty('--g-w', `${w}px`);
+      glow.style.setProperty('--g-h', `${h}px`);
+      // The first placement lands at once; only later moves glide (.is-placed).
+      if (!glow.classList.contains('is-placed')) requestAnimationFrame(() => glow.classList.add('is-placed'));
+    };
+    const ro = new ResizeObserver(place);
+    ro.observe(host);
+    ro.observe(target);
+    if (follow) new MutationObserver(place).observe(host, { subtree: true, attributeFilter: ['class'] });
+    // Sections far down the page may not be laid out yet; measure again as they come near.
+    new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && place(), { rootMargin: '50% 0px' }).observe(host);
+    place();
+  });
+}
+
 /* ---------- Boot ---------- */
-// The hero intro is pure CSS. Everything below the fold is wired once the browser is idle,
-// which keeps the first render and input free of ScrollTrigger measurement work.
+// The hero intro is pure CSS. The interactive blocks are wired once the browser is idle, which
+// keeps the first render and input free of their measurement work.
 const idle = (fn: () => void) => {
   if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(fn, { timeout: 700 });
   else setTimeout(fn, 200);
 };
 
 heroMotion();
+glows();
 magnetic();
 spotlight();
 auras();
 window.setTimeout(startNotifCycle, 2200);
+
+// Entrances are wired straight away rather than on idle: whatever is on screen at load is hidden
+// before it is painted and then comes in, instead of flashing up and vanishing first.
+storyReveal(storyShop);
+compare();
+headlines();
+reveals();
+autoReveal();
 
 idle(() => {
   initDemo();
@@ -799,14 +957,9 @@ idle(() => {
   growth();
   pricing();
   const mm = gsap.matchMedia();
-  storyReveal();
   launch(mm);
   showcase();
   stages();
-  compare();
-  headlines();
-  reveals();
-  screens();
   ScrollTrigger.refresh();
   document.fonts?.ready.then(() => ScrollTrigger.refresh());
   if (location.hash.length > 1) window.setTimeout(() => scrollToHash(location.hash), 300);

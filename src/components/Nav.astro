@@ -36,6 +36,13 @@ const links = [
   </nav>
 </header>
 
+<!-- The same progress, standing along the left edge: a hairline that fills as you read, with a
+     point of ultraviolet light riding its head (main.ts). -->
+<div class="scroll-line" data-scroll-line aria-hidden="true">
+  <span class="scroll-line-fill"></span>
+  <span class="scroll-line-head"></span>
+</div>
+
 <div class="menu" id="mobile-menu" data-menu hidden>
   <ul class="menu-links">
     {links.map((l, i) => (
@@ -106,25 +113,37 @@ const links = [
     height: 44px;
     border-radius: 50%;
     color: var(--ink);
-    transition: background-color 0.3s var(--ease-out);
+    transition:
+      background-color 0.3s var(--ease-out),
+      transform 0.4s var(--ease-spring);
   }
   .theme-toggle:hover {
     background: var(--hover-soft);
   }
+  /* Sun and moon trade places: the outgoing one turns away, shrinks and blurs as the other turns
+     in on a spring. */
   .theme-icon {
     grid-area: 1 / 1;
     display: grid;
     font-size: 1.25rem;
-    transition: transform 0.5s var(--ease-spring), opacity 0.3s var(--ease-out);
+    transition:
+      transform 0.8s var(--ease-spring),
+      opacity 0.4s var(--ease-out),
+      filter 0.4s var(--ease-out);
   }
   .theme-icon--sun,
   :global([data-theme='dark']) .theme-icon--moon {
     opacity: 0;
-    transform: rotate(-90deg) scale(0.6);
+    filter: blur(4px);
+    transform: rotate(-120deg) scale(0.4);
   }
   :global([data-theme='dark']) .theme-icon--sun {
     opacity: 1;
+    filter: none;
     transform: none;
+  }
+  .theme-toggle:active {
+    transform: scale(0.92);
   }
   .nav-logo {
     display: inline-flex;
@@ -249,6 +268,80 @@ const links = [
     }
     .cta-more {
       display: none;
+    }
+  }
+
+  /* Left progress line. --p (0..1) is eased in main.ts; while the page moves, .is-moving lets the
+     head's light swell, then it settles back to a slow breath. */
+  .scroll-line {
+    --p: 0;
+    position: fixed;
+    z-index: 30;
+    left: clamp(6px, 1.1vw, 18px);
+    top: calc(var(--nav-h) + 48px);
+    bottom: 48px;
+    width: 2px;
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--ink) 10%, transparent);
+    pointer-events: none;
+  }
+  .scroll-line-fill {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 0%, transparent), var(--accent) 35%, var(--violet-hi));
+    box-shadow: 0 0 10px var(--accent-glow);
+    transform: scaleY(var(--p));
+    transform-origin: top center;
+  }
+  /* A soft wash of light along the filled part. */
+  .scroll-line::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 0;
+    width: 16px;
+    height: calc(var(--p) * 100%);
+    border-radius: 8px;
+    background: linear-gradient(180deg, transparent, var(--accent-glow));
+    filter: blur(8px);
+    opacity: 0.55;
+  }
+  .scroll-line-head {
+    position: absolute;
+    left: 50%;
+    top: calc(var(--p) * 100%);
+    width: 8px;
+    height: 8px;
+    margin: -4px 0 0 -4px;
+    border-radius: 50%;
+    background: var(--violet-hi);
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent),
+      0 0 16px 5px var(--accent-glow);
+  }
+  .scroll-line-head::after {
+    content: '';
+    position: absolute;
+    inset: -18px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, var(--accent-glow), transparent);
+    animation: line-breathe 2.8s ease-in-out infinite;
+    transition: scale 0.5s var(--ease-out);
+  }
+  .scroll-line.is-moving .scroll-line-head::after {
+    scale: 1.6;
+  }
+  @keyframes line-breathe {
+    50% {
+      opacity: 0.45;
+      transform: scale(1.35);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-line-head::after {
+      animation: none;
+      transition: none;
     }
   }
 </style>

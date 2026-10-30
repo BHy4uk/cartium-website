@@ -266,6 +266,52 @@
   }
 }
 
+/* The hero's light, reused behind the one focal object of a section. The host gets .glow-host;
+   the .aura.glow inside names its object (data-glow-for) and main.ts centres the light on it and
+   sizes it to it, so the glow always reads as coming from that object. */
+.glow-host {
+  position: relative;
+  isolation: isolate;
+}
+.glow {
+  z-index: -1;
+  left: var(--g-x, 50%);
+  top: var(--g-y, 50%);
+  width: var(--g-w, 80%);
+  height: var(--g-h, 80%);
+  translate: -50% -50%;
+  --aura-boost: 40%;
+}
+:root[data-theme='dark'] .glow {
+  --aura-boost: 55%;
+}
+/* The second field sits centred too, so the light gathers on the object instead of leaning
+   off to one side as it does behind the hero's wide stage. */
+.glow::after {
+  inset: 16% 14%;
+}
+/* A glow that follows (data-glow-follow) glides to its new object rather than jumping. It marks
+   a small object (a step number), so it burns a little wider and brighter than the rest. */
+.glow--follow {
+  width: calc(var(--g-w, 80%) * 1.4);
+  height: calc(var(--g-h, 80%) * 1.4);
+}
+.glow--follow.is-placed {
+  transition:
+    left 0.9s var(--ease-out),
+    top 0.9s var(--ease-out),
+    width 0.9s var(--ease-out),
+    height 0.9s var(--ease-out);
+}
+:root .glow.glow--follow {
+  --aura-boost: 70%;
+}
+@media (prefers-reduced-motion: reduce) {
+  .glow--follow.is-placed {
+    transition: none;
+  }
+}
+
 /* ---------- Base ---------- */
 *,
 *::before,
@@ -345,7 +391,14 @@ ol {
   scrollbar-color: color-mix(in srgb, var(--ink) 28%, transparent) var(--bg);
 }
 
-/* Theme switch: main.ts reveals the new theme as a circle growing from the toggle. */
+/* Theme switch: main.ts grows the new theme out of the toggle as a circle with a soft, feathered
+   edge (--vt-r is its radius, --vt-x/--vt-y its centre), while the old theme sinks back a touch.
+   Browsers without registered properties fall back to a hard-edged clip-path circle. */
+@property --vt-r {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;
@@ -353,6 +406,35 @@ ol {
 }
 ::view-transition-new(root) {
   z-index: 1;
+  --vt-soft: 120px;
+  -webkit-mask-image: radial-gradient(
+    circle at var(--vt-x, 50%) var(--vt-y, 0%),
+    #000 calc(var(--vt-r) - var(--vt-soft)),
+    rgba(0, 0, 0, 0.5) calc(var(--vt-r) - var(--vt-soft) * 0.45),
+    transparent var(--vt-r)
+  );
+  mask-image: radial-gradient(
+    circle at var(--vt-x, 50%) var(--vt-y, 0%),
+    #000 calc(var(--vt-r) - var(--vt-soft)),
+    rgba(0, 0, 0, 0.5) calc(var(--vt-r) - var(--vt-soft) * 0.45),
+    transparent var(--vt-r)
+  );
+}
+:root.vt-hard::view-transition-new(root) {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+/* Without View Transitions the colours cross-fade instead, for the length of the switch. */
+.theme-fade,
+.theme-fade *,
+.theme-fade *::before,
+.theme-fade *::after {
+  transition:
+    background-color 0.6s ease,
+    color 0.6s ease,
+    border-color 0.6s ease,
+    fill 0.6s ease,
+    box-shadow 0.6s ease !important;
 }
 
 /* Film grain: fixed and non-interactive, so it never repaints while scrolling. */

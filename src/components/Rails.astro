@@ -24,6 +24,7 @@ const hide = (svg: string) => svg.replace('<svg ', '<svg aria-hidden="true" focu
       <li class="rail rail--google" aria-label="Google Pay">
         <span class="rail-logo rail-logo--invert" set:html={hide(googleDark)} />
       </li>
+      <li class="rail rail--text"><Icon name="paypal-logo" /> PayPal</li>
       <li class="rail rail--text"><Icon name="truck" /> Нова пошта</li>
       <li class="rail rail--text"><Icon name="bank" /> Реквізити IBAN</li>
       <li class="rail rail--text"><Icon name="hand-coins" /> Післяплата</li>
@@ -33,31 +34,44 @@ const hide = (svg: string) => svg.replace('<svg ', '<svg aria-hidden="true" focu
 
 <style>
   .rails {
-    padding-block: clamp(32px, 5vw, 56px);
+    padding-block: clamp(48px, 7vw, 88px);
   }
   .rails-inner {
     display: grid;
-    gap: 22px;
+    gap: clamp(26px, 3vw, 40px);
     justify-items: center;
     text-align: center;
   }
   .rails-title {
     color: var(--muted);
-    font-size: 0.98rem;
+    font-size: clamp(1.05rem, 0.95rem + 0.4vw, 1.3rem);
     font-weight: 500;
   }
+  /* Eight marks in two even rows of four (two columns on phones), so no row is left half empty. */
   .rails-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    justify-items: center;
     align-items: center;
-    gap: 14px 40px;
+    gap: clamp(18px, 2.4vw, 32px) clamp(24px, 4vw, 56px);
+    width: min(100%, 1000px);
+  }
+  @media (max-width: 640px) {
+    .rails-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 12px;
+    }
+    .rail-name,
+    .rail--text {
+      font-size: 1.08rem;
+    }
   }
   .rail {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    height: 40px;
+    gap: 12px;
+    height: 52px;
+    white-space: nowrap;
     color: var(--ink-2);
     opacity: 0.86;
     transition: opacity 0.3s var(--ease-out);
@@ -71,24 +85,24 @@ const hide = (svg: string) => svg.replace('<svg ', '<svg aria-hidden="true" focu
     filter: grayscale(1);
   }
   .rail-logo :global(svg) {
-    height: 26px;
+    height: 34px;
     width: auto;
   }
   .rail--liqpay .rail-logo :global(svg) {
-    height: 22px;
+    height: 28px;
   }
   .rail--mono .rail-logo :global(svg) {
-    height: 22px;
+    height: 28px;
   }
   .rail-name,
   .rail--text {
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: 1.08rem;
+    font-size: clamp(1.15rem, 1rem + 0.5vw, 1.45rem);
     letter-spacing: -0.02em;
   }
   .rail--text :global(.icon) {
-    font-size: 1.35rem;
+    font-size: 1.6rem;
   }
   /* plata by mono and Google Pay ship white-on-dark artwork: invert it for the light page. */
   .rail-logo--invert {

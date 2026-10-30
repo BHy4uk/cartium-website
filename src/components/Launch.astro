@@ -1,6 +1,6 @@
 ---
 import Icon from './Icon.astro';
-import { BOT_HANDLE, DOCS_LINKS } from '../config';
+import { BOT_HANDLE } from '../config';
 
 // Durations from tgshop-docs/index.md ("Скільки часу займе налаштування").
 const steps = [
@@ -32,14 +32,13 @@ const steps = [
 ---
 <section class="section launch" id="how" aria-labelledby="launch-title" data-launch>
   <div class="container">
-    <div class="section-head" data-snap>
+    <div class="section-head">
       <h2 id="launch-title" class="display h2">Від ідеї до першого замовлення за&nbsp;вечір</h2>
-      <p class="lead">
-        Усе налаштовується з телефона кнопками в Telegram. Покрокова інструкція є{' '}<a class="text-link" href={DOCS_LINKS.guide} target="_blank" rel="noopener">у документації</a>{' '}і в самому боті: команда <span class="cmd">/guide</span>.
-      </p>
+      <p class="lead">Усе налаштовується з телефона, кнопками в&nbsp;Telegram.</p>
     </div>
 
-    <div class="steps-wrap">
+    <div class="steps-wrap glow-host">
+    <div class="aura glow glow--follow" data-glow-for="[data-step] .step-num" data-glow-follow="[data-step].is-active .step-num" aria-hidden="true"></div>
     <div class="steps-line" aria-hidden="true"><span class="steps-fill" data-steps-fill></span></div>
     <ol class="steps">
       {steps.map((s, i) => (

@@ -30,9 +30,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
 ---
 <section class="section showcase" id="features" aria-labelledby="showcase-title" data-showcase>
   <div class="container">
-    <div class="sc-head" data-snap>
+    <div class="sc-head">
       <h2 id="showcase-title" class="display h2">Від вітрини до аналітики. В одному боті.</h2>
-      <p class="lead">Справжні екрани Cartium, без макетів. Оберіть функцію, щоб побачити її.</p>
+      <p class="lead">Справжні екрани Cartium, без макетів.</p>
     </div>
 
     <div class="sc-grid">
@@ -60,6 +60,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
       </div>
 
       <div class="sc-stage" id="sc-screen" role="tabpanel" aria-labelledby="sc-tab-0" aria-live="polite" data-sc-panel>
+<div class="aura glow" data-glow-for=".sc-device" aria-hidden="true"></div>
         <Device width="var(--dw)" class="sc-device">
           <div class="sc-stack">
             {cards.map((c, i) => (
@@ -211,6 +212,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
   /* The phone: screens change with a wipe from below. */
   .sc-stage {
     position: relative;
+    isolation: isolate;
     display: grid;
     justify-items: center;
   }
