@@ -120,10 +120,10 @@ const perMonthYearly = (yearly: number) => yearly / 12;
     color: var(--ink);
     border: 1px solid transparent;
     background:
-      radial-gradient(120% 70% at 50% 0%, rgba(255, 255, 255, 0.12), transparent 60%) padding-box,
+      radial-gradient(120% 70% at 50% 0%, var(--aura), transparent 62%) padding-box,
       linear-gradient(var(--stage-bg), var(--stage-bg)) padding-box,
-      var(--chrome-border) border-box;
-    box-shadow: 0 2px 4px rgba(24, 24, 27, 0.08), 0 60px 100px -50px rgba(24, 24, 27, 0.5);
+      linear-gradient(160deg, color-mix(in srgb, var(--violet-hi) 80%, transparent), rgba(255, 255, 255, 0.06) 40%, rgba(255, 255, 255, 0.1) 70%, color-mix(in srgb, var(--violet-hi) 40%, transparent)) border-box;
+    box-shadow: 0 2px 4px rgba(24, 24, 27, 0.08), 0 60px 100px -50px var(--accent-glow);
     transform: translateY(-12px);
   }
   .plan-title-row {
@@ -219,10 +219,10 @@ const perMonthYearly = (yearly: number) => yearly / 12;
   .plan-features :global(.icon) {
     margin-top: 2px;
     font-size: 1.1rem;
-    color: var(--accent-text);
+    color: var(--ink-2);
   }
   .plan--featured .plan-features :global(.icon) {
-    color: var(--ink);
+    color: var(--accent-text);
   }
   .pricing-note {
     margin-top: 40px;

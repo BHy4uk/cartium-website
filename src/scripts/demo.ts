@@ -316,7 +316,7 @@ export function initDemo() {
     loadWebFonts();
     applyLook();
     flag('style');
-    if (!reduceMotion) phone.animate([{ transform: 'scale(0.985)' }, { transform: 'scale(1)' }], { duration: 450, easing: 'cubic-bezier(.34,1.56,.64,1)' });
+    if (!reduceMotion) phone.animate([{ transform: 'scale(0.985)' }, { transform: 'scale(1)' }], { duration: 450, easing: 'cubic-bezier(.16,1,.3,1)' });
   });
 
   /* ----- Screens ----- */
@@ -429,7 +429,7 @@ export function initDemo() {
     const n = count();
     badge.hidden = n === 0;
     badge.textContent = String(n);
-    if (bump && !reduceMotion) badge.animate([{ transform: 'scale(1.6)' }, { transform: 'scale(1)' }], { duration: 450, easing: 'cubic-bezier(.34,1.56,.64,1)' });
+    if (bump && !reduceMotion) badge.animate([{ transform: 'scale(1.6)' }, { transform: 'scale(1)' }], { duration: 450, easing: 'cubic-bezier(.16,1,.3,1)' });
   };
   const linesBox = q('[data-cart-lines]');
   const renderCart = () => {
