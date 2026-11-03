@@ -50,7 +50,7 @@ export const PLANS: Plan[] = [
     yearly: 96,
     features: [
       'Каталог, кошик і замовлення в Telegram',
-      'LiqPay, plata by mono, реквізити, посилання, післяплата',
+      'LiqPay, plata by mono, Stripe, PayPal, реквізити, посилання, післяплата',
       'Керування в боті та у WebApp',
       'AI-асистент фото: 20 кредитів на місяць',
       '1 шаблон магазину, 1 адміністратор',
