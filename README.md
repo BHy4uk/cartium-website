@@ -76,12 +76,16 @@ npm run preview   # локальный просмотр сборки
 
 ## Деплой
 
-Workflow `.github/workflows/site.yml` на каждый PR и push собирает сайт и проверяет типы.
+**Основной сайт: https://cartium.store на Vercel.** Проект Vercel подключён к этому репозиторию:
+production собирается из `main`, каждая другая ветка получает свою ссылку-превью. Настройки:
+Framework Astro, `npm run build`, папка `dist`, Node 22.x, переменная `SITE_URL=https://cartium.store`.
 
-Публикация на GitHub Pages: каждый push в `main` публикует сайт на `https://<owner>.github.io/<repo>/`
-(Settings → Pages → Source: **GitHub Actions**). Для собственного домена задайте repository variables
-(не environment variables) `SITE_URL` = `https://ваш-домен` и `BASE_PATH` = `/`.
+DNS в Namecheap (Advanced DNS): `A @` и `CNAME www` по значениям из Vercel → Domains,
+`TXT _vercel` для подтверждения домена, `CNAME docs → bhy4uk.github.io.` для документации.
 
-GitHub Pages для приватного репозитория требует платный план. Альтернатива: любой статический
-хостинг (Cloudflare Pages, Netlify, Vercel) с командой сборки `npm run build` и папкой `dist`.
-Для собственного домена в корне `BASE_PATH` не задавайте.
+**Документация: https://docs.cartium.store**, собирается из репозитория `tgshop-docs` в GitHub Pages
+(домен задаёт файл `docs/CNAME` там).
+
+Workflow `.github/workflows/site.yml` на каждый PR и push собирает сайт и проверяет типы, а push в
+`main` дополнительно публикует копию на `https://<owner>.github.io/<repo>/`. После переезда на Vercel
+её можно отключить: Settings → Pages → Source: None.

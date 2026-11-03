@@ -10,7 +10,7 @@ export const SIGNUP_URL = `${BOT_URL}?start=connect`;
 // TODO: replace with the Cartium Telegram channel link.
 export const CHANNEL_URL = 'https://t.me/your_cartium_channel';
 
-const DOCS = 'https://bhy4uk.github.io/tgshop-docs';
+const DOCS = 'https://docs.cartium.store';
 export const DOCS_URL = `${DOCS}/`;
 export const DOCS_LINKS = {
   guide: `${DOCS}/owner-guide/`,
