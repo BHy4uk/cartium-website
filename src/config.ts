@@ -45,7 +45,7 @@ export const PLANS: Plan[] = [
   {
     id: 'basic',
     name: 'Basic',
-    tagline: 'Запустити магазин',
+    tagline: 'Щоб перейти з директу на справжній магазин',
     monthly: 10,
     yearly: 96,
     features: [
@@ -59,7 +59,7 @@ export const PLANS: Plan[] = [
   {
     id: 'pro',
     name: 'Pro',
-    tagline: 'Зростати й автоматизувати',
+    tagline: 'Коли замовлення щодня і час повертати покупців',
     monthly: 20,
     yearly: 192,
     badge: 'Популярний',
@@ -76,7 +76,7 @@ export const PLANS: Plan[] = [
   {
     id: 'business',
     name: 'Business',
-    tagline: 'Масштабувати магазин',
+    tagline: 'Коли над магазином працює команда',
     monthly: 40,
     yearly: 384,
     includes: 'Усе з Pro, а також',

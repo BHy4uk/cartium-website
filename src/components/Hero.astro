@@ -39,7 +39,7 @@ let w = 0;
     </h1>
     <div class="hero-row">
       <p class="lead hero-lead hero-in hero-in--soft" style="--d:300ms">
-        Покупці замовляють і платять, не виходячи з Telegram. Ви отримуєте оплачене замовлення і створюєте ТТН однією кнопкою.
+        Покупці замовляють і платять, не виходячи з Telegram.
       </p>
       <div class="hero-actions hero-in" style="--d:420ms">
         <div class="hero-ctas">
@@ -187,21 +187,18 @@ let w = 0;
     margin-top: clamp(28px, 4vw, 56px);
     perspective: 1600px;
   }
-  /* The light the phones stand in. It leans with the pointer and flares when an order lands. */
+  /* The light the phones stand in: centred behind the fan, wider than it, so it seems to come
+     from the screens. It drifts on its own and flares when an order lands. */
   .hero-aura {
     left: 50%;
-    top: -14%;
-    width: min(1180px, 110vw);
-    aspect-ratio: 2.1 / 1;
-    margin-left: calc(min(1180px, 110vw) / -2);
-    background:
-      radial-gradient(closest-side at 30% 52%, color-mix(in srgb, var(--aura), var(--violet) var(--aura-boost)), transparent 72%),
-      radial-gradient(closest-side at 72% 46%, color-mix(in srgb, var(--aura) 80%, #3d5bff 20%), transparent 70%),
-      radial-gradient(closest-side at 50% 60%, color-mix(in srgb, var(--aura) 60%, transparent), transparent 80%);
-    --aura-boost: 40%;
+    top: 44%;
+    width: min(1500px, 135vw);
+    aspect-ratio: 1.75 / 1;
+    translate: -50% -50%;
+    --aura-boost: 62%;
   }
   :global([data-theme='dark']) .hero-aura {
-    --aura-boost: 55%;
+    --aura-boost: 70%;
   }
   .hero-tilt {
     position: absolute;
@@ -226,6 +223,21 @@ let w = 0;
   .hero-slot--right {
     transform: translate(28%, 70px) rotate(8deg) scale(0.9);
     z-index: 2;
+  }
+  /* As the hero scrolls away the fan closes into one phone: the sides tuck in behind the centre
+     and it grows a touch. --merge (0..1) is scrubbed on the stage in main.ts. */
+  .hero-slot--left,
+  .hero-slot--right {
+    opacity: calc(1 - var(--merge, 0) * 0.5);
+  }
+  .hero-slot--left {
+    translate: calc(var(--merge, 0) * 46%) 0;
+  }
+  .hero-slot--right {
+    translate: calc(var(--merge, 0) * -46%) 0;
+  }
+  .hero-slot--center {
+    scale: calc(1 + var(--merge, 0) * 0.06);
   }
 
   .notif {
@@ -358,12 +370,10 @@ let w = 0;
       animation-delay: 380ms;
     }
     .notif {
-      animation: hero-notif 0.9s var(--ease-out) 1.2s backwards;
+      animation: hero-notif 0.9s var(--ease-out) 2.6s backwards;
     }
     .hero-aura {
-      animation:
-        hero-aura-in 2.4s var(--ease-out) 0.5s backwards,
-        aura-drift 18s ease-in-out 2.9s infinite alternate;
+      animation: hero-aura-in 2.4s var(--ease-out) 0.5s backwards;
     }
   }
   @keyframes hero-rise {
@@ -404,10 +414,11 @@ let w = 0;
       transform: translateY(120px);
     }
   }
+  /* Only a fallback: main.ts replaces it at 1.2s with the order growing out of the Dynamic Island.
+     It just holds the card hidden till then and fades it in if the script never gets there. */
   @keyframes hero-notif {
     from {
       opacity: 0;
-      transform: translateY(-16px) scale(0.94);
     }
   }
 

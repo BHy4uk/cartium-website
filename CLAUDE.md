@@ -19,8 +19,8 @@ GSAP + ScrollTrigger, Lenis, без CSS-фреймворков. Подробно
 
 ## Где что
 
-- `src/pages/index.astro`: порядок секций. Nav, Hero, Rails, ChatStory, Demo, Launch, Showcase, Growth,
-  Pricing, Faq, FinalCta, Footer, StickyCta.
+- `src/pages/index.astro`: порядок секций. Nav, Hero, Facts, Rails, ChatStory, Demo, Launch, Showcase, Growth,
+  Ownership, Compare, Pricing, Faq, FinalCta, Footer, StickyCta. Разбор конкурента TGShop: `docs/COMPETITOR-tgshop.md`.
 - `src/config.ts`: все внешние ссылки, бот, тарифы (`PLANS`), пробный период. Цифры на странице берутся отсюда.
   `CHANNEL_URL` пока заглушка.
 - `src/styles/global.css`: токены (светлая тема в `:root`, тёмная в `:root[data-theme='dark']`, графитовые

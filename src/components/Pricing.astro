@@ -9,7 +9,7 @@ const perMonthYearly = (yearly: number) => yearly / 12;
     <div class="section-head is-center">
       <h2 id="pricing-title" class="display h2">Фіксована ціна без відсотка з продажів</h2>
       <p class="lead">
-        Гроші покупців надходять на ваш рахунок LiqPay чи monobank напряму. Перші {TRIAL_DAYS} днів безкоштовно, далі оплата в гривнях за поточним курсом.
+        Гроші покупців надходять напряму вам. {TRIAL_DAYS} днів безкоштовно.
       </p>
       <div class="period" role="radiogroup" aria-label="Період оплати">
         <button type="button" class="period-opt" role="radio" aria-checked="true" data-period="monthly">Щомісяця</button>
@@ -19,9 +19,12 @@ const perMonthYearly = (yearly: number) => yearly / 12;
       </div>
     </div>
 
-    <div class="plans">
+    <div class="plans glow-host" data-plans>
+      <div class="aura glow" data-glow-for=".plan--featured" aria-hidden="true"></div>
       {PLANS.map((p) => (
-        <article class:list={['plan spot', { 'plan--featured stage': p.badge }]} aria-labelledby={`plan-${p.id}`}>
+        <article class:list={['plan spot', { 'plan--featured stage is-on': p.badge }]} aria-labelledby={`plan-${p.id}`} data-plan>
+          <span class="plan-light" aria-hidden="true"></span>
+          <div class="plan-body">
           <header class="plan-head">
             <div class="plan-title-row">
               <h3 id={`plan-${p.id}`} class="plan-name">{p.name}</h3>
@@ -44,22 +47,27 @@ const perMonthYearly = (yearly: number) => yearly / 12;
             оплата щомісяця
           </p>
 
-          <a class:list={['btn', p.badge ? 'btn-primary' : 'btn-ghost', 'plan-cta']} href={SIGNUP_URL} target="_blank" rel="noopener">
-            Створити магазин
-            {p.badge && <span class="btn-icon"><Icon name="paper-plane-tilt" /></span>}
-          </a>
-
           {p.includes && <p class="plan-includes">{p.includes}</p>}
           <ul class="plan-features">
-            {p.features.map((f) => (
-              <li><Icon name="check" /> {f}</li>
+            {p.features.map((f, i) => (
+              <li style={`--i:${i}`}><Icon name="check" /> {f}</li>
             ))}
           </ul>
+          </div>
+
+          <!-- The choice rises out of the card's foot when the card is lit (hover, focus, or Pro at rest). -->
+          <div class="plan-pick">
+            <a class="btn plan-btn" href={SIGNUP_URL} target="_blank" rel="noopener">
+              Обрати {p.name}
+              <span class="btn-icon"><Icon name="arrow-right" /></span>
+            </a>
+          </div>
         </article>
       ))}
     </div>
     <p class="pricing-note">
-      Пробний період відкриває можливості Basic. Тариф можна змінити будь-коли в розділі «Налаштування → Підписка».
+      Картка для пробного періоду не потрібна, тож нічого не спишеться автоматично. Пробний період відкриває
+      можливості Basic, а тариф можна змінити будь-коли в розділі «Налаштування → Підписка».
     </p>
   </div>
 </section>
@@ -110,7 +118,7 @@ const perMonthYearly = (yearly: number) => yearly / 12;
   .plan {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 22px;
     padding: clamp(24px, 2.6vw, 36px);
     border-radius: var(--r-card);
     background: linear-gradient(180deg, var(--surface-2), var(--surface));
@@ -187,16 +195,152 @@ const perMonthYearly = (yearly: number) => yearly / 12;
     color: var(--muted);
     min-height: 1.5em;
   }
-  .plan-cta {
-    justify-content: center;
+  /* ---- The lit card ----
+     One card at a time is "on": Pro at rest, otherwise the one under the pointer or keyboard focus
+     (main.ts). Light pours in from the top edge, the content floats up a touch, and the choice rises
+     out of the card's foot with a sweep of light across it. */
+  .plan {
+    --plan-light: color-mix(in srgb, var(--violet) 26%, transparent);
+  }
+  :global([data-theme='dark']) .plan,
+  .plan--featured {
+    --plan-light: color-mix(in srgb, var(--violet) 58%, transparent);
+  }
+  .plan-light {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.6s var(--ease-out);
+  }
+  .plan-light::before {
+    content: '';
+    position: absolute;
+    left: -15%;
+    right: -15%;
+    top: -42%;
+    height: 90%;
+    background: radial-gradient(50% 50% at 50% 50%, var(--plan-light), transparent);
+    transform: scale(0.6, 0.4);
+    transform-origin: 50% 0;
+    transition: transform 0.9s var(--ease-spring);
+  }
+  .plan-light::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 14%;
+    right: 14%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--violet-hi), transparent);
+    transform: scaleX(0.3);
+    transition: transform 0.9s var(--ease-spring);
+  }
+  .plan.is-on .plan-light {
+    opacity: 1;
+  }
+  .plan.is-on .plan-light::before,
+  .plan.is-on .plan-light::after {
+    transform: none;
+  }
+  .plan-body {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    transition: transform 0.8s var(--ease-spring);
+  }
+  .plan.is-on .plan-body {
+    transform: translateY(-6px);
+  }
+  .plan-pick {
+    margin-top: auto;
+    padding-top: 10px;
+  }
+  /* Ultraviolet from deep to bright, the site's one accent, read left to right. */
+  .plan .plan-btn {
     width: 100%;
-  }
-  .plan-cta.btn-primary {
-    padding-right: 8px;
     justify-content: space-between;
+    padding-right: 8px;
+    color: #fff;
+    background: linear-gradient(100deg, color-mix(in oklab, var(--violet) 72%, #0d0630), var(--violet) 45%, color-mix(in oklab, var(--violet-hi) 80%, var(--violet)) 80%, var(--violet-hi));
+    background-size: 170% 100%;
+    background-position: 0% 50%;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.24),
+      0 18px 36px -16px var(--accent-glow);
+    opacity: 0;
+    transform: translateY(26px) scale(0.96);
+    filter: blur(6px);
+    pointer-events: none;
+    transition:
+      opacity 0.45s var(--ease-out),
+      transform 0.75s var(--ease-spring),
+      filter 0.45s var(--ease-out),
+      background-position 0.9s var(--ease-out),
+      box-shadow 0.4s var(--ease-out);
   }
-  .plan--featured .btn-ghost {
-    color: var(--ink);
+  .plan.is-on .plan-btn,
+  .plan:focus-within .plan-btn {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    pointer-events: auto;
+  }
+  .plan .plan-btn:hover {
+    background-position: 100% 50%;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.24),
+      0 26px 46px -16px var(--accent-glow);
+  }
+  .plan .plan-btn:active {
+    transform: scale(0.97);
+  }
+  .plan-btn .btn-icon {
+    background: rgba(255, 255, 255, 0.16);
+  }
+  /* Sheen: one band of light crosses the button as it arrives, and again on hover. */
+  .plan-btn::after {
+    content: '';
+    position: absolute;
+    inset: -20% auto -20% 0;
+    width: 40%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.32) 50%, transparent);
+    transform: translateX(-140%) skewX(-18deg);
+    pointer-events: none;
+  }
+  .plan-btn {
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .plan.is-on .plan-btn::after,
+  .plan-btn:hover::after {
+    transform: translateX(300%) skewX(-18deg);
+    transition: transform 1.1s var(--ease-out) 0.18s;
+  }
+
+  /* Touch screens, the stacked one-column layout and reduced motion: every choice stays in view. */
+  @media (hover: none), (max-width: 960px), (prefers-reduced-motion: reduce) {
+    .plan .plan-btn {
+      opacity: 1;
+      transform: none;
+      filter: none;
+      pointer-events: auto;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .plan-body,
+    .plan-light::before,
+    .plan-light::after,
+    .plan .plan-btn,
+    .plan-btn::after {
+      transition: none;
+    }
+    .plan.is-on .plan-body {
+      transform: none;
+    }
   }
   .plan-includes {
     font-weight: 600;
@@ -223,6 +367,14 @@ const perMonthYearly = (yearly: number) => yearly / 12;
   }
   .plan--featured .plan-features :global(.icon) {
     color: var(--accent-text);
+  }
+  /* Ticks draw themselves left to right, one after another, once the card is in view (main.ts). */
+  :global(.ticks-ready) .plan-features :global(.icon) {
+    clip-path: inset(0 100% 0 0);
+  }
+  :global(.ticks-ready) .plan.is-drawn .plan-features :global(.icon) {
+    clip-path: inset(0 -10% 0 0);
+    transition: clip-path 0.55s var(--ease-out) calc(var(--i, 0) * 90ms + 0.35s);
   }
   .pricing-note {
     margin-top: 40px;

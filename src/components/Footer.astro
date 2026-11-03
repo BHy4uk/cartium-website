@@ -102,12 +102,19 @@ const cols: { title: string; links: FooterLink[] }[] = [
     gap: 8px;
   }
   .footer-col a {
+    padding-bottom: 2px;
     color: var(--muted);
     font-size: 0.95rem;
-    transition: color 0.2s var(--ease-out);
+    background: linear-gradient(currentColor, currentColor) no-repeat right bottom / 0 1px;
+    transition:
+      color 0.2s var(--ease-out),
+      background-size 0.45s var(--ease-out);
   }
+  /* A hairline grows in from the left and leaves to the right. */
   .footer-col a:hover {
     color: var(--ink);
+    background-size: 100% 1px;
+    background-position-x: left;
   }
   .footer-bottom {
     display: flex;

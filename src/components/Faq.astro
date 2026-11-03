@@ -12,12 +12,20 @@ const faq = [
     a: 'У вас буде власний бот з адресою на кшталт t.me/urbanstyle_bot. Поставте посилання в шапку Instagram, закріпіть у каналі чи надішліть клієнтам, яким раніше відповідали в директі.',
   },
   {
+    q: 'Покупцю треба щось встановлювати чи реєструватися?',
+    a: 'Ні. Магазин відкривається всередині Telegram за посиланням на вашого бота: без застосунку, пароля і реєстрації. Покупець одразу бачить каталог і оформлює замовлення там само, де переписується.',
+  },
+  {
+    q: 'Чим це краще за маркетплейс на кшталт Prom чи Rozetka?',
+    a: 'На маркетплейсі ваш товар стоїть поруч зі схожими, а з продажу береться комісія. У Cartium магазин живе у вашому власному боті: лише ваш каталог, фіксований тариф і покупці, яким ви можете написати самі. Маркетплейс можна залишити як ще один канал.',
+  },
+  {
     q: 'Куди надходять гроші від покупців?',
     a: 'Напряму на ваш рахунок LiqPay або monobank: ви підключаєте власні ключі. Cartium не бере відсоток із продажів, ви платите лише за тариф. Також можна приймати оплату за реквізитами, за посиланням або післяплатою.',
   },
   {
     q: `Що буде після ${TRIAL_DAYS} днів?`,
-    a: 'Оберіть тариф у розділі «Налаштування → Підписка». Якщо не встигнете, буде 5 днів пільгового періоду, потім вітрина закриється для покупців. Товари, замовлення і налаштування збережуться, а магазин відкриється одразу після оплати.',
+    a: 'Нічого не спишеться автоматично: картка для пробного періоду не потрібна. Щоб продовжити, оберіть тариф у розділі «Налаштування → Підписка». Якщо не встигнете, буде 5 днів пільгового періоду, потім вітрина закриється для покупців. Товари, замовлення і налаштування збережуться, а магазин відкриється одразу після оплати.',
   },
   {
     q: 'У мене вже є сотні товарів. Переносити вручну?',
@@ -29,10 +37,6 @@ const faq = [
     a: 'Бот Cartium одразу видаляє повідомлення з токеном, а зберігає його лише в зашифрованому вигляді. Ключі LiqPay, monobank і Нової пошти теж зберігаються лише зашифрованими.',
   },
   {
-    q: 'Чи можуть працювати кілька людей?',
-    a: 'Так. Додайте адміністраторів за Telegram ID: одного на Basic, до трьох на Pro і до десяти на Business.',
-  },
-  {
     q: 'Де отримати допомогу з налаштуванням?',
     a: `У документації є покроковий гайд з екранами, а в боті магазину працює команда /guide. Питання пишіть у @${BOT_HANDLE}.`,
     link: { href: DOCS_LINKS.guide, label: 'Відкрити документацію' },
@@ -40,13 +44,13 @@ const faq = [
 ];
 ---
 <section class="section faq" id="faq" aria-labelledby="faq-title">
-  <div class="container faq-grid">
+  <div class="container faq-grid screen">
     <div class="faq-aside">
       <h2 id="faq-title" class="display h2">Часті питання</h2>
       <p class="lead">Не знайшли відповідь? Напишіть нам у Telegram.</p>
       <a class="btn btn-ghost" href={BOT_URL} target="_blank" rel="noopener">Написати @{BOT_HANDLE}</a>
     </div>
-    <div class="faq-list">
+    <div class="faq-list" data-fit>
       {faq.map((f, i) => (
         <details class="qa" name="faq" open={i === 0}>
           <summary class="qa-q">
@@ -98,8 +102,8 @@ const faq = [
     block-size: 0;
     overflow: clip;
     transition:
-      block-size 0.5s var(--ease-out),
-      content-visibility 0.5s allow-discrete;
+      block-size 0.7s var(--ease-spring),
+      content-visibility 0.7s allow-discrete;
   }
   .qa[open]::details-content {
     block-size: auto;
@@ -110,7 +114,7 @@ const faq = [
     justify-content: space-between;
     gap: 16px;
     padding: 20px 22px 20px 26px;
-    cursor: pointer;
+    cursor: var(--cursor-point);
     list-style: none;
     font-family: var(--font-display);
     font-weight: 600;
@@ -147,6 +151,22 @@ const faq = [
     color: var(--muted);
     max-width: 62ch;
   }
+  /* The answer comes into focus as it opens: a short drop out of a soft blur. */
+  @media (prefers-reduced-motion: no-preference) {
+    .qa[open] .qa-a > * {
+      animation: qa-in 0.7s var(--ease-out) 0.1s backwards;
+    }
+    .qa[open] .qa-a > * + * {
+      animation-delay: 0.18s;
+    }
+  }
+  @keyframes qa-in {
+    from {
+      opacity: 0;
+      translate: 0 -6px;
+      filter: blur(6px);
+    }
+  }
   .qa-link {
     color: var(--accent-text);
     font-weight: 600;
@@ -162,5 +182,20 @@ const faq = [
     .faq-aside {
       position: static;
     }
+  }
+  /* Short laptop screens: the whole list fits one screen. */
+  @media (min-width: 1024px) and (max-height: 900px) {
+    .faq-list {
+      gap: 6px;
+    }
+    .qa-q {
+      padding-block: 10px;
+      font-size: 1.02rem;
+    }
+  }
+  /* As a screen it stays a grid, centred in the viewport. */
+  .faq-grid.screen {
+    display: grid;
+    align-content: center;
   }
 </style>

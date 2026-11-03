@@ -32,7 +32,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
   <div class="container">
     <div class="sc-head">
       <h2 id="showcase-title" class="display h2">Від вітрини до аналітики. В одному боті.</h2>
-      <p class="lead">Справжні екрани Cartium, без макетів. Оберіть функцію, щоб побачити її.</p>
+      <p class="lead">Справжні екрани Cartium, без макетів.</p>
     </div>
 
     <div class="sc-grid">
@@ -60,6 +60,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
       </div>
 
       <div class="sc-stage" id="sc-screen" role="tabpanel" aria-labelledby="sc-tab-0" aria-live="polite" data-sc-panel>
+<div class="aura glow" data-glow-for=".sc-device" aria-hidden="true"></div>
         <Device width="var(--dw)" class="sc-device">
           <div class="sc-stack">
             {cards.map((c, i) => (
@@ -101,7 +102,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
   }
 
   .sc-grid {
-    --dw: min(300px, calc((100dvh - 220px) * 0.491));
+    --dw: min(300px, calc((100dvh - 300px) * 0.491));
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
@@ -211,6 +212,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
   /* The phone: screens change with a wipe from below. */
   .sc-stage {
     position: relative;
+    isolation: isolate;
     display: grid;
     justify-items: center;
   }
@@ -349,6 +351,15 @@ const pad = (n: number) => String(n).padStart(2, '0');
       text-align: center;
       color: var(--muted);
       text-wrap: balance;
+    }
+  }
+  /* Short laptop screens: a tighter list, so the heading, all ten tabs and the phone share a screen. */
+  @media (min-width: 861px) and (max-height: 900px) {
+    .sc-tab {
+      padding-block: 8px;
+    }
+    .sc-head {
+      margin-bottom: 20px;
     }
   }
 </style>

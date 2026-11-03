@@ -1,228 +1,210 @@
 ---
 import { getImage } from 'astro:assets';
 import Icon from './Icon.astro';
-import ringPhoto from '../assets/products/ring.png';
-import ringCutout from '../assets/products/ring-cutout.png';
-import teePhoto from '../assets/products/tee.png';
+// Sharpened 3x enlargements of the small demo shots (tools/upscale.mjs), so the stage stays crisp.
+import ringPhoto from '../assets/products/ring-hd.png';
+import ringCutout from '../assets/products/ring-cutout-hd.png';
 
-const ringSrc = (await getImage({ src: ringPhoto, format: 'webp', quality: 85 })).src;
-const ringCutSrc = (await getImage({ src: ringCutout, format: 'webp', quality: 90 })).src;
-const teeThumb = (await getImage({ src: teePhoto, width: 120, format: 'webp' })).src;
+const ringSrc = (await getImage({ src: ringPhoto, format: 'webp', quality: 95 })).src;
+const ringCutSrc = (await getImage({ src: ringCutout, format: 'png' })).src;
 
-// Real backdrop presets of the AI photo assistant (application/ai_image_operations.py).
-const backdrops = [
-  { id: 'white', label: 'Білий', css: '#ffffff' },
-  { id: 'light_gray', label: 'Світло-сірий', css: '#e6e6e6' },
-  { id: 'beige', label: 'Бежевий', css: '#ece3d6' },
-  { id: 'dark', label: 'Темний', css: '#2b2b2b' },
-  { id: 'gradient', label: 'Градієнт', css: 'linear-gradient(180deg,#f3f3f3,#d9d9d9)' },
-];
-// Four of the ten real operations, with their own hints; the demo imitates the result on a cut-out.
+// Three of the ten real operations, with their own hints; the demo imitates the result on a cut-out.
 const operations = [
   { id: 'replace_background', label: 'Замінити фон', hint: 'Товар без змін, новий фон' },
   { id: 'studio', label: 'Студійне фото', hint: 'Чистий фон і м\'яке світло' },
   { id: 'catalog_ready', label: 'Для каталогу', hint: 'По центру, однакові відступи' },
-  { id: 'lifestyle', label: 'Лайфстайл', hint: 'Товар у живій сцені' },
-];
-const scenes = [
-  { id: 'home', label: 'Затишний дім' },
-  { id: 'desk', label: 'Робочий стіл' },
-  { id: 'cafe', label: "Кав'ярня" },
-];
-const reminders = [
-  { id: '30m', label: '30 хв', long: 'через 30 хвилин' },
-  { id: '6h', label: '6 год', long: 'через 6 годин' },
-  { id: '24h', label: '24 год', long: 'через добу' },
 ];
 ---
-<section class="section growth" aria-labelledby="growth-title">
+<section class="section growth" id="growth" aria-labelledby="growth-title">
   <div class="container">
     <div class="section-head">
       <h2 id="growth-title" class="display h2">Коли продажі пішли, вмикайте інструменти росту</h2>
-      <p class="lead">Нагадування про кошик, бонуси, імпорт і AI-фото вже вбудовані в магазин. Спробуйте прямо тут.</p>
+      <p class="lead">Усе вже вбудовано в магазин. Спробуйте тут.</p>
     </div>
 
-    <div class="bento">
-      <article class="tile spot tile--ai" data-ai>
-        <div class="ai-compare" data-ai-compare style="--split:50%">
-          <div class="ai-before">
-            <img src={ringSrc} alt="Оригінальне фото кільця на темному тлі" width="248" height="316" loading="lazy" decoding="async" />
-          </div>
-          <div class="ai-after" data-ai-after data-op="replace_background" data-scene="home" style={`--ai-bg:${backdrops[1].css}`}>
-            <span class="ai-scene" aria-hidden="true"></span>
-            <span class="ai-frame" aria-hidden="true"></span>
-            <span class="ai-shadow" aria-hidden="true"></span>
-            <img class="ai-reflect" src={ringCutSrc} alt="" aria-hidden="true" />
-            <img class="ai-cut" src={ringCutSrc} alt="AI-чернетка: кільце на новому фоні" />
-          </div>
-          <span class="ai-tag" aria-hidden="true">Ваше фото</span>
-          <span class="ai-tag ai-tag--after" aria-hidden="true"><Icon name="sparkle" /> AI-чернетка</span>
-          <span class="ai-handle" aria-hidden="true"><Icon name="caret-left" /><Icon name="caret-right" /></span>
-          <input class="ai-range" type="range" min="0" max="100" value="50" aria-label="Порівняти ваше фото й AI-чернетку" data-ai-range />
-        </div>
-        <div class="tile-body">
-          <h3 class="h3">Фото для каталогу без фотографа</h3>
-          <p class="body-muted">Оберіть дію і потягніть повзунок: ліворуч ваше фото, праворуч AI-чернетка. У товар вона потрапить, лише коли ви її приймете.</p>
-          <div class="ops" role="radiogroup" aria-label="Що зробити з фото">
-            {operations.map((o, i) => (
-              <button type="button" class="op" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-ai-op={o.id} title={o.hint}>{o.label}</button>
-            ))}
-          </div>
-          <p class="ops-hint" data-ai-hint>{operations[0].hint}</p>
-          <fieldset class="swatches" data-ai-backgrounds>
-            <legend class="swatches-legend">Фон</legend>
-            {backdrops.map((b, i) => (
-              <label class="swatch" title={b.label}>
-                <input type="radio" name="ai-bg" value={b.css} checked={i === 1} data-ai-swatch />
-                <span class="swatch-dot" style={`background:${b.css}`}></span>
-                <span class="sr-only">{b.label}</span>
-              </label>
-            ))}
-          </fieldset>
-          <fieldset class="scenes" data-ai-scenes hidden>
-            <legend class="swatches-legend">Сцена</legend>
-            {scenes.map((sc, i) => (
-              <label class="scene">
-                <input type="radio" name="ai-scene" value={sc.id} checked={i === 0} data-ai-scene />
-                <span>{sc.label}</span>
-              </label>
-            ))}
-          </fieldset>
-          <div class="ai-actions">
-            <button type="button" class="ai-accept" data-ai-accept><Icon name="check" /> Прийняти в товар</button>
-            <span class="ai-status" data-ai-status role="status" aria-live="polite"></span>
-          </div>
-          <p class="tile-foot">Ще 6 дій: Покращити фото, Без манекена, На вішаку, На людині, Преміум-реклама, Своє завдання. 20, 100 або 300 AI-кредитів на місяць залежно від тарифу. У демо результат імітовано, у магазині його створює AI з вашого фото.</p>
-        </div>
-      </article>
-
-      <article class="tile spot tile--cart" data-reminder>
-        <div class="tile-body">
-          <h3 class="h3">Повертає тих, хто не дооформив</h3>
-          <p class="body-muted">Бот сам нагадає про залишений кошик. Текст пишете ви, час обираєте теж ви.</p>
-        </div>
-        <div class="remind-chips" role="radiogroup" aria-label="Коли надіслати нагадування">
-          {reminders.map((r, i) => (
-            <button type="button" class="remind-chip" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-remind={r.long}>
-              {r.label}
+    <!-- One focal tool, then four quiet ones: a big before/after the eye lands on first, and a calm
+         row of cards that each say one thing with one picture. -->
+    <article class="ai-stage glow-host" data-ai>
+      <div class="aura glow" data-glow-for=".ai-compare" aria-hidden="true"></div>
+      <div class="ai-copy">
+        <p class="eyebrow ai-eyebrow"><Icon name="sparkle" /> AI-фото</p>
+        <h3 class="ai-title">Фото для каталогу без фотографа</h3>
+        <p class="ai-lead">Оберіть дію і потягніть повзунок. У товар фото потрапить, лише коли ви його приймете.</p>
+        <div class="ops" role="radiogroup" aria-label="Що зробити з фото">
+          {operations.map((o, i) => (
+            <button type="button" class="op" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-ai-op={o.id} title={o.hint}>
+              <span class:list={['op-pic', `op-pic--${o.id}`]} aria-hidden="true"><img src={ringCutSrc} alt="" loading="lazy" decoding="async" /></span>
+              <span class="op-label">{o.label}</span>
             </button>
           ))}
         </div>
-        <div class="remind-msg">
-          <p class="remind-when"><Icon name="bell-ringing" /> <span>Надійде <span data-remind-label>{reminders[0].long}</span></span></p>
-          <p>Ви залишили в кошику Джинси, 30. Розмір ще є, повернутися до оформлення?</p>
-          <span class="remind-btn">Оформити замовлення</span>
+        <div class="ai-actions">
+          <button type="button" class="ai-accept" data-ai-accept><Icon name="check" /> Прийняти в товар</button>
+          <span class="ai-status" data-ai-status role="status" aria-live="polite"></span>
         </div>
-      </article>
+      </div>
+      <div class="ai-compare" data-ai-compare style="--split:50%">
+        <div class="ai-before">
+          <img src={ringSrc} alt="Оригінальне фото кільця на темному тлі" width="248" height="316" loading="lazy" decoding="async" />
+        </div>
+        <div class="ai-after" data-ai-after data-op="replace_background" style="--ai-bg:#e6e6e6">
+          <span class="ai-scene" aria-hidden="true"></span>
+          <span class="ai-frame" aria-hidden="true"></span>
+          <span class="ai-shadow" aria-hidden="true"></span>
+          <img class="ai-reflect" src={ringCutSrc} alt="" aria-hidden="true" />
+          <img class="ai-cut" src={ringCutSrc} alt="AI-чернетка: кільце на новому фоні" />
+        </div>
+        <span class="ai-tag" aria-hidden="true">Ваше фото</span>
+        <span class="ai-tag ai-tag--after" aria-hidden="true"><Icon name="sparkle" /> AI-чернетка</span>
+        <span class="ai-handle" aria-hidden="true"><Icon name="caret-left" /><Icon name="caret-right" /></span>
+        <input class="ai-range" type="range" min="0" max="100" value="50" aria-label="Порівняти ваше фото й AI-чернетку" data-ai-range />
+      </div>
+    </article>
 
-      <article class="tile spot tile--import">
-        <p class="import-num">2 000</p>
-        <div class="tile-body">
-          <h3 class="h3">товарів одним файлом</h3>
-          <p class="import-text">
-            CSV або XLSX з категоріями, варіантами і фото за посиланнями. Спершу перевірка, потім імпорт, а скасувати можна протягом 7 днів.
+    <ul class="tools">
+      <li class="tool">
+        <div class="tool-pic tool-pic--remind" aria-hidden="true">
+          <p class="remind-msg">
+            <span class="remind-when"><Icon name="bell-ringing" /> Через 30 хвилин</span>
+            Ви залишили в кошику Джинси, 30. Повернутися до оформлення?
           </p>
         </div>
-        <ul class="import-files" aria-hidden="true">
-          <li><Icon name="file-csv" /> products.csv</li>
-          <li><Icon name="file-xls" /> products.xlsx</li>
-        </ul>
-      </article>
-
-      <article class="tile spot tile--pause" data-pause>
-        <div class="tile-body">
-          <h3 class="h3">Поїхали у відпустку?</h3>
-          <p class="body-muted">Поставте паузу: покупці бачать каталог, але нові замовлення не оформлюються, поки ви не повернетесь.</p>
+        <h3 class="tool-title">Нагадає про кошик</h3>
+        <p class="tool-text">Бот сам напише тим, хто не дооформив. Текст і час обираєте ви.</p>
+      </li>
+      <li class="tool">
+        <div class="tool-pic tool-pic--import" aria-hidden="true">
+          <span class="import-num">2 000</span>
+          <span class="import-files"><Icon name="file-csv" /><Icon name="file-xls" /></span>
         </div>
-        <div class="pause-demo">
-          <button type="button" class="switch" role="switch" aria-checked="false" data-pause-switch>
+        <h3 class="tool-title">Товари одним файлом</h3>
+        <p class="tool-text">До 2 000 позицій з CSV або XLSX, з варіантами і фото. Скасувати можна 7 днів.</p>
+      </li>
+      <li class="tool">
+        <div class="tool-pic tool-pic--pause">
+          <button type="button" class="switch" role="switch" aria-checked="false" aria-label="Пауза оформлення" data-pause-switch>
             <span class="switch-track"><span class="switch-thumb"></span></span>
-            <span>Пауза checkout</span>
           </button>
-          <div class="mini-shop" data-pause-shop>
-            <div class="mini-banner" data-pause-banner>
-              <span class="mini-state mini-state--on"><Icon name="check" /> Оформлення відкрите</span>
-              <span class="mini-state mini-state--off"><Icon name="pause" /> Оформлення на паузі, каталог відкритий</span>
-            </div>
-            <div class="mini-item">
-              <span class="mini-thumb"><img src={teeThumb} alt="" loading="lazy" decoding="async" /></span>
-              <div>
-                <p class="mini-name">Футболка</p>
-                <p class="mini-price">1 500 грн</p>
-              </div>
-              <span class="mini-add" data-pause-add><Icon name="plus" /></span>
-            </div>
-          </div>
+          <span class="pause-state" data-pause-shop aria-hidden="true">
+            <span class="pause-on"><Icon name="check" /> Оформлення відкрите</span>
+            <span class="pause-off"><Icon name="pause" /> На паузі</span>
+          </span>
         </div>
-      </article>
-
-      <article class="tile spot tile--account">
-        <div class="tile-body">
-          <h3 class="h3">Кабінет покупця з бонусами</h3>
-          <p class="body-muted">
-            Покупець входить через Telegram або e-mail, бачить історію замовлень і свої промокоди. Бонуси ви призначаєте сегменту: VIP, новим чи тим, хто давно не купував.
-          </p>
+        <h3 class="tool-title">Пауза на відпустку</h3>
+        <p class="tool-text">Каталог лишається відкритим, нові замовлення чекають на вас.</p>
+      </li>
+      <li class="tool">
+        <div class="tool-pic tool-pic--coupons" aria-hidden="true">
+          <span class="coupon"><b>VIP10</b><i>−10%</i></span>
+          <span class="coupon"><b>COMEBACK</b><i>−150 грн</i></span>
+          <span class="coupon"><b>FIRST</b><i>−5%</i></span>
         </div>
-        <ul class="coupons" aria-label="Приклади бонусів у кабінеті">
-          <li class="coupon">
-            <span class="coupon-code">VIP10</span>
-            <span class="coupon-val">−10%</span>
-            <span class="coupon-who">для VIP</span>
-          </li>
-          <li class="coupon">
-            <span class="coupon-code">COMEBACK</span>
-            <span class="coupon-val">−150 грн</span>
-            <span class="coupon-who">повернення сплячих</span>
-          </li>
-          <li class="coupon">
-            <span class="coupon-code">FIRST</span>
-            <span class="coupon-val">−5%</span>
-            <span class="coupon-who">нові клієнти</span>
-          </li>
-        </ul>
-      </article>
-    </div>
+        <h3 class="tool-title">Кабінет з бонусами</h3>
+        <p class="tool-text">Історія замовлень і промокоди для VIP, нових і тих, хто давно не купував.</p>
+      </li>
+    </ul>
   </div>
 </section>
 
 <style>
-  .bento {
+  /* ---------- The focal tool ---------- */
+  .ai-stage {
+    /* The photo column takes its width from the photo's height and proportions, set outright:
+       Safari gives an auto track around an empty-looking box no width at all. */
+    --ai-h: clamp(360px, 56svh, 480px);
     display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: 20px;
-  }
-  .tile {
-    position: relative;
-    min-width: 0;
-    display: grid;
-    gap: 24px;
-    align-content: start;
-    padding: clamp(24px, 3vw, 36px);
-    border-radius: var(--r-card);
-    background: linear-gradient(180deg, var(--surface-2), var(--surface));
+    grid-template-columns: minmax(0, 1fr) calc(var(--ai-h) * 248 / 316);
+    align-items: center;
+    gap: clamp(24px, 3.5vw, 56px);
+    padding: clamp(20px, 3vw, 44px);
+    border-radius: calc(var(--r-card) + 8px);
+    background:
+      radial-gradient(70% 90% at 85% 50%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%),
+      linear-gradient(180deg, var(--surface-2), var(--surface));
     box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .ai-copy {
+    display: grid;
+    justify-items: start;
+    gap: 18px;
+  }
+  .ai-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent-text);
+  }
+  .ai-title {
+    max-width: 16ch;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2rem, 1.3rem + 2.2vw, 3.2rem);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+  }
+  .ai-lead {
+    max-width: 40ch;
+    color: var(--muted);
+    font-size: 1.02rem;
+  }
+  /* Each action is a small preview of its own result, so the choice reads at a glance. */
+  .ops {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+    max-width: 440px;
+  }
+  .op {
+    display: grid;
+    gap: 8px;
+    padding: 6px 6px 10px;
+    border-radius: 18px;
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-weight: 600;
+    font-size: 0.86rem;
+    text-align: center;
+    transition:
+      background-color 0.25s var(--ease-out),
+      box-shadow 0.25s var(--ease-out),
+      transform 0.4s var(--ease-spring);
+  }
+  .op:hover {
+    background: var(--hover-soft);
+  }
+  .op:active {
+    transform: scale(0.97);
+  }
+  .op[aria-checked='true'] {
+    background: var(--surface-3);
+    box-shadow:
+      inset 0 0 0 1.5px var(--ink),
+      var(--shadow-soft);
+  }
+  .op-pic {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    border-radius: 13px;
+    background: #e6e6e6;
     overflow: hidden;
   }
-  .tile-body {
-    display: grid;
-    gap: 10px;
+  .op-pic img {
+    width: 72%;
+    filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.28));
   }
-  .tile-foot {
-    font-size: 0.9rem;
-    color: var(--muted);
+  .op-pic--studio {
+    background: radial-gradient(90% 70% at 50% 15%, #ffffff, #d9d9de);
+  }
+  .op-pic--catalog_ready {
+    background: #fff;
+    box-shadow: inset 0 0 0 5px #fff, inset 0 0 0 6px #e3e3e3;
+  }
+  .op-pic--catalog_ready img {
+    width: 58%;
   }
 
-  /* AI photo */
-  .tile--ai {
-    grid-column: span 7;
-    grid-row: span 2;
-    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-    align-items: stretch;
-    align-content: stretch;
-  }
-  .tile--ai .tile-body {
-    align-content: center;
-  }
   /* Before / after: the AI layer is clipped from the left at --split. */
   /* The frame has the photo's proportions and the cut-out sits exactly where the ring is
      in the original (crop box 38,107 to 210,234 of 248x316), so before and after line up. */
@@ -330,31 +312,6 @@ const reminders = [
   .ai-after[data-op='catalog_ready'] .ai-frame {
     opacity: 1;
   }
-  /* Lifestyle scenes: a wall, a surface and the light of the room. */
-  .ai-after[data-op='lifestyle'] .ai-cut,
-  .ai-after[data-op='lifestyle'] .ai-shadow {
-    transform: translateY(32%) scale(0.72);
-  }
-  .ai-after[data-op='lifestyle'][data-scene='home'] .ai-scene {
-    background:
-      linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.45) 38%, transparent 46%, transparent 52%, rgba(255, 255, 255, 0.3) 58%, transparent 66%),
-      linear-gradient(to bottom, #e8e0d4 0 62%, #b99f80 62% 64%, #c8b293 64%, #a98f70);
-  }
-  .ai-after[data-op='lifestyle'][data-scene='desk'] .ai-scene {
-    background:
-      linear-gradient(to bottom, transparent 62%, rgba(0, 0, 0, 0.06) 62% 63%, transparent 63%),
-      linear-gradient(6deg, transparent 12%, #ffffff 12% 28%, transparent 28%),
-      linear-gradient(to bottom, #e4e7ea 0 62%, #f2f2f0 62%);
-  }
-  .ai-after[data-op='lifestyle'][data-scene='cafe'] .ai-scene {
-    background:
-      radial-gradient(circle at 18% 20%, rgba(255, 206, 140, 0.5), transparent 9%),
-      radial-gradient(circle at 74% 12%, rgba(255, 220, 160, 0.4), transparent 8%),
-      radial-gradient(circle at 88% 34%, rgba(255, 196, 120, 0.35), transparent 7%),
-      radial-gradient(circle at 36% 38%, rgba(255, 230, 180, 0.25), transparent 6%),
-      linear-gradient(to bottom, #3e3029 0 62%, #6e5443 62%, #4f3b2f);
-  }
-
   /* "Generating": a light sweep over the AI side. */
   .ai-after::after {
     content: '';
@@ -457,71 +414,6 @@ const reminders = [
     outline-offset: 3px;
   }
 
-  .op {
-    height: 40px;
-    padding: 0 16px;
-    border-radius: var(--r-pill);
-    box-shadow: inset 0 0 0 1px var(--line-strong);
-    color: var(--ink-2);
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: background-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
-  }
-  .op:hover {
-    background: var(--surface-3);
-  }
-  .op[aria-checked='true'] {
-    background: var(--ink);
-    color: var(--bg);
-    box-shadow: none;
-  }
-  .ops-hint {
-    margin-top: -2px;
-    font-size: 0.88rem;
-    color: var(--muted);
-  }
-  .scenes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    min-width: 0;
-    margin: 6px 0 0;
-    padding: 0;
-    border: 0;
-  }
-  .scenes[hidden],
-  .swatches[hidden] {
-    display: none;
-  }
-  .scene {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    height: 38px;
-    padding: 0 14px;
-    border-radius: var(--r-pill);
-    box-shadow: inset 0 0 0 1px var(--line-strong);
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: var(--ink-2);
-    cursor: pointer;
-  }
-  .scene input {
-    position: absolute;
-    inset: 0;
-    margin: 0;
-    opacity: 0;
-    cursor: pointer;
-  }
-  .scene:has(input:checked) {
-    background: var(--surface-3);
-    box-shadow: inset 0 0 0 1.5px var(--ink);
-    color: var(--ink);
-  }
-  .scene:has(input:focus-visible) {
-    outline: 2px solid var(--accent-text);
-    outline-offset: 2px;
-  }
   .ai-actions {
     display: flex;
     flex-wrap: wrap;
@@ -550,137 +442,116 @@ const reminders = [
     font-weight: 600;
     color: var(--ink-2);
   }
-  .swatches {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px;
-    min-width: 0;
-    margin: 6px 0 0;
-    padding: 0;
-    border: 0;
-  }
-  .swatches-legend {
+
+  /* The photo keeps its proportions and takes its size from the screen height, so the stage
+     never grows past a laptop screen. */
+  .ai-stage .ai-compare {
+    justify-self: center;
     width: 100%;
-    margin-bottom: 2px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--ink-2);
+    height: auto;
+    border-radius: 26px;
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      0 40px 80px -40px rgba(10, 10, 20, 0.45);
   }
-  .swatch {
+
+  /* ---------- Four quiet tools ---------- */
+  .tools {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .tool {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    padding: 16px 16px 26px;
+    border-radius: calc(var(--r-card) + 4px);
+    background: linear-gradient(180deg, var(--surface-2), var(--surface));
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  /* Hover: the card lifts 2px and its shadow softens out beneath it. */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .tool {
+      transition:
+        translate 0.5s var(--ease-spring),
+        box-shadow 0.5s var(--ease-out);
+    }
+    .tool:hover {
+      translate: 0 -2px;
+      box-shadow:
+        inset 0 0 0 1px var(--line),
+        var(--shadow-soft);
+    }
+  }
+  .tool-pic {
     position: relative;
     display: grid;
     place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    cursor: pointer;
+    height: 180px;
+    margin-bottom: 14px;
+    border-radius: 18px;
+    background: var(--bg-raise);
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
   }
-  .swatch input {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    margin: 0;
-    cursor: pointer;
+  .tool-title,
+  .tool-text {
+    padding-inline: 8px;
   }
-  .swatch-dot {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    box-shadow: inset 0 0 0 1px rgba(10, 10, 11, 0.18);
-    transition: transform 0.4s var(--ease-spring), box-shadow 0.3s var(--ease-out);
+  .tool-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.3rem;
+    letter-spacing: -0.02em;
   }
-  .swatch:hover .swatch-dot {
-    transform: scale(1.1);
-  }
-  .swatch input:checked + .swatch-dot {
-    box-shadow:
-      inset 0 0 0 1px rgba(10, 10, 11, 0.18),
-      0 0 0 3px var(--bg),
-      0 0 0 5px var(--accent);
-  }
-  .swatch input:focus-visible + .swatch-dot {
-    outline: 2px solid var(--accent-text);
-    outline-offset: 5px;
-  }
-  .ops {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+  .tool-text {
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.45;
   }
 
-  /* Cart reminder */
-  .tile--cart {
-    grid-column: span 5;
-    background: linear-gradient(160deg, var(--hover-soft), transparent 70%), linear-gradient(180deg, var(--surface-2), var(--surface));
-  }
-  .remind-chips {
-    display: flex;
-    gap: 8px;
-  }
-  .remind-chip {
-    height: 44px;
-    padding: 0 18px;
-    border-radius: var(--r-pill);
-    background: transparent;
-    box-shadow: inset 0 0 0 1px var(--line-strong);
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out), transform 0.4s var(--ease-spring);
-  }
-  .remind-chip:active {
-    transform: scale(0.96);
-  }
-  .remind-chip[aria-checked='true'] {
-    background: var(--ink);
-    color: var(--bg);
-    box-shadow: none;
-  }
+  /* Cart reminder: the message the bot sends. */
   .remind-msg {
     display: grid;
-    gap: 8px;
-    padding: 16px 18px;
-    border-radius: 20px 20px 20px 6px;
+    gap: 4px;
+    width: 84%;
+    padding: 10px 12px;
+    border-radius: 16px 16px 16px 5px;
     background: var(--surface-3);
     box-shadow:
       inset 0 0 0 1px var(--line),
       var(--shadow-soft);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    line-height: 1.35;
+    transition: transform 0.6s var(--ease-spring);
   }
   .remind-when {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.82rem;
-    font-weight: 600;
+    gap: 5px;
     color: var(--accent-text);
+    font-size: 0.8rem;
+    font-weight: 600;
   }
-  .remind-btn {
-    justify-self: start;
-    margin-top: 4px;
-    padding: 8px 14px;
-    border-radius: 12px;
-    background: var(--accent-soft);
-    color: var(--accent-text);
-    font-weight: 600;
-    font-size: 0.88rem;
+  .tool:hover .remind-msg {
+    transform: translateY(-4px) rotate(-1deg);
   }
 
-  /* Import */
-  .tile--import {
-    grid-column: span 5;
-    color: var(--on-panel);
-    border: 1px solid transparent;
+  /* Import: the number is the picture. */
+  .tool-pic--import {
+    gap: 4px;
+    align-content: center;
     background:
-      radial-gradient(120% 90% at 100% 0%, rgba(255, 255, 255, 0.14), transparent 60%) padding-box,
-      linear-gradient(var(--panel), var(--panel)) padding-box,
-      var(--chrome-border) border-box;
-    box-shadow: none;
+      radial-gradient(120% 90% at 100% 0%, rgba(255, 255, 255, 0.14), transparent 60%),
+      var(--panel);
+    color: var(--on-panel-muted);
   }
   .import-num {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: clamp(3.4rem, 2.4rem + 3vw, 5.2rem);
+    font-size: 4.4rem;
     letter-spacing: -0.045em;
     line-height: 0.95;
     background: var(--chrome);
@@ -688,53 +559,26 @@ const reminders = [
     background-clip: text;
     color: transparent;
   }
-  .tile--import .tile-body {
-    margin-top: -12px;
-  }
-  .import-text {
-    color: var(--on-panel-muted);
-  }
   .import-files {
     display: flex;
-    flex-wrap: wrap;
     gap: 8px;
-  }
-  .import-files li {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    height: 36px;
-    padding: 0 14px;
-    border-radius: var(--r-pill);
-    background: rgba(255, 255, 255, 0.08);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
-    font-size: 0.9rem;
-    font-weight: 500;
-  }
-  .import-files :global(.icon) {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
   }
 
-  /* Pause checkout */
-  .tile--pause {
-    grid-column: span 5;
-  }
-  .pause-demo {
-    display: grid;
-    gap: 16px;
+  /* Pause: the one switch on the row, and it works. */
+  .tool-pic--pause {
+    gap: 12px;
+    align-content: center;
   }
   .switch {
     display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    justify-self: start;
     min-height: 44px;
-    font-weight: 600;
+    align-items: center;
   }
   .switch-track {
     position: relative;
-    width: 52px;
-    height: 32px;
+    width: 60px;
+    height: 36px;
     border-radius: var(--r-pill);
     background: var(--line-strong);
     transition: background-color 0.3s var(--ease-out);
@@ -743,8 +587,8 @@ const reminders = [
     position: absolute;
     top: 3px;
     left: 3px;
-    width: 26px;
-    height: 26px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     background: #fff;
     box-shadow: 0 2px 6px rgba(10, 10, 11, 0.25);
@@ -754,170 +598,120 @@ const reminders = [
     background: var(--accent);
   }
   .switch[aria-checked='true'] .switch-thumb {
-    transform: translateX(20px);
+    transform: translateX(24px);
   }
-  .mini-shop {
+  .pause-state {
     display: grid;
-    gap: 10px;
-    padding: 12px;
-    border-radius: 20px;
-    background: var(--bg-raise);
-    box-shadow: inset 0 0 0 1px var(--line);
+    font-size: 0.9rem;
+    font-weight: 600;
   }
-  .mini-banner {
-    display: grid;
-    padding: 8px 12px;
-    border-radius: 12px;
+  .pause-on,
+  .pause-off {
+    grid-area: 1 / 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: var(--r-pill);
+    transition:
+      opacity 0.35s var(--ease-out),
+      transform 0.5s var(--ease-spring);
+  }
+  .pause-on {
     background: var(--ok-soft);
     color: var(--ok);
-    font-size: 0.86rem;
-    font-weight: 600;
-    transition: background-color 0.4s var(--ease-out), color 0.4s var(--ease-out);
   }
-  .mini-state {
-    grid-area: 1 / 1;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: opacity 0.35s var(--ease-out), transform 0.5s var(--ease-spring);
-  }
-  .mini-state--off {
+  .pause-off {
+    background: var(--ink);
+    color: var(--bg);
     opacity: 0;
     transform: translateY(6px);
   }
-  .mini-shop.is-paused .mini-banner {
-    background: var(--ink);
-    color: var(--bg);
-  }
-  .mini-shop.is-paused .mini-state--on {
+  .pause-state.is-paused .pause-on {
     opacity: 0;
     transform: translateY(-6px);
   }
-  .mini-shop.is-paused .mini-state--off {
+  .pause-state.is-paused .pause-off {
     opacity: 1;
     transform: none;
   }
-  .mini-item {
-    display: grid;
-    grid-template-columns: 52px 1fr auto;
-    align-items: center;
-    gap: 12px;
-  }
-  .mini-thumb {
-    display: block;
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
-    background: #2a2a2a;
-    overflow: hidden;
-  }
-  .mini-thumb img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .mini-name {
-    font-weight: 600;
-  }
-  .mini-price {
-    font-size: 0.9rem;
-    color: var(--muted);
-  }
-  .mini-add {
-    display: grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--ink);
-    color: var(--bg);
-    transition: opacity 0.3s var(--ease-out), background-color 0.3s var(--ease-out);
-  }
-  .mini-shop.is-paused .mini-add {
-    background: var(--line-strong);
-    opacity: 0.5;
-  }
 
-  /* Customer account */
-  .tile--account {
-    grid-column: span 7;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
-    align-items: center;
-    background:
-      radial-gradient(120% 120% at 100% 0%, rgba(160, 172, 190, 0.14), transparent 60%),
-      linear-gradient(180deg, var(--surface-2), var(--surface));
-  }
-  .coupons {
-    display: grid;
-    gap: 10px;
-  }
+  /* Bonuses: three coupons fanned like cards in a hand. */
   .coupon {
+    position: absolute;
     display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 2px 12px;
-    padding: 14px 16px;
-    border-radius: 18px;
+    gap: 2px;
+    width: 48%;
+    padding: 12px 14px;
+    border-radius: 16px;
     background: var(--surface-3);
     box-shadow:
       inset 0 0 0 1px var(--line),
       var(--shadow-soft);
-    transition: transform 0.6s var(--ease-spring);
+    font-size: 0.9rem;
+    transition: transform 0.7s var(--ease-spring);
   }
-  .coupon:nth-child(2) {
-    margin-left: 18px;
-  }
-  .coupon:nth-child(3) {
-    margin-left: 36px;
-  }
-  .tile--account:hover .coupon {
-    transform: translateX(-6px);
-  }
-  .tile--account:hover .coupon:nth-child(2) {
-    transform: translateX(-12px);
-  }
-  .tile--account:hover .coupon:nth-child(3) {
-    transform: translateX(-18px);
-  }
-  .coupon-code {
-    font-weight: 600;
+  .coupon b {
     letter-spacing: 0.02em;
   }
-  .coupon-val {
+  .coupon i {
     font-family: var(--font-display);
+    font-style: normal;
     font-weight: 600;
+    font-size: 1.2rem;
     color: var(--accent-text);
   }
-  .coupon-who {
-    grid-column: 1 / -1;
-    font-size: 0.84rem;
-    color: var(--muted);
+  .coupon:nth-child(1) {
+    transform: translate(-52%, 8%) rotate(-10deg);
+  }
+  .coupon:nth-child(2) {
+    transform: translate(0, -4%) rotate(0deg);
+    z-index: 1;
+  }
+  .coupon:nth-child(3) {
+    transform: translate(52%, 8%) rotate(10deg);
+  }
+  .tool:hover .coupon:nth-child(1) {
+    transform: translate(-60%, 4%) rotate(-14deg);
+  }
+  .tool:hover .coupon:nth-child(3) {
+    transform: translate(60%, 4%) rotate(14deg);
   }
 
   @media (max-width: 1080px) {
-    .tile--ai,
-    .tile--account {
-      grid-template-columns: 1fr;
-    }
-    .ai-compare {
-      width: min(100%, 420px);
-      justify-self: center;
-    }
-  }
-  @media (max-width: 860px) {
-    .bento {
+    .ai-stage {
+      --ai-h: clamp(320px, 60vw, 460px);
       grid-template-columns: minmax(0, 1fr);
     }
-    .ai-compare {
-      width: 100%;
+    .ai-stage .ai-compare {
+      width: min(100%, calc(var(--ai-h) * 248 / 316));
     }
-    .tile--ai,
-    .tile--cart,
-    .tile--import,
-    .tile--pause,
-    .tile--account {
-      grid-column: auto;
-      grid-row: auto;
+    .tools {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 560px) {
+    .tools {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .ops {
+      gap: 6px;
+    }
+    .op {
+      padding: 4px 4px 8px;
+      border-radius: 14px;
+      font-size: 0.72rem;
+    }
+    .op-pic {
+      border-radius: 10px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .remind-msg,
+    .coupon,
+    .switch-thumb {
+      transition: none;
     }
   }
 </style>

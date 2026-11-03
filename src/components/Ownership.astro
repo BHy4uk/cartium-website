@@ -1,0 +1,133 @@
+---
+import Icon from './Icon.astro';
+import { PLANS } from '../config';
+
+const from = PLANS[0].monthly;
+
+// Own channel versus someone else's shelf. The marketplace lines stay general (true of any
+// marketplace); every Cartium line is a product fact from docs/BRIEF.md.
+const points = [
+  {
+    icon: 'storefront',
+    them: 'Поруч схожі товари, часто дешевші',
+    title: 'Без конкурентів поруч',
+    text: 'У вашому боті покупець бачить лише ваш каталог, ваш банер і ваші ціни.',
+  },
+  {
+    icon: 'percent',
+    them: 'Комісія з кожного продажу',
+    title: 'Без відсотка з продажу',
+    text: `Фіксований тариф від $${from} на місяць. Гроші покупців надходять на ваш рахунок LiqPay чи monobank.`,
+  },
+  {
+    icon: 'address-book',
+    them: 'Покупець повертається на маркетплейс, а не до вас',
+    title: 'Покупці лишаються у вас',
+    text: 'Контакти кожного, хто замовив, у ваших замовленнях. На Pro ще й розділ «Клієнти» з історією покупок і сегментами: нові, повторні, VIP.',
+  },
+  {
+    icon: 'megaphone',
+    them: 'Нагадати про себе можна лише платним просуванням',
+    title: 'Повертайте розсилкою',
+    text: 'Повідомлення від вашого бота потрібному сегменту і промокод тим, хто давно не купував. Входить у тариф Pro, без оплати за кожне SMS.',
+  },
+];
+---
+<section class="section own" id="own" aria-labelledby="own-title">
+  <div class="container">
+    <div class="section-head">
+      <h2 id="own-title" class="display h2">Свій магазин, а не полиця на маркетплейсі</h2>
+      <p class="lead" data-fill>
+        На маркетплейсі ви орендуєте місце поруч із конкурентами. У Telegram-боті магазин, покупці й гроші належать вам.
+      </p>
+    </div>
+
+    <ul class="own-grid">
+      {points.map((p) => (
+        <li class="own-card spot">
+          <p class="own-them"><Icon name="x" /> {p.them}</p>
+          <span class="own-icon" aria-hidden="true"><Icon name={p.icon} /></span>
+          <h3 class="h3">{p.title}</h3>
+          <p class="body-muted">{p.text}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .own-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .own-card {
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    padding: 22px 24px 28px;
+    border-radius: calc(var(--r-card) + 4px);
+    background: linear-gradient(180deg, var(--surface-2), var(--surface));
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  /* Hover: the card lifts 2px and its shadow softens out beneath it. */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .own-card {
+      transition:
+        translate 0.5s var(--ease-spring),
+        box-shadow 0.5s var(--ease-out);
+    }
+    .own-card:hover {
+      translate: 0 -2px;
+      box-shadow:
+        inset 0 0 0 1px var(--line),
+        var(--shadow-soft);
+    }
+  }
+  /* What the marketplace gives you, struck through: the card then says what you get instead. */
+  .own-them {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: 2.9em;
+    padding-bottom: 16px;
+    margin-bottom: 6px;
+    border-bottom: 1px dashed var(--line-strong);
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.4;
+    text-decoration: line-through;
+    text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent);
+  }
+  .own-them :global(.icon) {
+    flex: none;
+    margin-top: 0.15em;
+    font-size: 1rem;
+  }
+  .own-icon {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      var(--shadow-soft);
+    font-size: 1.4rem;
+  }
+
+  @media (max-width: 1080px) {
+    .own-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 600px) {
+    .own-grid {
+      grid-template-columns: 1fr;
+    }
+    .own-them {
+      min-height: 0;
+    }
+  }
+</style>

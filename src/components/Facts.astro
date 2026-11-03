@@ -1,0 +1,87 @@
+---
+// Four quick facts right under the hero, each one checkable on this page or in the docs:
+// the launch steps add up to 5 + 15 + 10 + 5 minutes (Launch.astro, tgshop-docs/index.md),
+// the buyer's three taps come from ChatStory, the payment ways from Rails and the brief.
+const facts = [
+  { num: '35', unit: 'хв', text: 'від створення магазину до тестового замовлення' },
+  { num: '3', unit: 'дії', text: 'щоб покупець оплатив, не виходячи з Telegram' },
+  { num: '0', unit: '%', text: 'з ваших продажів: лише фіксований тариф' },
+  { num: '5', unit: 'способів', text: 'оплати, з них два з автопідтвердженням' },
+];
+---
+<section class="facts" aria-label="Cartium у цифрах">
+  <div class="container">
+    <ul class="facts-list">
+      {facts.map((f) => (
+        <li class="fact">
+          <p class="fact-num display"><span>{f.num}</span><small>{f.unit}</small></p>
+          <p class="fact-text">{f.text}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .facts {
+    padding-block: clamp(40px, 6vw, 72px) clamp(8px, 2vw, 24px);
+  }
+  .facts-list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-block: 1px solid var(--line);
+  }
+  .fact {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    padding: clamp(22px, 3vw, 36px) clamp(16px, 2.4vw, 32px);
+  }
+  .fact + .fact {
+    border-left: 1px solid var(--line);
+  }
+  .fact-num {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: clamp(2.6rem, 1.8rem + 2.6vw, 4.2rem);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .fact-num small {
+    font-size: 0.36em;
+    letter-spacing: -0.01em;
+    color: var(--muted);
+  }
+  .fact-text {
+    max-width: 22ch;
+    color: var(--muted);
+    font-size: 0.98rem;
+    line-height: 1.45;
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 860px) {
+    .facts-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .fact:nth-child(3) {
+      border-left: 0;
+    }
+    .fact:nth-child(n + 3) {
+      border-top: 1px solid var(--line);
+    }
+  }
+  @media (max-width: 480px) {
+    .fact {
+      padding-inline: 14px;
+    }
+    .fact:nth-child(odd) {
+      padding-left: 0;
+    }
+    .fact-text {
+      font-size: 0.9rem;
+      hyphens: auto;
+    }
+  }
+</style>
