@@ -27,7 +27,7 @@ subscription_lifecycle, docs/ai/*) и публичная документаци�
 | После окончания: 5 дней grace, затем витрина скрыта, **все данные сохраняются** | `subscription_lifecycle.py`, `docs/DATA_LIFECYCLE.md` |
 | Тарифы Basic $10, Pro $20, Business $40; год $96 / $192 / $384 (−20%) | `billing/plans.py` |
 | Оплата подписки в гривнях по курсу | `billing/plans.py` (конвертация в UAH) |
-| 5 способов оплаты: LiqPay, plata by mono (автоподтверждение), ссылка, реквизиты IBAN, наложенный платёж | owner-guide, `order_status.PaymentMethod` |
+| 7 способов оплаты: Stripe, PayPal, LiqPay, plata by mono (автоподтверждение), ссылка, реквизиты IBAN, наложенный платёж. Валюты: гривна, евро, злотый, доллар | owner-guide, `order_status.PaymentMethod` |
 | PayPal принимается (на плашке оплаты) | подтвердил владелец 2026-10-30 |
 | Деньги покупателей идут по ключам магазина, Cartium не платёжная организация и не комиссионер | `liqpay_service`/`monobank_service` per-tenant, публичная оферта §1.6 |
 | Новая почта: ТТН из карточки заказа, обновить статус, отследить (Pro) | owner-guide, nova-poshta.md |
