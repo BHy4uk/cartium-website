@@ -49,8 +49,8 @@ const perMonthYearly = (yearly: number) => yearly / 12;
 
           {p.includes && <p class="plan-includes">{p.includes}</p>}
           <ul class="plan-features">
-            {p.features.map((f) => (
-              <li><Icon name="check" /> {f}</li>
+            {p.features.map((f, i) => (
+              <li style={`--i:${i}`}><Icon name="check" /> {f}</li>
             ))}
           </ul>
           </div>
@@ -367,6 +367,14 @@ const perMonthYearly = (yearly: number) => yearly / 12;
   }
   .plan--featured .plan-features :global(.icon) {
     color: var(--accent-text);
+  }
+  /* Ticks draw themselves left to right, one after another, once the card is in view (main.ts). */
+  :global(.ticks-ready) .plan-features :global(.icon) {
+    clip-path: inset(0 100% 0 0);
+  }
+  :global(.ticks-ready) .plan.is-drawn .plan-features :global(.icon) {
+    clip-path: inset(0 -10% 0 0);
+    transition: clip-path 0.55s var(--ease-out) calc(var(--i, 0) * 90ms + 0.35s);
   }
   .pricing-note {
     margin-top: 40px;

@@ -3,6 +3,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import { initDemo } from './demo';
+import { initPointer } from './pointer';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -103,6 +104,7 @@ if (navWrap) {
     onUpdate(self) {
       const hide = self.direction === 1 && self.scroll() > 480 && !menuOpen;
       navWrap.classList.toggle('is-hidden', hide);
+      navWrap.classList.toggle('is-scrolled', self.scroll() > 40);
       setProgress?.(self.progress);
       lineTo?.(self.progress);
       if (scrollLine) {
@@ -231,6 +233,11 @@ function orderLanded(notif: HTMLElement) {
   notif.classList.remove('is-ping');
   void notif.offsetWidth;
   notif.classList.add('is-ping');
+  // The island on the centre phone swells once, the way a Live Activity announces itself.
+  $('.hero-slot--center .iphone-island')?.animate([{ scale: '1' }, { scale: '1.4 1.12', offset: 0.3 }, { scale: '1' }], {
+    duration: 1100,
+    easing: 'cubic-bezier(0.32, 0.72, 0, 1)',
+  });
   const aura = $('[data-hero-aura]');
   if (aura)
     gsap.fromTo(aura, { '--flare': 1.45, '--flare-s': 1.06 }, { '--flare': 1, '--flare-s': 1, duration: 1.8, ease: 'power3.out' });
@@ -257,8 +264,36 @@ function heroMotion() {
   gsap.to('[data-hl="1"]', { xPercent: -7, ease: 'none', scrollTrigger: scrub });
   gsap.to('[data-hl="2"]', { xPercent: 9, ease: 'none', scrollTrigger: scrub });
   gsap.to(stage, { y: -80, ease: 'none', scrollTrigger: scrub });
-  gsap.to('.hero-slot--left', { xPercent: -10, ease: 'none', scrollTrigger: scrub });
-  gsap.to('.hero-slot--right', { xPercent: 10, ease: 'none', scrollTrigger: scrub });
+  // The fan of phones closes into one (Hero.astro, --merge).
+  gsap.fromTo(stage, { '--merge': 0 }, { '--merge': 1, ease: 'none', scrollTrigger: { ...scrub, end: '70% top' } });
+
+  // The first order grows out of the centre phone's Dynamic Island, like a Live Activity. The CSS
+  // keeps the card hidden; at 1.2s, once the phone has risen, both are measured first and only then
+  // the card opens out, moving nothing but translate, scale and opacity so it stays on the GPU.
+  const island = $('.hero-slot--center .iphone-island');
+  if (notif && island)
+    window.setTimeout(() => {
+      const hold = notif.getAnimations().find((a) => (a as CSSAnimation).animationName?.includes('hero-notif'));
+      // Too late (a busy start): the CSS fade has begun, so leave it alone.
+      if (!hold || Number(hold.currentTime) >= 2500) return;
+      const n = notif.getBoundingClientRect();
+      const i = island.getBoundingClientRect();
+      // If the phone is still finishing its rise, aim at where the island will settle.
+      const phone = island.closest<HTMLElement>('.hero-phone');
+      const t = phone ? getComputedStyle(phone).transform : 'none';
+      const rise = t === 'none' ? 0 : new DOMMatrix(t).m42;
+      const dx = i.left + i.width / 2 - (n.left + n.width / 2);
+      const dy = i.top + i.height / 2 - rise - (n.top + n.height / 2);
+      hold.cancel();
+      notif.animate(
+        [
+          { opacity: 0, translate: `${dx}px ${dy}px`, scale: '0.16 0.12' },
+          { opacity: 1, offset: 0.22 },
+          { opacity: 1, translate: '0 0', scale: '1 1' },
+        ],
+        { duration: 1000, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+      );
+    }, 1200);
 
   // Pointer: the fan of phones leans toward the cursor; the notification floats against it.
   if (!finePointer) return;
@@ -685,6 +720,12 @@ function reveals() {
       { clipPath: 'inset(8% 6% 8% 6% round 48px)' },
       { clipPath: 'inset(0% 0% 0% 0% round 40px)', ease: 'none', scrollTrigger: { trigger: final, start: 'top 95%', end: 'top 45%', scrub: true } },
     );
+    // The closing line arrives small and grows to full size as the panel opens.
+    gsap.fromTo(
+      '.final-copy .h2',
+      { scale: 0.74, autoAlpha: 0.35 },
+      { scale: 1, autoAlpha: 1, transformOrigin: '0% 100%', ease: 'none', scrollTrigger: { trigger: final, start: 'top bottom', end: 'top 25%', scrub: 0.6 } },
+    );
     gsap.fromTo('.final-mark', { rotation: -8, yPercent: 10 }, { rotation: 0, yPercent: -6, ease: 'none', scrollTrigger: { trigger: final, start: 'top bottom', end: 'bottom top', scrub: true } });
   }
 }
@@ -787,6 +828,75 @@ function headlines() {
   );
 }
 
+/* ---------- Statements that fill as you read ---------- */
+// A long lead marked data-fill starts faint and lights up word by word with the scroll, the way
+// Apple's product pages read a sentence out to you.
+function fillText() {
+  if (reduceMotion) return;
+  $$('[data-fill]').forEach((p) => {
+    const walk = (node: Node) =>
+      [...node.childNodes].forEach((child) => {
+        if (child.nodeType !== Node.TEXT_NODE) return walk(child);
+        const frag = document.createDocumentFragment();
+        (child.textContent ?? '').split(/(\s+)/).forEach((part) => {
+          if (!part.trim()) return frag.append(part);
+          const w = document.createElement('span');
+          w.className = 'fill-w';
+          w.textContent = part;
+          frag.append(w);
+        });
+        child.replaceWith(frag);
+      });
+    walk(p);
+    p.classList.add('is-fill');
+    gsap.fromTo(
+      $$('.fill-w', p),
+      { opacity: 0.2 },
+      { opacity: 1, stagger: 0.1, ease: 'none', scrollTrigger: { trigger: p, start: 'top 90%', end: 'bottom 40%', scrub: 0.4 } },
+    );
+  });
+}
+
+/* ---------- Facts count up ---------- */
+// Each figure counts up once from zero as the row arrives; tabular digits keep the width still.
+function factCount() {
+  if (reduceMotion) return;
+  const nums = $$('.fact-num > span');
+  if (!nums.length) return;
+  nums.forEach((el) => {
+    const to = Number(el.textContent);
+    if (!to) return;
+    el.textContent = '0';
+    const o = { v: 0 };
+    ScrollTrigger.create({
+      trigger: el,
+      start: 'top 92%',
+      once: true,
+      onEnter: () =>
+        gsap.to(o, { v: to, duration: 1.6, delay: 0.25, ease: 'power3.out', onUpdate: () => (el.textContent = String(Math.round(o.v))) }),
+    });
+  });
+}
+
+/* ---------- Ticks that draw themselves ---------- */
+// Plan ticks are wiped in left to right, one after another, as each card's list comes into view.
+function drawTicks() {
+  if (reduceMotion) return;
+  const plans = $$('[data-plan]');
+  if (!plans.length) return;
+  root.classList.add('ticks-ready');
+  const io = new IntersectionObserver(
+    (entries) =>
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        io.unobserve(e.target);
+        e.target.closest('[data-plan]')?.classList.add('is-drawn');
+      }),
+    { rootMargin: '0px 0px -12% 0px' },
+  );
+  plans.forEach((p) => io.observe($('.plan-features', p) ?? p));
+}
+
 /* ---------- Card spotlight ---------- */
 // One delegated listener writes the pointer position into the hovered .spot card.
 function spotlight() {
@@ -854,9 +964,17 @@ function autoReveal() {
     return r.height > 0 && r.bottom > 0;
   });
   const anims = new Map<Element, Animation>();
+  // Pictures and phones open out of a slightly smaller rounded window instead of rising; the window
+  // ends well outside the box so shadows are never clipped.
+  const media = 'figure, picture, img, .iphone';
+  const opening: Keyframe[] = [
+    { opacity: 0, clipPath: 'inset(10% 10% 10% 10% round 44px)', scale: '0.96' },
+    { opacity: 1, offset: 0.35 },
+    { clipPath: 'inset(-40% -40% -40% -40% round 44px)', scale: '1' },
+  ];
   items.forEach((el) => {
-    const a = el.animate([{ opacity: 0, translate: '0 36px', filter: 'blur(10px)' }, {}], {
-      duration: 1150,
+    const a = el.animate(el.matches(media) ? opening : [{ opacity: 0, translate: '0 36px', filter: 'blur(10px)' }, {}], {
+      duration: el.matches(media) ? 1400 : 1150,
       easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
       fill: 'both',
     });
@@ -949,6 +1067,9 @@ storyReveal(storyShop);
 compare();
 headlines();
 reveals();
+fillText();
+factCount();
+drawTicks();
 autoReveal();
 
 idle(() => {
@@ -960,6 +1081,7 @@ idle(() => {
   launch(mm);
   showcase();
   stages();
+  initPointer();
   ScrollTrigger.refresh();
   document.fonts?.ready.then(() => ScrollTrigger.refresh());
   if (location.hash.length > 1) window.setTimeout(() => scrollToHash(location.hash), 300);

@@ -224,6 +224,21 @@ let w = 0;
     transform: translate(28%, 70px) rotate(8deg) scale(0.9);
     z-index: 2;
   }
+  /* As the hero scrolls away the fan closes into one phone: the sides tuck in behind the centre
+     and it grows a touch. --merge (0..1) is scrubbed on the stage in main.ts. */
+  .hero-slot--left,
+  .hero-slot--right {
+    opacity: calc(1 - var(--merge, 0) * 0.5);
+  }
+  .hero-slot--left {
+    translate: calc(var(--merge, 0) * 46%) 0;
+  }
+  .hero-slot--right {
+    translate: calc(var(--merge, 0) * -46%) 0;
+  }
+  .hero-slot--center {
+    scale: calc(1 + var(--merge, 0) * 0.06);
+  }
 
   .notif {
     position: absolute;
@@ -355,7 +370,7 @@ let w = 0;
       animation-delay: 380ms;
     }
     .notif {
-      animation: hero-notif 0.9s var(--ease-out) 1.2s backwards;
+      animation: hero-notif 0.9s var(--ease-out) 2.6s backwards;
     }
     .hero-aura {
       animation: hero-aura-in 2.4s var(--ease-out) 0.5s backwards;
@@ -399,10 +414,11 @@ let w = 0;
       transform: translateY(120px);
     }
   }
+  /* Only a fallback: main.ts replaces it at 1.2s with the order growing out of the Dynamic Island.
+     It just holds the card hidden till then and fades it in if the script never gets there. */
   @keyframes hero-notif {
     from {
       opacity: 0;
-      transform: translateY(-16px) scale(0.94);
     }
   }
 

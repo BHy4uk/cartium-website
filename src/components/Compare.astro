@@ -291,6 +291,20 @@ const markLabel: Record<Mark, string> = { yes: 'Так', part: 'Частково
     color: var(--ink-2);
     line-height: 1.5;
   }
+  /* Hover: the card lifts 2px and its shadow softens out beneath it. */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .verdict-card {
+      transition:
+        translate 0.5s var(--ease-spring),
+        box-shadow 0.5s var(--ease-out);
+    }
+    .verdict-card:hover {
+      translate: 0 -2px;
+      box-shadow:
+        inset 0 0 0 1px var(--line),
+        var(--shadow-soft);
+    }
+  }
   .verdict-card strong {
     display: block;
     margin-bottom: 4px;
@@ -345,6 +359,20 @@ const markLabel: Record<Mark, string> = { yes: 'Так', part: 'Частково
   }
   :global(.compare-ready) .c-row.is-in .c-cartium.is-yes .c-mark {
     animation: mark-pop 0.7s var(--ease-out) 0.2s both;
+  }
+  /* Each mark draws itself in, left to right, a beat after its cell arrives. */
+  :global(.compare-ready) .c-mark :global(svg) {
+    clip-path: inset(0 100% 0 0);
+  }
+  :global(.compare-ready) .c-row.is-in .c-mark :global(svg) {
+    clip-path: inset(0 -10% 0 0);
+    transition: clip-path 0.55s var(--ease-out) 0.3s;
+  }
+  :global(.compare-ready) .c-row.is-in .c-shopify .c-mark :global(svg) {
+    transition-delay: 0.38s;
+  }
+  :global(.compare-ready) .c-row.is-in .c-direct .c-mark :global(svg) {
+    transition-delay: 0.46s;
   }
   @keyframes mark-pop {
     from {

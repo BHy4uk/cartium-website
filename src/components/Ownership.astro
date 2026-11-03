@@ -37,7 +37,7 @@ const points = [
   <div class="container">
     <div class="section-head">
       <h2 id="own-title" class="display h2">Свій магазин, а не полиця на маркетплейсі</h2>
-      <p class="lead">
+      <p class="lead" data-fill>
         На маркетплейсі ви орендуєте місце поруч із конкурентами. У Telegram-боті магазин, покупці й гроші належать вам.
       </p>
     </div>
@@ -69,6 +69,20 @@ const points = [
     border-radius: calc(var(--r-card) + 4px);
     background: linear-gradient(180deg, var(--surface-2), var(--surface));
     box-shadow: inset 0 0 0 1px var(--line);
+  }
+  /* Hover: the card lifts 2px and its shadow softens out beneath it. */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .own-card {
+      transition:
+        translate 0.5s var(--ease-spring),
+        box-shadow 0.5s var(--ease-out);
+    }
+    .own-card:hover {
+      translate: 0 -2px;
+      box-shadow:
+        inset 0 0 0 1px var(--line),
+        var(--shadow-soft);
+    }
   }
   /* What the marketplace gives you, struck through: the card then says what you get instead. */
   .own-them {

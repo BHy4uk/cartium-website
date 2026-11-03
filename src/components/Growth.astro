@@ -471,6 +471,20 @@ const operations = [
     background: linear-gradient(180deg, var(--surface-2), var(--surface));
     box-shadow: inset 0 0 0 1px var(--line);
   }
+  /* Hover: the card lifts 2px and its shadow softens out beneath it. */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .tool {
+      transition:
+        translate 0.5s var(--ease-spring),
+        box-shadow 0.5s var(--ease-out);
+    }
+    .tool:hover {
+      translate: 0 -2px;
+      box-shadow:
+        inset 0 0 0 1px var(--line),
+        var(--shadow-soft);
+    }
+  }
   .tool-pic {
     position: relative;
     display: grid;
