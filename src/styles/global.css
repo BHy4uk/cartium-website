@@ -31,9 +31,12 @@
 }
 
 /* ---------- Tokens ---------- */
-/* "Soft graphite": a light grey page, white cards and graphite ink, with graphite stages in
-   only a few places; the dark theme is the same family lifted off pure black. The chrome of
-   the logo is the only material and colour appears only inside real product screens.
+/* "Soft graphite" with one ultraviolet signal: a light grey page, white cards and graphite ink,
+   graphite stages in a few places, and the dark theme lifted off pure black. Ultraviolet is
+   not decoration: it marks the action (create the shop), the paid order and the next step,
+   and it glows as the light source on graphite stages. Everything else stays monochrome.
+   On light surfaces the violet is deep with white text; on graphite and the dark theme it
+   turns to lavender with ink text, so both clear 4.5:1.
    .paper keeps the light tokens for product cards wherever they sit. */
 :root,
 .paper {
@@ -48,13 +51,17 @@
   --muted: #66666d;
   --line: rgba(24, 24, 27, 0.08);
   --line-strong: rgba(24, 24, 27, 0.16);
-  --accent: #18181b;
-  --accent-text: #18181b;
+  --violet: #6a4fe0;
+  --violet-hi: #a594ff;
+  --accent: #6a4fe0;
+  --accent-text: #5b3fd6;
   --on-accent: #ffffff;
-  --accent-soft: rgba(24, 24, 27, 0.06);
-  --accent-glow: rgba(24, 24, 27, 0.25);
-  --ok: #18181b;
-  --ok-soft: rgba(24, 24, 27, 0.07);
+  --accent-soft: rgba(106, 79, 224, 0.1);
+  --accent-glow: rgba(106, 79, 224, 0.5);
+  --aura: rgba(124, 99, 242, 0.3);
+  --hover-soft: rgba(24, 24, 27, 0.06);
+  --ok: #5b3fd6;
+  --ok-soft: rgba(106, 79, 224, 0.1);
   --stage-bg: #2a2a2e;
   --panel: #2a2a2e;
   --on-panel: #f4f4f5;
@@ -105,13 +112,15 @@
   --muted: #a1a1aa;
   --line: rgba(255, 255, 255, 0.08);
   --line-strong: rgba(255, 255, 255, 0.16);
-  --accent: #f4f4f5;
-  --accent-text: #f4f4f5;
-  --on-accent: #18181b;
-  --accent-soft: rgba(255, 255, 255, 0.08);
-  --accent-glow: rgba(255, 255, 255, 0.14);
-  --ok: #f4f4f5;
-  --ok-soft: rgba(255, 255, 255, 0.1);
+  --accent: #a594ff;
+  --accent-text: #b3a6ff;
+  --on-accent: #16122b;
+  --accent-soft: rgba(165, 148, 255, 0.14);
+  --accent-glow: rgba(140, 118, 255, 0.55);
+  --aura: rgba(124, 99, 242, 0.42);
+  --hover-soft: rgba(255, 255, 255, 0.08);
+  --ok: #b3a6ff;
+  --ok-soft: rgba(165, 148, 255, 0.14);
   --stage-bg: #1c1c1f;
   --panel: #1c1c1f;
   --on-panel: #f4f4f5;
@@ -139,13 +148,15 @@
   --muted: #b4b4bb;
   --line: rgba(255, 255, 255, 0.1);
   --line-strong: rgba(255, 255, 255, 0.2);
-  --accent: #f4f4f5;
-  --accent-text: #f4f4f5;
-  --on-accent: #18181b;
-  --accent-soft: rgba(255, 255, 255, 0.08);
-  --accent-glow: rgba(255, 255, 255, 0.16);
-  --ok: #f4f4f5;
-  --ok-soft: rgba(255, 255, 255, 0.1);
+  --accent: #a594ff;
+  --accent-text: #b3a6ff;
+  --on-accent: #16122b;
+  --accent-soft: rgba(165, 148, 255, 0.14);
+  --accent-glow: rgba(140, 118, 255, 0.55);
+  --aura: rgba(124, 99, 242, 0.42);
+  --hover-soft: rgba(255, 255, 255, 0.08);
+  --ok: #b3a6ff;
+  --ok-soft: rgba(165, 148, 255, 0.14);
   --on-panel-muted: #b4b4bb;
   --chrome-edge: rgba(255, 255, 255, 0.35);
   --shadow-soft: 0 24px 48px -28px rgba(0, 0, 0, 0.6);
@@ -178,7 +189,35 @@
   z-index: -1;
   inset: 0 var(--stage-x, 0px);
   border-radius: var(--stage-r, 0px) var(--stage-r, 0px) 0 0;
-  background: var(--bg);
+  background:
+    radial-gradient(60% 46% at 50% 0%, color-mix(in srgb, var(--aura) calc(var(--stage-glow, 1) * 100%), transparent), transparent 72%),
+    var(--bg);
+}
+
+/* Ultraviolet light behind a focal object: a soft, slowly breathing field. Size and place it per
+   use; main.ts pauses the drift while it is off screen (.is-still). */
+.aura {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side at 38% 46%, color-mix(in srgb, var(--aura), var(--violet) var(--aura-boost, 0%)), transparent 70%),
+    radial-gradient(closest-side at 64% 58%, color-mix(in srgb, var(--aura) 70%, #3d5bff 30%), transparent 72%);
+  filter: blur(36px) brightness(var(--flare, 1));
+  opacity: var(--aura-o, 1);
+  scale: var(--flare-s, 1);
+  animation: aura-drift 18s ease-in-out infinite alternate;
+}
+.aura.is-still {
+  animation-play-state: paused;
+}
+@keyframes aura-drift {
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+  to {
+    transform: rotate(24deg) scale(1.08);
+  }
 }
 
 /* ---------- Base ---------- */
@@ -253,6 +292,22 @@ ol {
   background: var(--accent);
   color: var(--on-accent);
 }
+/* The browser's own surfaces carry the palette too: caret, native controls, scrollbar. */
+:root {
+  accent-color: var(--accent);
+  caret-color: var(--accent);
+  scrollbar-color: color-mix(in srgb, var(--ink) 28%, transparent) var(--bg);
+}
+
+/* Theme switch: main.ts reveals the new theme as a circle growing from the toggle. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-new(root) {
+  z-index: 1;
+}
 
 /* Film grain: fixed and non-interactive, so it never repaints while scrolling. */
 body::after {
@@ -288,7 +343,7 @@ body::after {
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, -20%), color-mix(in srgb, var(--ink) 6%, transparent), transparent 45%);
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, -20%), color-mix(in srgb, var(--accent) 9%, transparent), transparent 45%);
   opacity: 0;
   transition: opacity 0.4s var(--ease-out);
   pointer-events: none;
@@ -299,7 +354,7 @@ body::after {
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, -20%), color-mix(in srgb, var(--ink) 45%, transparent), transparent 60%);
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, -20%), color-mix(in srgb, var(--accent) 75%, transparent), transparent 60%);
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -548,16 +603,33 @@ body::after {
   transform: scale(0.97);
 }
 .btn-primary {
+  isolation: isolate;
+  overflow: hidden;
   background: var(--accent);
   color: var(--on-accent);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 14px 30px -16px var(--accent-glow);
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 14px 30px -14px var(--accent-glow);
 }
 .btn-primary:hover {
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 22px 40px -18px var(--accent-glow);
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 24px 44px -16px var(--accent-glow);
+}
+/* A band of light crosses the button once per hover, like a reflection on glass. */
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -20% auto -20% 0;
+  width: 46%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.34) 50%, transparent);
+  transform: translateX(-120%) skewX(-18deg);
+  pointer-events: none;
+}
+.btn-primary:hover::after {
+  transform: translateX(260%) skewX(-18deg);
+  transition: transform 0.9s var(--ease-out);
 }
 .btn-ghost {
   padding: 0 26px;
@@ -634,6 +706,9 @@ code,
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .aura {
+    animation: none;
+  }
   *,
   *::before,
   *::after {

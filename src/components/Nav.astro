@@ -32,6 +32,7 @@ const links = [
         <span class="burger-line"></span>
       </button>
     </div>
+    <span class="nav-progress" aria-hidden="true"><span data-nav-progress></span></span>
   </nav>
 </header>
 
@@ -62,6 +63,7 @@ const links = [
     transform: translateY(calc(-100% - 20px));
   }
   .nav {
+    position: relative;
     pointer-events: auto;
     width: min(1120px, 100%);
     height: var(--nav-h);
@@ -77,6 +79,25 @@ const links = [
       inset 0 0 0 1px var(--line),
       0 12px 40px -24px rgba(24, 24, 27, 0.3);
   }
+  /* How far down the page you are: a violet hairline along the bottom of the pill (main.ts). */
+  .nav-progress {
+    position: absolute;
+    left: 28px;
+    right: 28px;
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .nav-progress span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, transparent, var(--accent) 24%, var(--accent));
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
   .theme-toggle {
     position: relative;
     display: grid;
@@ -88,7 +109,7 @@ const links = [
     transition: background-color 0.3s var(--ease-out);
   }
   .theme-toggle:hover {
-    background: var(--accent-soft);
+    background: var(--hover-soft);
   }
   .theme-icon {
     grid-area: 1 / 1;
@@ -126,7 +147,7 @@ const links = [
     transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out);
   }
   .nav-link:hover {
-    background: var(--accent-soft);
+    background: var(--hover-soft);
     color: var(--ink);
   }
   .nav-actions {
