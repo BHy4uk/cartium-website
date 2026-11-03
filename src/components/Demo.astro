@@ -49,6 +49,14 @@ const accents = [
   { id: 'graphite', label: 'Графіт', value: '#3a3a3f', paint: '#3a3a3f' },
   { id: 'silver', label: 'Сріблястий', value: '#8e8e96', paint: '#8e8e96' },
 ];
+// Вигляд → Фон каталогу: a few light and dark backdrops (the shop's dark theme rides on the dark ones).
+const backgrounds = [
+  { id: 'mist', label: 'Світло-сірий', bg: '#f4f4f6', card: '#ffffff' },
+  { id: 'white', label: 'Білий', bg: '#ffffff', card: '#f1f1f3' },
+  { id: 'sand', label: 'Пісочний', bg: '#f3eee6', card: '#fffdf9' },
+  { id: 'graphite', label: 'Графіт', bg: '#161618', card: '#222225' },
+  { id: 'black', label: 'Чорний', bg: '#000000', card: '#121212' },
+];
 // FONT_STACKS keys and labels from the appearance editor.
 const fonts = [
   { id: 'modern', label: 'Modern', face: 'Inter' },
@@ -61,6 +69,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
 ---
 <section class="section studio" id="demo" aria-labelledby="demo-title" data-demo>
   <script type="application/json" data-demo-products set:html={JSON.stringify(products)} />
+  <script type="application/json" data-demo-backgrounds set:html={JSON.stringify(backgrounds)} />
   <div class="container">
     <div class="studio-head">
       <div class="studio-intro">
@@ -95,124 +104,182 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
         <span class="sf-dot"><span class="sf-num">1</span><Icon name="check" /></span>
         <span class="step-copy">
           <span class="step-title">Оформіть вітрину</span>
-          <span class="step-hint" data-step-hint data-idle="Як у розділі «Вигляд» вашого магазину">Як у розділі «Вигляд» вашого магазину</span>
+          <span class="step-hint" data-step-hint data-idle="Як у редакторі «Вигляд» вашого магазину">Як у редакторі «Вигляд» вашого магазину</span>
         </span>
       </header>
-      <div class="studio-panel">
-        <div class="sp-identity">
-          <label class="sp-logo" for="demo-logo" title="Завантажити логотип">
-            <input id="demo-logo" type="file" accept="image/*" data-demo-logo-input />
-            <span class="sp-logo-img" data-demo-logo-preview hidden></span>
-            <span class="sp-logo-empty"><Icon name="upload-simple" /></span>
-            <span class="sr-only">Логотип магазину</span>
-          </label>
-          <div class="sp-name">
-            <label for="demo-name" class="sp-label">Назва магазину</label>
-            <input id="demo-name" class="sp-input" type="text" maxlength="22" value="Cartium" autocomplete="off" spellcheck="false" data-demo-input />
-          </div>
-        </div>
+      <!-- The editor's side panel, as Вигляд shows it on a wide screen: tap an element of the shop
+           (or a dock button) and its settings open here. On phones the same sheet moves into the
+           phone and slides up over the shop, as in the app. -->
+      <div class="studio-panel ed" data-ed>
+        <p class="ed-tip">
+          <span class="ed-tip-icon" aria-hidden="true"><Icon name="hand-tap" /></span>
+          <span class="ed-tip-wide">Натисніть на будь-який елемент вітрини, і тут відкриються його налаштування.</span>
+          <span class="ed-tip-narrow">Натисніть на будь-який елемент вітрини нижче, і його налаштування відкриються знизу.</span>
+        </p>
 
-        <div class="sp-tabs" role="tablist" aria-label="Налаштування вигляду">
-          <button type="button" role="tab" id="tab-tpl" aria-controls="pane-tpl" aria-selected="true" data-tab="tpl"><Icon name="layout" /> Шаблон</button>
-          <button type="button" role="tab" id="tab-style" aria-controls="pane-style" aria-selected="false" tabindex="-1" data-tab="style"><Icon name="paint-brush-broad" /> Стиль</button>
-          <button type="button" role="tab" id="tab-font" aria-controls="pane-font" aria-selected="false" tabindex="-1" data-tab="font"><Icon name="text-aa" /> Шрифт</button>
-          <button type="button" role="tab" id="tab-promo" aria-controls="pane-promo" aria-selected="false" tabindex="-1" data-tab="promo"><Icon name="megaphone-simple" /> Рядок</button>
-        </div>
+        <div class="ed-sheet" data-ed-sheet role="region" aria-label="Налаштування елемента">
+          <span class="ed-grip" aria-hidden="true"></span>
+          <button type="button" class="ed-done" data-ed-done>Готово</button>
 
-        <div class="sp-pane" role="tabpanel" id="pane-tpl" aria-labelledby="tab-tpl" data-pane="tpl">
-          <div class="tpl-grid" role="radiogroup" aria-label="Шаблон магазину">
-            {templates.map((t, i) => (
-              <button type="button" class="tpl" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-set="template" data-value={t.id} title={t.text}>
-                <span class:list={['tpl-thumb', `tpl-thumb--${t.id}`]} aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
-                <span class="tpl-name">{t.name} <span class="tpl-plan">{t.plan}</span></span>
-                <span class="tpl-text">{t.text}</span>
-              </button>
-            ))}
-          </div>
-          <p class="sp-note">У Cartium 10 шаблонів: на Basic доступний 1, на Pro 3, на Business усі.</p>
-        </div>
-
-        <div class="sp-pane" role="tabpanel" id="pane-style" aria-labelledby="tab-style" data-pane="style" hidden>
-          <div class="sp-row">
-            <span class="sp-label">Тема</span>
-            <div class="seg" role="radiogroup" aria-label="Тема">
-              <button type="button" role="radio" aria-checked="true" data-set="mode" data-value="light">Світла</button>
-              <button type="button" role="radio" aria-checked="false" data-set="mode" data-value="dark">Темна</button>
+          <section class="ed-sec" data-sec="header" aria-labelledby="ed-h-header">
+            <header class="ed-sec-head">
+              <span class="ed-sec-icon" aria-hidden="true"><Icon name="browser" /></span>
+              <span><span class="ed-sec-title" id="ed-h-header">Шапка</span><span class="ed-sec-sub">Назва, логотип і кнопки</span></span>
+            </header>
+            <div class="sp-identity">
+              <label class="sp-logo" for="demo-logo" title="Завантажити логотип">
+                <input id="demo-logo" type="file" accept="image/*" data-demo-logo-input />
+                <span class="sp-logo-img" data-demo-logo-preview hidden></span>
+                <span class="sp-logo-empty"><Icon name="upload-simple" /></span>
+                <span class="sr-only">Логотип магазину</span>
+              </label>
+              <div class="sp-name">
+                <label for="demo-name" class="sp-label">Назва магазину</label>
+                <input id="demo-name" class="sp-input" type="text" maxlength="22" value="Cartium" autocomplete="off" spellcheck="false" data-demo-input />
+              </div>
             </div>
-          </div>
-          <div class="sp-row">
-            <span class="sp-label">Акцент кнопок</span>
-            <div class="sp-swatches" role="radiogroup" aria-label="Акцент кнопок">
-              {accents.map((a, i) => (
-                <button type="button" class="sw" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-set="accent" data-value={a.value} title={a.label}>
-                  <span style={`background:${a.paint}`}></span><span class="sr-only">{a.label}</span>
+            <div class="sp-row">
+              <span class="sp-label">Кнопки в шапці</span>
+              <div class="ed-switches">
+                <button type="button" class="switch" role="switch" aria-checked="true" data-ed-toggle="search">
+                  <span>Пошук</span><span class="switch-track"><span class="switch-thumb"></span></span>
+                </button>
+                <button type="button" class="switch" role="switch" aria-checked="true" data-ed-toggle="filters">
+                  <span>Фільтри та сортування</span><span class="switch-track"><span class="switch-thumb"></span></span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section class="ed-sec" data-sec="template" aria-labelledby="ed-h-template" hidden>
+            <header class="ed-sec-head">
+              <span class="ed-sec-icon" aria-hidden="true"><Icon name="layout" /></span>
+              <span><span class="ed-sec-title" id="ed-h-template">Шаблон магазину</span><span class="ed-sec-sub">Банер і порядок блоків</span></span>
+            </header>
+            <div class="tpl-grid" role="radiogroup" aria-label="Шаблон магазину">
+              {templates.map((t, i) => (
+                <button type="button" class="tpl" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-set="template" data-value={t.id} title={t.text}>
+                  <span class:list={['tpl-thumb', `tpl-thumb--${t.id}`]} aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+                  <span class="tpl-name">{t.name} <span class="tpl-plan">{t.plan}</span></span>
+                  <span class="tpl-text">{t.text}</span>
                 </button>
               ))}
-              <label class="sw sw--custom" title="Свій колір">
-                <input type="color" value="#1d1d1f" data-demo-color />
-                <span class="sw-custom-ring"></span>
-                <span class="sr-only">Свій колір</span>
-              </label>
             </div>
-          </div>
-          <div class="sp-row">
-            <span class="sp-label">Кнопки</span>
-            <div class="seg" role="radiogroup" aria-label="Стиль кнопок">
-              <button type="button" role="radio" aria-checked="true" data-set="buttons" data-value="filled">Суцільні</button>
-              <button type="button" role="radio" aria-checked="false" data-set="buttons" data-value="outline">Контурні</button>
+            <p class="sp-note">У Cartium 10 шаблонів: на Basic доступний 1, на Pro 3, на Business усі.</p>
+          </section>
+
+          <section class="ed-sec" data-sec="cards" aria-labelledby="ed-h-cards" hidden>
+            <header class="ed-sec-head">
+              <span class="ed-sec-icon" aria-hidden="true"><Icon name="squares-four" /></span>
+              <span><span class="ed-sec-title" id="ed-h-cards">Картки товарів</span><span class="ed-sec-sub">Однаково для всіх товарів</span></span>
+            </header>
+            <div class="sp-row">
+              <span class="sp-label">Картки</span>
+              <div class="seg" role="radiogroup" aria-label="Стиль карток">
+                <button type="button" role="radio" aria-checked="true" data-set="cards" data-value="flat">Плаский</button>
+                <button type="button" role="radio" aria-checked="false" data-set="cards" data-value="soft">М'який</button>
+                <button type="button" role="radio" aria-checked="false" data-set="cards" data-value="outline">Контурний</button>
+              </div>
             </div>
-          </div>
-          <div class="sp-row">
-            <span class="sp-label">Скруглення</span>
-            <div class="seg" role="radiogroup" aria-label="Скруглення">
-              <button type="button" role="radio" aria-checked="true" data-set="radius" data-value="rounded">М'яке</button>
-              <button type="button" role="radio" aria-checked="false" data-set="radius" data-value="medium">Помірне</button>
-              <button type="button" role="radio" aria-checked="false" data-set="radius" data-value="sharp">Мінімальне</button>
+            <div class="sp-row">
+              <span class="sp-label">Скруглення</span>
+              <div class="seg" role="radiogroup" aria-label="Скруглення">
+                <button type="button" role="radio" aria-checked="true" data-set="radius" data-value="rounded">М'яке</button>
+                <button type="button" role="radio" aria-checked="false" data-set="radius" data-value="medium">Помірне</button>
+                <button type="button" role="radio" aria-checked="false" data-set="radius" data-value="sharp">Мінімальне</button>
+              </div>
             </div>
-          </div>
-          <div class="sp-row">
-            <span class="sp-label">Картки</span>
-            <div class="seg" role="radiogroup" aria-label="Стиль карток">
-              <button type="button" role="radio" aria-checked="true" data-set="cards" data-value="flat">Плаский</button>
-              <button type="button" role="radio" aria-checked="false" data-set="cards" data-value="soft">М'який</button>
-              <button type="button" role="radio" aria-checked="false" data-set="cards" data-value="outline">Контурний</button>
+          </section>
+
+          <section class="ed-sec" data-sec="colors" aria-labelledby="ed-h-colors" hidden>
+            <header class="ed-sec-head">
+              <span class="ed-sec-icon" aria-hidden="true"><Icon name="palette" /></span>
+              <span><span class="ed-sec-title" id="ed-h-colors">Кольори й кнопки</span><span class="ed-sec-sub">Акцент для кнопок і цін</span></span>
+            </header>
+            <div class="sp-row">
+              <span class="sp-label">Акцент кнопок</span>
+              <div class="sp-swatches" role="radiogroup" aria-label="Акцент кнопок">
+                {accents.map((a, i) => (
+                  <button type="button" class="sw" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-set="accent" data-value={a.value} title={a.label}>
+                    <span style={`background:${a.paint}`}></span><span class="sr-only">{a.label}</span>
+                  </button>
+                ))}
+                <label class="sw sw--custom" title="Свій колір">
+                  <input type="color" value="#1d1d1f" data-demo-color />
+                  <span class="sw-custom-ring"></span>
+                  <span class="sr-only">Свій колір</span>
+                </label>
+              </div>
             </div>
-          </div>
+            <div class="sp-row">
+              <span class="sp-label">Кнопки</span>
+              <div class="seg" role="radiogroup" aria-label="Стиль кнопок">
+                <button type="button" role="radio" aria-checked="true" data-set="buttons" data-value="filled">Суцільні</button>
+                <button type="button" role="radio" aria-checked="false" data-set="buttons" data-value="outline">Контурні</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="ed-sec" data-sec="bg" aria-labelledby="ed-h-bg" hidden>
+            <header class="ed-sec-head">
+              <span class="ed-sec-icon" aria-hidden="true"><Icon name="image" /></span>
+              <span><span class="ed-sec-title" id="ed-h-bg">Фон каталогу</span><span class="ed-sec-sub">Світлий чи темний магазин</span></span>
+            </header>
+            <div class="bg-list" role="radiogroup" aria-label="Фон каталогу">
+              {backgrounds.map((b, i) => (
+                <button type="button" class="bg-opt" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-set="bg" data-value={b.id}>
+                  <span class="bg-chip" style={`background:${b.bg}`} aria-hidden="true"><i style={`background:${b.card}`}></i><i style={`background:${b.card}`}></i></span>
+                  <span class="bg-name">{b.label}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section class="ed-sec" data-sec="font" aria-labelledby="ed-h-font" hidden>
+            <header class="ed-sec-head">
+              <span class="ed-sec-icon" aria-hidden="true"><Icon name="text-aa" /></span>
+              <span><span class="ed-sec-title" id="ed-h-font">Шрифт</span><span class="ed-sec-sub">Для назви, цін і кнопок</span></span>
+            </header>
+            <div class="font-list" role="radiogroup" aria-label="Шрифт">
+              {fonts.map((f, i) => (
+                <button type="button" class="font-opt" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-set="font" data-value={f.id}>
+                  <span class="font-sample" data-font-sample={f.id}>Ag</span>
+                  <span class="font-meta"><strong>{f.label}</strong><span>{f.face}</span></span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section class="ed-sec" data-sec="promo" aria-labelledby="ed-h-promo" hidden>
+            <header class="ed-sec-head">
+              <span class="ed-sec-icon" aria-hidden="true"><Icon name="megaphone-simple" /></span>
+              <span><span class="ed-sec-title" id="ed-h-promo">Верхній рядок</span><span class="ed-sec-sub">Біжучий рядок з оголошенням</span></span>
+            </header>
+            <button type="button" class="switch" role="switch" aria-checked="true" data-demo-promo-toggle>
+              <span>Показувати рядок</span><span class="switch-track"><span class="switch-thumb"></span></span>
+            </button>
+            <div class="sp-field">
+              <label for="demo-promo" class="sp-label">Текст оголошення</label>
+              <input id="demo-promo" class="sp-input" type="text" maxlength="60" value="SS2026 // NEW SEASON // OUT NOW" data-demo-promo-input />
+            </div>
+            <div class="sp-row">
+              <span class="sp-label">Рух</span>
+              <div class="seg" role="radiogroup" aria-label="Рух рядка">
+                <button type="button" role="radio" aria-checked="false" data-set="promo" data-value="center">По центру</button>
+                <button type="button" role="radio" aria-checked="true" data-set="promo" data-value="continuous">Безперервно</button>
+                <button type="button" role="radio" aria-checked="false" data-set="promo" data-value="static">Статично</button>
+              </div>
+            </div>
+          </section>
         </div>
 
-        <div class="sp-pane" role="tabpanel" id="pane-font" aria-labelledby="tab-font" data-pane="font" hidden>
-          <div class="font-list" role="radiogroup" aria-label="Шрифт">
-            {fonts.map((f, i) => (
-              <button type="button" class="font-opt" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-set="font" data-value={f.id}>
-                <span class="font-sample" data-font-sample={f.id}>Ag</span>
-                <span class="font-meta"><strong>{f.label}</strong><span>{f.face}</span></span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div class="sp-pane" role="tabpanel" id="pane-promo" aria-labelledby="tab-promo" data-pane="promo" hidden>
-          <button type="button" class="switch" role="switch" aria-checked="true" data-demo-promo-toggle>
-            <span class="switch-track"><span class="switch-thumb"></span></span>
-            <span>Верхній рядок</span>
+        <div class="ed-foot">
+          <button type="button" class="sp-btn sp-btn--icon" data-demo-shuffle title="Перемішати"><Icon name="shuffle" /><span class="sr-only">Перемішати</span></button>
+          <button type="button" class="sp-btn sp-btn--icon" data-demo-reset title="Скинути"><Icon name="arrow-counter-clockwise" /><span class="sr-only">Скинути</span></button>
+          <button type="button" class="ed-save" data-ed-save>
+            <span class="ed-save-on"><Icon name="check" /> Зберегти</span>
+            <span class="ed-save-off"><Icon name="pencil-simple" /> Редагувати</span>
           </button>
-          <div class="sp-field">
-            <label for="demo-promo" class="sp-label">Текст оголошення</label>
-            <input id="demo-promo" class="sp-input" type="text" maxlength="60" value="SS2026 // NEW SEASON // OUT NOW" data-demo-promo-input />
-          </div>
-          <div class="sp-row">
-            <span class="sp-label">Рух</span>
-            <div class="seg" role="radiogroup" aria-label="Рух рядка">
-              <button type="button" role="radio" aria-checked="false" data-set="promo" data-value="center">По центру</button>
-              <button type="button" role="radio" aria-checked="true" data-set="promo" data-value="continuous">Безперервно</button>
-              <button type="button" role="radio" aria-checked="false" data-set="promo" data-value="static">Статично</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="sp-foot">
-          <button type="button" class="sp-btn" data-demo-shuffle><Icon name="shuffle" /> Перемішати</button>
-          <button type="button" class="sp-btn" data-demo-reset><Icon name="arrow-counter-clockwise" /> Скинути</button>
         </div>
       </div>
       </div>
@@ -226,7 +293,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
             <span class="step-hint" data-step-hint data-idle="Так вітрину бачать у Telegram">Так вітрину бачать у Telegram</span>
           </span>
         </header>
-        <div class="dphone iphone" data-dphone data-screen="catalog" data-template="classic" data-promo="continuous">
+        <div class="dphone iphone" data-dphone data-screen="catalog" data-template="classic" data-promo="continuous" data-editing="true">
           <span class="iphone-key iphone-key--action" aria-hidden="true"></span>
           <span class="iphone-key iphone-key--up" aria-hidden="true"></span>
           <span class="iphone-key iphone-key--down" aria-hidden="true"></span>
@@ -242,7 +309,16 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
                 <svg viewBox="0 0 27 12"><rect x="0.5" y="0.5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" stroke-opacity="0.4" /><rect x="2" y="2" width="20" height="8" rx="2" /><path d="M25 4v4c.8-.3 1.4-1.1 1.4-2s-.6-1.7-1.4-2Z" fill-opacity="0.45" /></svg>
               </span>
             </div>
-            <div class="ds-promo" data-ds-promo>
+            <!-- Editor chrome (Редагування): the compact head, the selection frame and the dock. -->
+            <div class="ed-bar" data-ed-bar>
+              <button type="button" class="ed-close" data-ed-mode="view" aria-label="Закрити редактор"><Icon name="x" /></button>
+              <span class="ed-modes" role="group" aria-label="Режим">
+                <button type="button" aria-pressed="true" data-ed-mode="edit">Редагування</button>
+                <button type="button" aria-pressed="false" data-ed-mode="view">Перегляд</button>
+              </span>
+            </div>
+            <span class="ed-sel" data-ed-sel aria-hidden="true"><span class="ed-sel-tag" data-ed-sel-tag></span></span>
+            <div class="ds-promo" data-ds-promo data-ed-target="promo">
               <div class="ds-promo-track" data-ds-promo-track><span data-ds-promo-text>SS2026 // NEW SEASON // OUT NOW</span></div>
             </div>
 
@@ -250,38 +326,38 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
             <div class="dscreen dscreen--catalog" data-screen-id="catalog">
               <!-- Header: its own bar (Editorial, Carousel), an image banner (Classic), or controls
                    riding on the opening picture (Minimal, Full Screen, Split Hero), as in the shop. -->
-              <header class="ds-head">
+              <header class="ds-head" data-ed-target="header">
                 <span class="ds-brand">
                   <span class="ds-logo" data-ds-logo hidden></span>
                   <span class="ds-shop" data-demo-name>Cartium</span>
                 </span>
                 <span class="ds-icons" aria-hidden="true">
-                  <span><Icon name="magnifying-glass" /></span>
-                  <span><Icon name="sliders-horizontal" /></span>
+                  <span data-hb="search"><Icon name="magnifying-glass" /></span>
+                  <span data-hb="filters"><Icon name="sliders-horizontal" /></span>
                 </span>
               </header>
-              <div class="tb tb-headbar" data-tb="classic">
+              <div class="tb tb-headbar" data-tb="classic" data-ed-target="header">
                 <img class="tb-media" src={banner.rain} alt="" loading="lazy" decoding="async" />
                 <span class="ds-brand">
                   <span class="ds-logo" data-ds-logo hidden></span>
                   <span class="ds-shop" data-demo-name>Cartium</span>
                 </span>
-                <span class="tb-ctrls" aria-hidden="true"><span><Icon name="magnifying-glass" /></span><span><Icon name="sliders-horizontal" /></span></span>
+                <span class="tb-ctrls" aria-hidden="true"><span data-hb="search"><Icon name="magnifying-glass" /></span><span data-hb="filters"><Icon name="sliders-horizontal" /></span></span>
               </div>
 
               <!-- Minimal: a short banner -->
-              <div class="tb tb-hero tb-hero--short" data-tb="minimal">
+              <div class="tb tb-hero tb-hero--short" data-tb="minimal" data-ed-target="template">
                 <img class="tb-media" src={banner.rain} alt="" loading="lazy" decoding="async" />
-                <span class="tb-ctrls" aria-hidden="true"><span><Icon name="magnifying-glass" /></span><span><Icon name="sliders-horizontal" /></span></span>
+                <span class="tb-ctrls" aria-hidden="true" data-ed-target="header"><span data-hb="search"><Icon name="magnifying-glass" /></span><span data-hb="filters"><Icon name="sliders-horizontal" /></span></span>
                 <span class="tb-copy">
                   <span class="tb-title"><span data-demo-name>Cartium</span> SS'27</span>
                   <button type="button" class="tb-cta" data-scroll-grid>Order now</button>
                 </span>
               </div>
               <!-- Full Screen: the opening screen -->
-              <div class="tb tb-hero tb-hero--screen" data-tb="full_screen">
+              <div class="tb tb-hero tb-hero--screen" data-tb="full_screen" data-ed-target="template">
                 <img class="tb-media" src={banner.drape} alt="" loading="lazy" decoding="async" />
-                <span class="tb-ctrls" aria-hidden="true"><span><Icon name="magnifying-glass" /></span><span><Icon name="sliders-horizontal" /></span></span>
+                <span class="tb-ctrls" aria-hidden="true" data-ed-target="header"><span data-hb="search"><Icon name="magnifying-glass" /></span><span data-hb="filters"><Icon name="sliders-horizontal" /></span></span>
                 <span class="tb-copy">
                   <span class="tb-sub">Нова колекція</span>
                   <span class="tb-title"><span data-demo-name>Cartium</span> SS'27</span>
@@ -289,7 +365,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
                 </span>
               </div>
               <!-- Editorial: a tall story, then a pair -->
-              <div class="tb tb-editorial" data-tb="editorial">
+              <div class="tb tb-editorial" data-tb="editorial" data-ed-target="template">
                 <button type="button" class="tb-hero tb-hero--story" data-scroll-grid>
                   <img class="tb-media" src={banner.arch} alt="" loading="lazy" decoding="async" />
                   <span class="tb-copy"><span class="tb-sub">Історія колекції</span><span class="tb-title">Архітектура форми</span></span>
@@ -310,7 +386,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
               </div>
               <ul class="ds-grid" data-ds-grid>
                 {products.map((p) => (
-                  <li class="ds-card" data-product-card data-cat={p.cat}>
+                  <li class="ds-card" data-product-card data-cat={p.cat} data-ed-target="cards">
                     <button type="button" class="ds-card-hit" data-open={p.id}>
                       <span class="ds-img" style={`--tone:${p.tone}`}><img src={p.img} alt="" loading="lazy" decoding="async" /></span>
                       <span class="ds-name">{p.name}</span>
@@ -394,6 +470,13 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
                 <div class="ds-sizes" role="radiogroup" aria-label="Розмір" data-sheet-sizes></div>
                 <button type="button" class="ds-btn" data-sheet-add>Додати в кошик</button>
               </div>
+            </div>
+
+            <div class="ed-dock" data-ed-dock role="toolbar" aria-label="Вигляд магазину">
+              <button type="button" data-ed-dock-sec="template"><Icon name="layout" /><span>Шаблон</span></button>
+              <button type="button" data-ed-dock-sec="font"><Icon name="text-aa" /><span>Шрифт</span></button>
+              <button type="button" data-ed-dock-sec="colors"><Icon name="palette" /><span>Кольори</span></button>
+              <button type="button" data-ed-dock-sec="bg"><Icon name="image" /><span>Фон</span></button>
             </div>
 
             <nav class="ds-tabs" aria-label="Розділи магазину">
@@ -874,42 +957,6 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
       0 0 0 4px var(--accent-soft);
   }
 
-  .sp-tabs {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 4px;
-    padding: 4px;
-    border-radius: 16px;
-    background: var(--surface-3);
-  }
-  .sp-tabs button {
-    display: grid;
-    justify-items: center;
-    gap: 2px;
-    padding: 8px 4px;
-    border-radius: 12px;
-    color: var(--muted);
-    font-size: 0.78rem;
-    font-weight: 600;
-    transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out);
-  }
-  .sp-tabs button :global(.icon) {
-    font-size: 18px;
-  }
-  .sp-tabs button[aria-selected='true'] {
-    background: var(--surface);
-    color: var(--ink);
-    box-shadow: 0 1px 3px rgba(10, 10, 11, 0.12);
-  }
-  .sp-pane {
-    display: grid;
-    gap: 14px;
-    min-height: 330px;
-    align-content: start;
-  }
-  .sp-pane[hidden] {
-    display: none;
-  }
   .sp-row {
     display: grid;
     gap: 8px;
@@ -1161,15 +1208,173 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     transform: translateX(20px);
   }
 
-  .sp-foot {
+  /* ---------- Editor side panel ---------- */
+  .ed {
+    gap: 14px;
+  }
+  .ed-tip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 0.84rem;
+    line-height: 1.4;
+  }
+  .ed-tip-icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--surface-3);
+    color: var(--ink);
+    font-size: 16px;
+  }
+  .ed-tip-narrow {
+    display: none;
+  }
+  .ed-sheet {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .ed-grip,
+  .ed-done {
+    display: none;
+  }
+  .ed-sec {
+    display: grid;
+    gap: 14px;
+    align-content: start;
+    min-height: 0;
+    /* Room for the selection rings, which the scroll box would clip. */
+    margin: -6px;
+    padding: 6px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    animation: ed-sec-in 0.45s var(--ease-out) both;
+  }
+  .ed-sec::-webkit-scrollbar {
+    display: none;
+  }
+  .ed-sec[hidden] {
+    display: none;
+  }
+  @keyframes ed-sec-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+  .ed-sec-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .ed-sec-icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 13px;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 20px;
+  }
+  .ed-sec-head > span:last-child {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+  }
+  .ed-sec-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.08rem;
+    letter-spacing: -0.02em;
+  }
+  .ed-sec-sub {
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+  .ed-switches {
+    display: grid;
+    border-radius: 16px;
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .ed-switches .switch {
+    justify-content: space-between;
+    width: 100%;
+    padding: 6px 8px 6px 14px;
+    font-size: 0.9rem;
+  }
+  .ed-switches .switch + .switch {
+    border-top: 1px solid var(--line);
+  }
+  .ed-sec > .switch {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  /* Фон каталогу */
+  .bg-list {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .bg-opt {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    text-align: center;
+  }
+  .bg-chip {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-content: end;
+    gap: 3px;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    padding: 5px;
+    border-radius: 14px;
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    transition: box-shadow 0.25s var(--ease-out), transform 0.4s var(--ease-spring);
+  }
+  .bg-chip i {
+    height: 46%;
+    border-radius: 5px;
+  }
+  .bg-opt:hover .bg-chip {
+    transform: translateY(-2px);
+  }
+  .bg-opt[aria-checked='true'] .bg-chip {
+    box-shadow:
+      0 0 0 2px var(--surface),
+      0 0 0 4px var(--ink);
+  }
+  .bg-name {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    line-height: 1.2;
+  }
+  .bg-opt[aria-checked='true'] .bg-name {
+    color: var(--ink);
+  }
+
+  .ed-foot {
     display: flex;
     gap: 8px;
-    margin-top: auto;
     padding-top: 14px;
     border-top: 1px solid var(--line);
   }
   .sp-btn {
-    flex: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1181,8 +1386,59 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     font-size: 0.9rem;
     transition: background-color 0.25s var(--ease-out);
   }
+  .sp-btn--icon {
+    flex: none;
+    width: 44px;
+    font-size: 18px;
+  }
   .sp-btn:hover {
     background: var(--surface-2);
+  }
+  /* Зберегти: the editor's own save button, black like in the app; after saving it offers to go back. */
+  .ed-save {
+    flex: 1;
+    display: grid;
+    height: 44px;
+    border-radius: var(--r-pill);
+    background: var(--ink);
+    color: var(--bg);
+    font-weight: 600;
+    font-size: 0.92rem;
+    overflow: hidden;
+    transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+  }
+  .ed-save > span {
+    grid-area: 1 / 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 0.45s var(--ease-out), opacity 0.3s var(--ease-out);
+  }
+  .ed-save-off {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  .ed.is-viewing .ed-save {
+    background: transparent;
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  .ed.is-viewing .ed-save-on {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  .ed.is-viewing .ed-save-off {
+    transform: none;
+    opacity: 1;
+  }
+  .ed.is-viewing .ed-sheet {
+    opacity: 0.55;
+    transition: opacity 0.3s var(--ease-out);
+  }
+  .ed.is-viewing .ed-sheet:hover,
+  .ed.is-viewing .ed-sheet:focus-within {
+    opacity: 1;
   }
 
   /* ---------- Phone ---------- */
@@ -2111,6 +2367,302 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     opacity: 1;
   }
 
+  /* ---------- Editor chrome on the phone (Редагування) ---------- */
+  /* Clip, not hide: focus or scrollIntoView must never scroll the phone's screen itself. */
+  .dphone-screen {
+    overflow: clip;
+  }
+  .dphone {
+    --ed-h: 0px;
+  }
+  .dphone[data-editing='true'] {
+    --ed-h: 46px;
+  }
+  .dphone .ds-promo {
+    top: calc(var(--ds-top) + var(--ed-h));
+    transition:
+      transform 0.4s var(--ease-out),
+      top 0.5s var(--ease-out);
+  }
+  .dphone .dscreen {
+    top: calc(var(--ds-top) + var(--ed-h));
+  }
+  .dphone:not([data-promo='off']) .dscreen {
+    top: calc(var(--ds-top) + var(--ed-h) + 28px);
+  }
+  .dphone[data-screen] .dscreen--catalog {
+    transition:
+      opacity 0.35s var(--ease-out),
+      transform 0.5s var(--ease-out),
+      top 0.5s var(--ease-out),
+      visibility 0s;
+  }
+  .ed-bar {
+    position: absolute;
+    top: var(--ds-top);
+    left: 0;
+    right: 0;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 46px;
+    padding: 0 10px;
+    background: var(--ds-bg);
+    border-bottom: 1px solid var(--ds-line);
+    transform: translateY(-110%);
+    opacity: 0;
+    transition:
+      transform 0.5s var(--ease-out),
+      opacity 0.3s var(--ease-out),
+      background-color 0.4s var(--ease-out);
+  }
+  .dphone[data-editing='true'] .ed-bar {
+    transform: none;
+    opacity: 1;
+  }
+  .ed-close {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--ds-surface);
+    color: var(--ds-ink);
+    font-size: 15px;
+  }
+  .ed-modes {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--ds-surface);
+  }
+  .ed-modes button {
+    padding: 6px 12px;
+    border-radius: 999px;
+    color: var(--ds-muted);
+    font-size: 0.74rem;
+    font-weight: 600;
+    transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out);
+  }
+  .ed-modes button[aria-pressed='true'] {
+    background: var(--ds-card);
+    color: var(--ds-ink);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Every element that can be edited gets a dashed frame; the one being edited, a solid one. */
+  .dphone[data-editing='true'] [data-ed-target] {
+    outline: 1.5px dashed color-mix(in srgb, var(--accent) 55%, transparent);
+    outline-offset: -3px;
+    cursor: var(--cursor-point);
+    transition: outline-color 0.2s var(--ease-out);
+  }
+  .dphone[data-editing='true'] [data-ed-target]:hover {
+    outline-color: var(--accent);
+  }
+  .dphone[data-editing='true'] [data-ed-target]:focus-visible {
+    outline: 2px solid var(--accent);
+  }
+  .dphone[data-editing='true'] .ds-tabs {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .ed-sel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 4;
+    width: 0;
+    height: 0;
+    border-radius: 12px;
+    box-shadow:
+      inset 0 0 0 2px var(--accent),
+      0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
+    pointer-events: none;
+    opacity: 0;
+    transition:
+      transform 0.5s var(--ease-out),
+      width 0.5s var(--ease-out),
+      height 0.5s var(--ease-out),
+      opacity 0.25s var(--ease-out);
+  }
+  .ed-sel.is-on {
+    opacity: 1;
+  }
+  .ed-sel-tag {
+    position: absolute;
+    left: 0;
+    bottom: 100%;
+    margin-bottom: 4px;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-family: var(--font-text);
+    font-size: 0.66rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .ed-sel.is-below .ed-sel-tag {
+    bottom: auto;
+    top: 100%;
+    margin: 4px 0 0;
+  }
+  .ed-sel.is-low .ed-sel-tag {
+    bottom: auto;
+    top: 6px;
+    left: 6px;
+    margin: 0;
+  }
+
+  /* The dock: one dark-glass row of tools floating over the shop, as in the app. */
+  .ed-dock {
+    position: absolute;
+    left: 50%;
+    bottom: calc(6.5cqw + 66px);
+    z-index: 5;
+    display: flex;
+    gap: 2px;
+    padding: 5px;
+    border-radius: 20px;
+    background: rgba(22, 22, 24, 0.78);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    backdrop-filter: blur(14px) saturate(1.4);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 14px 30px -12px rgba(0, 0, 0, 0.5);
+    transform: translate(-50%, 140%);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform 0.55s var(--ease-spring),
+      opacity 0.3s var(--ease-out);
+  }
+  .dphone[data-editing='true'] .ed-dock {
+    transform: translate(-50%, 0);
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.08s;
+  }
+  .dphone[data-editing='true'][data-sheet-open='true'] .ed-dock {
+    transform: translate(-50%, 140%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .ed-dock button {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    min-width: 52px;
+    padding: 6px 6px 5px;
+    border-radius: 15px;
+    color: rgba(255, 255, 255, 0.82);
+    font-family: var(--font-text);
+    font-size: 0.62rem;
+    font-weight: 600;
+    transition: background-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
+  }
+  .ed-dock button :global(.icon) {
+    font-size: 18px;
+  }
+  .ed-dock button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+  .ed-dock button[aria-pressed='true'] {
+    background: #fff;
+    color: #111113;
+  }
+
+  /* Phones: the panel's sheet moves into the phone (demo.ts) and slides up over the shop. */
+  .dphone-screen > .ed-sheet {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 8;
+    max-height: 60%;
+    padding: 22px 16px calc(6.5cqw + 10px);
+    border-radius: 24px 24px 0 0;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-text);
+    box-shadow: 0 -18px 40px -16px rgba(0, 0, 0, 0.45);
+    transform: translateY(105%);
+    transition: transform 0.5s var(--ease-out);
+  }
+  .dphone[data-sheet-open='true'] .dphone-screen > .ed-sheet {
+    transform: none;
+  }
+  .dphone-screen > .ed-sheet .ed-grip {
+    display: block;
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    width: 36px;
+    height: 4px;
+    margin-left: -18px;
+    border-radius: 2px;
+    background: var(--line-strong);
+  }
+  .dphone-screen > .ed-sheet .ed-done {
+    display: block;
+    position: absolute;
+    top: 20px;
+    right: 14px;
+    z-index: 1;
+    padding: 7px 14px;
+    border-radius: var(--r-pill);
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .dphone-screen > .ed-sheet .ed-sec {
+    gap: 12px;
+  }
+  .dphone-screen > .ed-sheet .ed-sec-head {
+    padding-right: 76px;
+    padding-bottom: 10px;
+  }
+  .dphone-screen > .ed-sheet .ed-sec-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+    font-size: 17px;
+  }
+  .dphone-screen > .ed-sheet .ed-sec-title {
+    font-size: 0.98rem;
+  }
+  .dphone-screen > .ed-sheet .ed-sec-sub,
+  .dphone-screen > .ed-sheet .sp-note {
+    display: none;
+  }
+  .dphone-screen > .ed-sheet .tpl-thumb {
+    height: 56px;
+  }
+  .dphone-screen > .ed-sheet .tpl-text {
+    display: none;
+  }
+  .dphone-screen > .ed-sheet .seg button {
+    height: 32px;
+    font-size: 0.76rem;
+  }
+  .dphone-screen > .ed-sheet .font-opt {
+    padding: 5px 10px;
+  }
+  .dphone-screen > .ed-sheet .font-sample {
+    font-size: 1.3rem;
+  }
+
+  .dphone[data-search='off'] [data-hb='search'],
+  .dphone[data-filters='off'] [data-hb='filters'] {
+    display: none;
+  }
+
   /* ---------- Owner chat ---------- */
   .dchat {
     position: relative;
@@ -2375,10 +2927,6 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     }
     /* The panel keeps to the phone's height: compact template cards (the description moves to a
        tooltip) and label-beside-control rows in Style. */
-    .sp-pane {
-      gap: 10px;
-      min-height: 0;
-    }
     .tpl {
       padding: 6px 6px 8px;
       gap: 2px;
@@ -2404,11 +2952,6 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
       height: 32px;
       font-size: 0.8rem;
     }
-    [data-pane='style'] .sp-row {
-      grid-template-columns: 76px minmax(0, 1fr);
-      align-items: center;
-      gap: 8px;
-    }
     .font-opt {
       padding: 6px 10px;
     }
@@ -2428,9 +2971,6 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     }
     .studio-col--panel {
       grid-column: 1 / -1;
-    }
-    .sp-pane {
-      min-height: 0;
     }
     .tpl-grid {
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2460,8 +3000,20 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     .ds-done.is-done .ds-to-owner {
       display: inline-flex;
     }
+    .ed-tip-wide {
+      display: none;
+    }
+    .ed-tip-narrow {
+      display: inline;
+    }
+    .ed > .ed-foot {
+      padding-top: 12px;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
+    .ed-sec {
+      animation: none;
+    }
     .ds-spinner,
     .ds-promo-track {
       animation: none !important;
