@@ -3,28 +3,28 @@ import { Picture } from 'astro:assets';
 import Device from './Device.astro';
 import catalog from '../assets/shots/shell-catalog.png';
 import variants from '../assets/shots/product-create-variants.png';
-import payments from '../assets/shots/payments-list.png';
+import payments from '../assets/shots/payments-list.webp';
 import orders from '../assets/shots/orders-list.png';
 import ttn from '../assets/shots/order-ttn.png';
 import analytics from '../assets/shots/analytics.png';
 import customers from '../assets/shots/customers.png';
 import promos from '../assets/shots/promos.png';
 import campaigns from '../assets/shots/campaigns.png';
-import appearance from '../assets/shots/appearance.png';
+import appearance from '../assets/shots/appearance.webp';
 
 // Real product screens (docshots demo data), shown as a feature switcher that fits one
 // screen: pick a feature (or let it advance on its own) and the phone shows that screen.
 const cards = [
   { img: catalog, who: 'Покупець', title: 'Вітрина як у застосунку', text: 'Категорії, пошук, фото, знижки й кошик відкриваються прямо в Telegram.', alt: 'Каталог магазину з категоріями і кнопками додавання в кошик' },
   { img: variants, who: 'Ви', title: 'Розміри й кольори варіантами', text: 'Залишок по кожному варіанту і до 10 фото. Стара ціна закреслюється сама.', alt: 'Форма товару з варіантами розмірів і фото' },
-  { img: payments, who: 'Ви', title: 'П’ять способів оплати', text: 'LiqPay і plata by mono з автопідтвердженням, а також реквізити, посилання і післяплата.', alt: 'Налаштування способів оплати: LiqPay, plata by mono, оплата за посиланням' },
+  { img: payments, who: 'Ви', title: 'Сім способів оплати', text: 'Stripe, PayPal, LiqPay і plata by mono підтверджуються самі. Ще реквізити, посилання й післяплата. Ціни в гривнях, євро, злотих чи доларах.', alt: 'Налаштування способів оплати: Stripe, PayPal, LiqPay, plata by mono, оплата за посиланням' },
   { img: orders, who: 'Ви', title: 'Видно, що чекає на вас', text: 'Фільтри «Очікують», «На перевірці», «До відправки», «У дорозі» з лічильниками.', alt: 'Список замовлень з фільтрами за статусом' },
   { img: ttn, who: 'Ви', title: 'ТТН з картки замовлення', text: 'Дані покупця вже в замовленні. Створіть накладну, оновіть статус і відстежте посилку.', alt: 'Картка замовлення зі створеною ТТН Нової пошти' },
   { img: analytics, who: 'Ви', title: 'Виторг, чек і конверсія', text: 'Порівняння з попереднім періодом, топ товарів і підказки, що перевірити.', alt: 'Аналітика: виторг, замовлення, середній чек, конверсія' },
   { img: customers, who: 'Ви', title: 'Клієнти й сегменти', text: 'Нові, повторні, VIP і ті, хто давно не купував. Напишіть клієнту з його картки.', alt: 'База клієнтів з пошуком і сегментами' },
   { img: promos, who: 'Ви', title: 'Промокоди для своїх', text: 'Відсоток або сума, ліміт використань і аудиторія: лише нові, повторні чи VIP.', alt: 'Список промокодів зі статусами' },
   { img: campaigns, who: 'Ви', title: 'Розсилки від вашого бота', text: 'Повідомлення сегменту клієнтів і звіт: скільки доставлено, скільки помилок.', alt: 'Історія розсилок з показниками доставки' },
-  { img: appearance, who: 'Ви', title: 'Магазин у вашому стилі', text: 'Шаблон, кольори, шрифт, банер і біжучий рядок. Зміни видно у вітрині одразу.', alt: 'Редактор вигляду магазину' },
+  { img: appearance, who: 'Ви', title: 'Магазин у вашому стилі', text: 'Натисніть на елемент вітрини й змініть його: шаблон, кольори, шрифт, фон, кнопки в шапці. Що бачите, те й побачать покупці.', alt: 'Редактор вигляду: справжня вітрина з панеллю «Шаблон, Шрифт, Кольори, Фон, Додати»' },
 ];
 const pad = (n: number) => String(n).padStart(2, '0');
 ---
