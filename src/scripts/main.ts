@@ -610,7 +610,7 @@ function aiPhoto() {
     void after.offsetWidth;
     after.classList.add('is-busy');
     window.clearTimeout(busy);
-    busy = window.setTimeout(() => after.classList.remove('is-busy'), 800);
+    busy = window.setTimeout(() => after.classList.remove('is-busy'), 650);
   };
   const setSplit = (v: number) => {
     range.value = String(v);
@@ -618,17 +618,33 @@ function aiPhoto() {
   };
   range.addEventListener('input', () => setSplit(Number(range.value)));
 
-  const group = $('[role="radiogroup"]', tile)!;
-  radioGroup(group, (btn) => {
-    const op = btn.dataset.aiOp!;
-    after.dataset.op = op;
+  const imgs = Array.from(after.querySelectorAll<HTMLImageElement>('[data-ai-img]'));
+  const bgs = $('[data-ai-bgs]', tile)!;
+  let op = 'replace_background';
+  let bg = 'beige';
+  const show = () => {
+    const key = op === 'replace_background' ? `${op}:${bg}` : op;
+    for (const img of imgs) {
+      const on = img.dataset.aiImg === key;
+      img.classList.toggle('is-on', on);
+      img.toggleAttribute('aria-hidden', !on);
+    }
+    bgs.hidden = op !== 'replace_background';
     // Show more of the result once the visitor starts choosing.
     if (Number(range.value) > 30) setSplit(30);
     regenerate();
+  };
+  radioGroup($('.ops', tile)!, (btn) => {
+    op = btn.dataset.aiOp!;
+    show();
+  });
+  radioGroup(bgs, (btn) => {
+    bg = btn.dataset.aiBg!;
+    show();
   });
   $('[data-ai-accept]', tile)!.addEventListener('click', () => {
     setSplit(0);
-    status.textContent = 'Фото додано в товар «Кільце»';
+    status.textContent = 'Фото додано в товар «Футболка»';
   });
 }
 

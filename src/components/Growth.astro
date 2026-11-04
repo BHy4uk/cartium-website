@@ -1,19 +1,50 @@
 ---
 import { getImage } from 'astro:assets';
 import Icon from './Icon.astro';
-// Sharpened 3x enlargements of the small demo shots (tools/upscale.mjs), so the stage stays crisp.
-import ringPhoto from '../assets/products/ring-hd.png';
-import ringCutout from '../assets/products/ring-cutout-hd.png';
+// A real catalog product (the Cartium demo tee). Every choice shows a prepared result, so the
+// photo visibly changes: «Замінити фон» keeps the tee in place on the chosen backdrop, the
+// creative ones are real AI drafts of the same tee (seedream via Fish, 2026-11-04).
+import teeOriginal from '../assets/products/tee-ai/original.jpg';
+import bgWhite from '../assets/products/tee-ai/bg-white.jpg';
+import bgGray from '../assets/products/tee-ai/bg-light_gray.jpg';
+import bgBeige from '../assets/products/tee-ai/bg-beige.jpg';
+import bgGradient from '../assets/products/tee-ai/bg-gradient.jpg';
+// The AI drafts are optional files: an action shows up only once its picture is in the folder.
+const drafts = import.meta.glob<{ default: ImageMetadata }>('../assets/products/tee-ai/{ghost_mannequin,on_hanger,premium}.jpg', { eager: true });
+const draft = (id: string) => drafts[`../assets/products/tee-ai/${id}.jpg`]?.default;
 
-const ringSrc = (await getImage({ src: ringPhoto, format: 'webp', quality: 95 })).src;
-const ringCutSrc = (await getImage({ src: ringCutout, format: 'png' })).src;
+const webp = async (src: ImageMetadata, width: number) =>
+  (await getImage({ src, format: 'webp', quality: 88, width })).src;
 
-// Three of the ten real operations, with their own hints; the demo imitates the result on a cut-out.
-const operations = [
-  { id: 'replace_background', label: 'Замінити фон', hint: 'Товар без змін, новий фон' },
-  { id: 'studio', label: 'Студійне фото', hint: 'Чистий фон і м\'яке світло' },
-  { id: 'catalog_ready', label: 'Для каталогу', hint: 'По центру, однакові відступи' },
+// Labels, hints and backdrops are the product's own (application/ai_image_operations.py).
+const backgrounds = [
+  { id: 'beige', label: 'Бежевий', swatch: '#ece3d6', img: bgBeige },
+  { id: 'white', label: 'Білий', swatch: '#ffffff', img: bgWhite },
+  { id: 'light_gray', label: 'Світло-сірий', swatch: '#e6e6e6', img: bgGray },
+  { id: 'gradient', label: 'Градієнт', swatch: 'linear-gradient(180deg,#f3f3f3,#d9d9d9)', img: bgGradient },
 ];
+const operations = await Promise.all(
+  [
+    { id: 'replace_background', label: 'Замінити фон', hint: 'Товар без змін, новий фон', img: bgBeige },
+    { id: 'ghost_mannequin', label: 'Без манекена', hint: 'Ефект «невидимого манекена»', img: draft('ghost_mannequin') },
+    { id: 'on_hanger', label: 'На вішаку', hint: 'Річ висить на плічках', img: draft('on_hanger') },
+    { id: 'premium', label: 'Преміум-реклама', hint: 'Ефектне рекламне фото', img: draft('premium') },
+  ]
+    .filter((o): o is typeof o & { img: ImageMetadata } => !!o.img)
+    .map(async (o) => ({ ...o, thumb: await webp(o.img, 240) })),
+);
+// One layer per result: «Замінити фон» has one per backdrop, keyed "op:bg".
+const results = await Promise.all(
+  [
+    ...backgrounds.map((b) => ({ key: `replace_background:${b.id}`, img: b.img, alt: `футболка на фоні «${b.label}»` })),
+    { key: 'ghost_mannequin', img: draft('ghost_mannequin'), alt: 'футболка з ефектом невидимого манекена' },
+    { key: 'on_hanger', img: draft('on_hanger'), alt: 'футболка на деревʼяному вішаку' },
+    { key: 'premium', img: draft('premium'), alt: 'рекламне фото футболки' },
+  ]
+    .filter((r): r is typeof r & { img: ImageMetadata } => !!r.img)
+    .map(async (r) => ({ ...r, src: await webp(r.img, 900) })),
+);
+const originalSrc = await webp(teeOriginal, 900);
 ---
 <section class="section growth" id="growth" aria-labelledby="growth-title">
   <div class="container">
@@ -33,8 +64,16 @@ const operations = [
         <div class="ops" role="radiogroup" aria-label="Що зробити з фото">
           {operations.map((o, i) => (
             <button type="button" class="op" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-ai-op={o.id} title={o.hint}>
-              <span class:list={['op-pic', `op-pic--${o.id}`]} aria-hidden="true"><img src={ringCutSrc} alt="" loading="lazy" decoding="async" /></span>
+              <span class="op-pic" aria-hidden="true"><img src={o.thumb} alt="" loading="lazy" decoding="async" /></span>
               <span class="op-label">{o.label}</span>
+            </button>
+          ))}
+        </div>
+        <div class="ai-bgs" role="radiogroup" aria-label="Фон" data-ai-bgs>
+          {backgrounds.map((b, i) => (
+            <button type="button" class="ai-bg" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-ai-bg={b.id}>
+              <span class="ai-swatch" style={`background:${b.swatch}`} aria-hidden="true"></span>
+              {b.label}
             </button>
           ))}
         </div>
@@ -45,14 +84,12 @@ const operations = [
       </div>
       <div class="ai-compare" data-ai-compare style="--split:50%">
         <div class="ai-before">
-          <img src={ringSrc} alt="Оригінальне фото кільця на темному тлі" width="248" height="316" loading="lazy" decoding="async" />
+          <img src={originalSrc} alt="Оригінальне фото футболки на темному тлі" width="900" height="1200" loading="lazy" decoding="async" />
         </div>
-        <div class="ai-after" data-ai-after data-op="replace_background" style="--ai-bg:#e6e6e6">
-          <span class="ai-scene" aria-hidden="true"></span>
-          <span class="ai-frame" aria-hidden="true"></span>
-          <span class="ai-shadow" aria-hidden="true"></span>
-          <img class="ai-reflect" src={ringCutSrc} alt="" aria-hidden="true" />
-          <img class="ai-cut" src={ringCutSrc} alt="AI-чернетка: кільце на новому фоні" />
+        <div class="ai-after" data-ai-after>
+          {results.map((r, i) => (
+            <img src={r.src} alt={`AI-чернетка: ${r.alt}`} width="900" height="1200" loading="lazy" decoding="async" data-ai-img={r.key} class:list={{ 'is-on': i === 0 }} aria-hidden={i === 0 ? undefined : 'true'} />
+          ))}
         </div>
         <span class="ai-tag" aria-hidden="true">Ваше фото</span>
         <span class="ai-tag ai-tag--after" aria-hidden="true"><Icon name="sparkle" /> AI-чернетка</span>
@@ -113,7 +150,7 @@ const operations = [
        Safari gives an auto track around an empty-looking box no width at all. */
     --ai-h: clamp(360px, 56svh, 480px);
     display: grid;
-    grid-template-columns: minmax(0, 1fr) calc(var(--ai-h) * 248 / 316);
+    grid-template-columns: minmax(0, 1fr) calc(var(--ai-h) * 3 / 4);
     align-items: center;
     gap: clamp(24px, 3.5vw, 56px);
     padding: clamp(20px, 3vw, 44px);
@@ -150,10 +187,10 @@ const operations = [
   /* Each action is a small preview of its own result, so the choice reads at a glance. */
   .ops {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
     width: 100%;
-    max-width: 440px;
+    max-width: 480px;
   }
   .op {
     display: grid;
@@ -191,31 +228,24 @@ const operations = [
     overflow: hidden;
   }
   .op-pic img {
-    width: 72%;
-    filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.28));
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 45%;
   }
-  .op-pic--studio {
-    background: radial-gradient(90% 70% at 50% 15%, #ffffff, #d9d9de);
-  }
-  .op-pic--catalog_ready {
-    background: #fff;
-    box-shadow: inset 0 0 0 5px #fff, inset 0 0 0 6px #e3e3e3;
-  }
-  .op-pic--catalog_ready img {
-    width: 58%;
+  .op-label {
+    min-height: 2.3em;
+    display: grid;
+    place-items: center;
+    line-height: 1.15;
   }
 
-  /* Before / after: the AI layer is clipped from the left at --split. */
-  /* The frame has the photo's proportions and the cut-out sits exactly where the ring is
-     in the original (crop box 38,107 to 210,234 of 248x316), so before and after line up. */
+  /* Before / after: the AI layer is clipped from the left at --split. Every result has the
+     original's frame, so the tee lines up across the split. */
   .ai-compare {
-    --ring-x: 15.3%;
-    --ring-y: 33.9%;
-    --ring-w: 69.4%;
-    --ring-h: 40.2%;
     position: relative;
     align-self: center;
-    aspect-ratio: 248 / 316;
+    aspect-ratio: 3 / 4;
     border-radius: 22px;
     overflow: hidden;
     background: #2a2a2a;
@@ -227,7 +257,10 @@ const operations = [
     position: absolute;
     inset: 0;
   }
-  .ai-before img {
+  .ai-before img,
+  .ai-after img {
+    position: absolute;
+    inset: 0;
     display: block;
     width: 100%;
     height: 100%;
@@ -237,82 +270,14 @@ const operations = [
     clip-path: inset(0 0 0 var(--split));
     overflow: hidden;
   }
-  .ai-scene {
-    position: absolute;
-    inset: 0;
-    background: var(--ai-bg);
-    transition: background 0.6s var(--ease-out);
-  }
-  .ai-cut,
-  .ai-reflect {
-    position: absolute;
-    left: var(--ring-x);
-    top: var(--ring-y);
-    width: var(--ring-w);
-    transform-origin: 50% 100%;
-    transition: transform 0.6s var(--ease-spring), opacity 0.4s var(--ease-out), filter 0.4s var(--ease-out);
-  }
-  .ai-cut {
-    z-index: 2;
-    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.14));
-  }
-  .ai-reflect {
-    z-index: 1;
-    top: calc(var(--ring-y) + var(--ring-h) - 1%);
-    transform: scaleY(-1);
-    transform-origin: 50% 0;
+  .ai-after img {
     opacity: 0;
-    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.32), transparent 60%);
-    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.32), transparent 60%);
+    transition: opacity 0.55s var(--ease-out), filter 0.55s var(--ease-out), scale 0.7s var(--ease-out);
   }
-  .ai-shadow {
-    position: absolute;
-    z-index: 1;
-    left: calc(var(--ring-x) + var(--ring-w) * 0.1);
-    width: calc(var(--ring-w) * 0.8);
-    top: calc(var(--ring-y) + var(--ring-h) - 4%);
-    height: 7%;
-    border-radius: 50%;
-    background: radial-gradient(closest-side, rgba(0, 0, 0, 0.3), transparent);
-    transform-origin: 50% 0;
-    transition: transform 0.6s var(--ease-spring);
-  }
-  .ai-frame {
-    position: absolute;
-    z-index: 3;
-    left: 9%;
-    right: 9%;
-    top: 50%;
-    aspect-ratio: 1;
-    translate: 0 -50%;
-    border: 1.5px dashed rgba(10, 10, 11, 0.28);
-    border-radius: 12px;
-    opacity: 0;
-    transition: opacity 0.4s var(--ease-out);
-  }
-
-  /* Studio: soft key light from above and a floor reflection. */
-  .ai-after[data-op='studio'] .ai-scene {
-    background:
-      radial-gradient(90% 60% at 50% 18%, rgba(255, 255, 255, 0.7), transparent 70%),
-      linear-gradient(to top, rgba(0, 0, 0, 0.1), transparent 34%),
-      var(--ai-bg);
-  }
-  .ai-after[data-op='studio'] .ai-reflect {
+  .ai-after img.is-on {
     opacity: 1;
   }
-  .ai-after[data-op='studio'] .ai-shadow {
-    opacity: 0.6;
-  }
-  /* Catalog: centred, even margins. */
-  .ai-after[data-op='catalog_ready'] .ai-cut,
-  .ai-after[data-op='catalog_ready'] .ai-shadow {
-    transform: translateY(-6%) scale(1.06);
-  }
-  .ai-after[data-op='catalog_ready'] .ai-frame {
-    opacity: 1;
-  }
-  /* "Generating": a light sweep over the AI side. */
+  /* "Generating": a light sweep over the AI side while the new result fades in. */
   .ai-after::after {
     content: '';
     position: absolute;
@@ -325,10 +290,11 @@ const operations = [
   }
   .ai-after.is-busy::after {
     opacity: 1;
-    animation: ai-sweep 0.8s ease-in-out;
+    animation: ai-sweep 0.9s ease-in-out;
   }
-  .ai-after.is-busy .ai-cut {
-    filter: blur(6px) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.14));
+  .ai-after.is-busy img.is-on {
+    filter: blur(8px);
+    scale: 1.03;
   }
   @keyframes ai-sweep {
     from {
@@ -414,6 +380,43 @@ const operations = [
     outline-offset: 3px;
   }
 
+  /* Backdrops for «Замінити фон»: the product's own named choices, shown only for that action. */
+  .ai-bgs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 480px;
+  }
+  /* Hidden but still holding its row, so the stage does not jump between actions. */
+  .ai-bgs[hidden] {
+    display: flex;
+    visibility: hidden;
+  }
+  .ai-bg {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 14px 0 8px;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-weight: 600;
+    font-size: 0.84rem;
+    transition: background-color 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
+  }
+  .ai-bg:hover {
+    background: var(--hover-soft);
+  }
+  .ai-bg[aria-checked='true'] {
+    background: var(--surface-3);
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+  .ai-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgba(10, 10, 11, 0.18);
+  }
   .ai-actions {
     display: flex;
     flex-wrap: wrap;
@@ -685,7 +688,7 @@ const operations = [
       grid-template-columns: minmax(0, 1fr);
     }
     .ai-stage .ai-compare {
-      width: min(100%, calc(var(--ai-h) * 248 / 316));
+      width: min(100%, calc(var(--ai-h) * 3 / 4));
     }
     .tools {
       grid-template-columns: repeat(2, minmax(0, 1fr));
