@@ -1,25 +1,48 @@
 ---
 import { getImage } from 'astro:assets';
 import Icon from './Icon.astro';
-// A real catalog product (the Cartium demo tee). Each operation shows a prepared result, so
-// picking one visibly changes the photo; the preserve-mode ones keep the tee where it was.
+// A real catalog product (the Cartium demo tee). Every choice shows a prepared result, so the
+// photo visibly changes: «Замінити фон» keeps the tee in place on the chosen backdrop, the
+// creative ones are real AI drafts of the same tee (seedream via Fish, 2026-11-04).
 import teeOriginal from '../assets/products/tee-ai/original.jpg';
-import teeReplace from '../assets/products/tee-ai/replace_background.jpg';
-import teeStudio from '../assets/products/tee-ai/studio.jpg';
-import teeImprove from '../assets/products/tee-ai/improve.jpg';
-import teeCatalog from '../assets/products/tee-ai/catalog_ready.jpg';
+import bgWhite from '../assets/products/tee-ai/bg-white.jpg';
+import bgGray from '../assets/products/tee-ai/bg-light_gray.jpg';
+import bgBeige from '../assets/products/tee-ai/bg-beige.jpg';
+import bgGradient from '../assets/products/tee-ai/bg-gradient.jpg';
+// The AI drafts are optional files: an action shows up only once its picture is in the folder.
+const drafts = import.meta.glob<{ default: ImageMetadata }>('../assets/products/tee-ai/{ghost_mannequin,on_hanger,premium}.jpg', { eager: true });
+const draft = (id: string) => drafts[`../assets/products/tee-ai/${id}.jpg`]?.default;
 
 const webp = async (src: ImageMetadata, width: number) =>
   (await getImage({ src, format: 'webp', quality: 88, width })).src;
 
-// Labels and hints are the product's own (application/ai_image_operations.py).
+// Labels, hints and backdrops are the product's own (application/ai_image_operations.py).
+const backgrounds = [
+  { id: 'beige', label: 'Бежевий', swatch: '#ece3d6', img: bgBeige },
+  { id: 'white', label: 'Білий', swatch: '#ffffff', img: bgWhite },
+  { id: 'light_gray', label: 'Світло-сірий', swatch: '#e6e6e6', img: bgGray },
+  { id: 'gradient', label: 'Градієнт', swatch: 'linear-gradient(180deg,#f3f3f3,#d9d9d9)', img: bgGradient },
+];
 const operations = await Promise.all(
   [
-    { id: 'replace_background', label: 'Замінити фон', hint: 'Товар без змін, новий фон', img: teeReplace, alt: 'футболка на бежевому фоні' },
-    { id: 'studio', label: 'Студійне фото', hint: "Чистий фон і м'яке світло", img: teeStudio, alt: 'футболка в студійному світлі' },
-    { id: 'improve', label: 'Покращити фото', hint: 'Світло, колір, різкість', img: teeImprove, alt: 'футболка з виправленим світлом і різкістю' },
-    { id: 'catalog_ready', label: 'Для каталогу', hint: 'По центру, однакові відступи', img: teeCatalog, alt: 'футболка по центру на білому' },
-  ].map(async (o) => ({ ...o, src: await webp(o.img, 900), thumb: await webp(o.img, 240) })),
+    { id: 'replace_background', label: 'Замінити фон', hint: 'Товар без змін, новий фон', img: bgBeige },
+    { id: 'ghost_mannequin', label: 'Без манекена', hint: 'Ефект «невидимого манекена»', img: draft('ghost_mannequin') },
+    { id: 'on_hanger', label: 'На вішаку', hint: 'Річ висить на плічках', img: draft('on_hanger') },
+    { id: 'premium', label: 'Преміум-реклама', hint: 'Ефектне рекламне фото', img: draft('premium') },
+  ]
+    .filter((o): o is typeof o & { img: ImageMetadata } => !!o.img)
+    .map(async (o) => ({ ...o, thumb: await webp(o.img, 240) })),
+);
+// One layer per result: «Замінити фон» has one per backdrop, keyed "op:bg".
+const results = await Promise.all(
+  [
+    ...backgrounds.map((b) => ({ key: `replace_background:${b.id}`, img: b.img, alt: `футболка на фоні «${b.label}»` })),
+    { key: 'ghost_mannequin', img: draft('ghost_mannequin'), alt: 'футболка з ефектом невидимого манекена' },
+    { key: 'on_hanger', img: draft('on_hanger'), alt: 'футболка на деревʼяному вішаку' },
+    { key: 'premium', img: draft('premium'), alt: 'рекламне фото футболки' },
+  ]
+    .filter((r): r is typeof r & { img: ImageMetadata } => !!r.img)
+    .map(async (r) => ({ ...r, src: await webp(r.img, 900) })),
 );
 const originalSrc = await webp(teeOriginal, 900);
 ---
@@ -46,6 +69,14 @@ const originalSrc = await webp(teeOriginal, 900);
             </button>
           ))}
         </div>
+        <div class="ai-bgs" role="radiogroup" aria-label="Фон" data-ai-bgs>
+          {backgrounds.map((b, i) => (
+            <button type="button" class="ai-bg" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-ai-bg={b.id}>
+              <span class="ai-swatch" style={`background:${b.swatch}`} aria-hidden="true"></span>
+              {b.label}
+            </button>
+          ))}
+        </div>
         <div class="ai-actions">
           <button type="button" class="ai-accept" data-ai-accept><Icon name="check" /> Прийняти в товар</button>
           <span class="ai-status" data-ai-status role="status" aria-live="polite"></span>
@@ -56,8 +87,8 @@ const originalSrc = await webp(teeOriginal, 900);
           <img src={originalSrc} alt="Оригінальне фото футболки на темному тлі" width="900" height="1200" loading="lazy" decoding="async" />
         </div>
         <div class="ai-after" data-ai-after>
-          {operations.map((o, i) => (
-            <img src={o.src} alt={`AI-чернетка: ${o.alt}`} width="900" height="1200" loading="lazy" decoding="async" data-ai-img={o.id} class:list={{ 'is-on': i === 0 }} aria-hidden={i === 0 ? undefined : 'true'} />
+          {results.map((r, i) => (
+            <img src={r.src} alt={`AI-чернетка: ${r.alt}`} width="900" height="1200" loading="lazy" decoding="async" data-ai-img={r.key} class:list={{ 'is-on': i === 0 }} aria-hidden={i === 0 ? undefined : 'true'} />
           ))}
         </div>
         <span class="ai-tag" aria-hidden="true">Ваше фото</span>
@@ -349,6 +380,43 @@ const originalSrc = await webp(teeOriginal, 900);
     outline-offset: 3px;
   }
 
+  /* Backdrops for «Замінити фон»: the product's own named choices, shown only for that action. */
+  .ai-bgs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 480px;
+  }
+  /* Hidden but still holding its row, so the stage does not jump between actions. */
+  .ai-bgs[hidden] {
+    display: flex;
+    visibility: hidden;
+  }
+  .ai-bg {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 14px 0 8px;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-weight: 600;
+    font-size: 0.84rem;
+    transition: background-color 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
+  }
+  .ai-bg:hover {
+    background: var(--hover-soft);
+  }
+  .ai-bg[aria-checked='true'] {
+    background: var(--surface-3);
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+  .ai-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgba(10, 10, 11, 0.18);
+  }
   .ai-actions {
     display: flex;
     flex-wrap: wrap;
