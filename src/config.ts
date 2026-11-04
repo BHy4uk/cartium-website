@@ -7,6 +7,10 @@ export const BOT_URL = `https://t.me/${BOT_HANDLE}`;
 // so a visitor lands on step 1 instead of the bot's start menu.
 export const SIGNUP_URL = `${BOT_URL}?start=connect`;
 
+// Support is a person's account, not the bot: the signup bot does not answer free-text questions.
+export const SUPPORT_HANDLE = 'cartium_support';
+export const SUPPORT_URL = `https://t.me/${SUPPORT_HANDLE}`;
+
 // TODO: replace with the Cartium Telegram channel link.
 export const CHANNEL_URL = 'https://t.me/your_cartium_channel';
 

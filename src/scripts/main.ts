@@ -610,7 +610,7 @@ function aiPhoto() {
     void after.offsetWidth;
     after.classList.add('is-busy');
     window.clearTimeout(busy);
-    busy = window.setTimeout(() => after.classList.remove('is-busy'), 800);
+    busy = window.setTimeout(() => after.classList.remove('is-busy'), 650);
   };
   const setSplit = (v: number) => {
     range.value = String(v);
@@ -619,16 +619,21 @@ function aiPhoto() {
   range.addEventListener('input', () => setSplit(Number(range.value)));
 
   const group = $('[role="radiogroup"]', tile)!;
+  const imgs = Array.from(after.querySelectorAll<HTMLImageElement>('[data-ai-img]'));
   radioGroup(group, (btn) => {
     const op = btn.dataset.aiOp!;
-    after.dataset.op = op;
+    for (const img of imgs) {
+      const on = img.dataset.aiImg === op;
+      img.classList.toggle('is-on', on);
+      img.toggleAttribute('aria-hidden', !on);
+    }
     // Show more of the result once the visitor starts choosing.
     if (Number(range.value) > 30) setSplit(30);
     regenerate();
   });
   $('[data-ai-accept]', tile)!.addEventListener('click', () => {
     setSplit(0);
-    status.textContent = 'Фото додано в товар «Кільце»';
+    status.textContent = 'Фото додано в товар «Футболка»';
   });
 }
 

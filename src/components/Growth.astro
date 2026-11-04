@@ -1,19 +1,27 @@
 ---
 import { getImage } from 'astro:assets';
 import Icon from './Icon.astro';
-// Sharpened 3x enlargements of the small demo shots (tools/upscale.mjs), so the stage stays crisp.
-import ringPhoto from '../assets/products/ring-hd.png';
-import ringCutout from '../assets/products/ring-cutout-hd.png';
+// A real catalog product (the Cartium demo tee). Each operation shows a prepared result, so
+// picking one visibly changes the photo; the preserve-mode ones keep the tee where it was.
+import teeOriginal from '../assets/products/tee-ai/original.jpg';
+import teeReplace from '../assets/products/tee-ai/replace_background.jpg';
+import teeStudio from '../assets/products/tee-ai/studio.jpg';
+import teeImprove from '../assets/products/tee-ai/improve.jpg';
+import teeCatalog from '../assets/products/tee-ai/catalog_ready.jpg';
 
-const ringSrc = (await getImage({ src: ringPhoto, format: 'webp', quality: 95 })).src;
-const ringCutSrc = (await getImage({ src: ringCutout, format: 'png' })).src;
+const webp = async (src: ImageMetadata, width: number) =>
+  (await getImage({ src, format: 'webp', quality: 88, width })).src;
 
-// Three of the ten real operations, with their own hints; the demo imitates the result on a cut-out.
-const operations = [
-  { id: 'replace_background', label: 'Замінити фон', hint: 'Товар без змін, новий фон' },
-  { id: 'studio', label: 'Студійне фото', hint: 'Чистий фон і м\'яке світло' },
-  { id: 'catalog_ready', label: 'Для каталогу', hint: 'По центру, однакові відступи' },
-];
+// Labels and hints are the product's own (application/ai_image_operations.py).
+const operations = await Promise.all(
+  [
+    { id: 'replace_background', label: 'Замінити фон', hint: 'Товар без змін, новий фон', img: teeReplace, alt: 'футболка на бежевому фоні' },
+    { id: 'studio', label: 'Студійне фото', hint: "Чистий фон і м'яке світло", img: teeStudio, alt: 'футболка в студійному світлі' },
+    { id: 'improve', label: 'Покращити фото', hint: 'Світло, колір, різкість', img: teeImprove, alt: 'футболка з виправленим світлом і різкістю' },
+    { id: 'catalog_ready', label: 'Для каталогу', hint: 'По центру, однакові відступи', img: teeCatalog, alt: 'футболка по центру на білому' },
+  ].map(async (o) => ({ ...o, src: await webp(o.img, 900), thumb: await webp(o.img, 240) })),
+);
+const originalSrc = await webp(teeOriginal, 900);
 ---
 <section class="section growth" id="growth" aria-labelledby="growth-title">
   <div class="container">
@@ -33,7 +41,7 @@ const operations = [
         <div class="ops" role="radiogroup" aria-label="Що зробити з фото">
           {operations.map((o, i) => (
             <button type="button" class="op" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-ai-op={o.id} title={o.hint}>
-              <span class:list={['op-pic', `op-pic--${o.id}`]} aria-hidden="true"><img src={ringCutSrc} alt="" loading="lazy" decoding="async" /></span>
+              <span class="op-pic" aria-hidden="true"><img src={o.thumb} alt="" loading="lazy" decoding="async" /></span>
               <span class="op-label">{o.label}</span>
             </button>
           ))}
@@ -45,14 +53,12 @@ const operations = [
       </div>
       <div class="ai-compare" data-ai-compare style="--split:50%">
         <div class="ai-before">
-          <img src={ringSrc} alt="Оригінальне фото кільця на темному тлі" width="248" height="316" loading="lazy" decoding="async" />
+          <img src={originalSrc} alt="Оригінальне фото футболки на темному тлі" width="900" height="1200" loading="lazy" decoding="async" />
         </div>
-        <div class="ai-after" data-ai-after data-op="replace_background" style="--ai-bg:#e6e6e6">
-          <span class="ai-scene" aria-hidden="true"></span>
-          <span class="ai-frame" aria-hidden="true"></span>
-          <span class="ai-shadow" aria-hidden="true"></span>
-          <img class="ai-reflect" src={ringCutSrc} alt="" aria-hidden="true" />
-          <img class="ai-cut" src={ringCutSrc} alt="AI-чернетка: кільце на новому фоні" />
+        <div class="ai-after" data-ai-after>
+          {operations.map((o, i) => (
+            <img src={o.src} alt={`AI-чернетка: ${o.alt}`} width="900" height="1200" loading="lazy" decoding="async" data-ai-img={o.id} class:list={{ 'is-on': i === 0 }} aria-hidden={i === 0 ? undefined : 'true'} />
+          ))}
         </div>
         <span class="ai-tag" aria-hidden="true">Ваше фото</span>
         <span class="ai-tag ai-tag--after" aria-hidden="true"><Icon name="sparkle" /> AI-чернетка</span>
@@ -113,7 +119,7 @@ const operations = [
        Safari gives an auto track around an empty-looking box no width at all. */
     --ai-h: clamp(360px, 56svh, 480px);
     display: grid;
-    grid-template-columns: minmax(0, 1fr) calc(var(--ai-h) * 248 / 316);
+    grid-template-columns: minmax(0, 1fr) calc(var(--ai-h) * 3 / 4);
     align-items: center;
     gap: clamp(24px, 3.5vw, 56px);
     padding: clamp(20px, 3vw, 44px);
@@ -150,10 +156,10 @@ const operations = [
   /* Each action is a small preview of its own result, so the choice reads at a glance. */
   .ops {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
     width: 100%;
-    max-width: 440px;
+    max-width: 480px;
   }
   .op {
     display: grid;
@@ -191,31 +197,24 @@ const operations = [
     overflow: hidden;
   }
   .op-pic img {
-    width: 72%;
-    filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.28));
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 45%;
   }
-  .op-pic--studio {
-    background: radial-gradient(90% 70% at 50% 15%, #ffffff, #d9d9de);
-  }
-  .op-pic--catalog_ready {
-    background: #fff;
-    box-shadow: inset 0 0 0 5px #fff, inset 0 0 0 6px #e3e3e3;
-  }
-  .op-pic--catalog_ready img {
-    width: 58%;
+  .op-label {
+    min-height: 2.3em;
+    display: grid;
+    place-items: center;
+    line-height: 1.15;
   }
 
-  /* Before / after: the AI layer is clipped from the left at --split. */
-  /* The frame has the photo's proportions and the cut-out sits exactly where the ring is
-     in the original (crop box 38,107 to 210,234 of 248x316), so before and after line up. */
+  /* Before / after: the AI layer is clipped from the left at --split. Every result has the
+     original's frame, so the tee lines up across the split. */
   .ai-compare {
-    --ring-x: 15.3%;
-    --ring-y: 33.9%;
-    --ring-w: 69.4%;
-    --ring-h: 40.2%;
     position: relative;
     align-self: center;
-    aspect-ratio: 248 / 316;
+    aspect-ratio: 3 / 4;
     border-radius: 22px;
     overflow: hidden;
     background: #2a2a2a;
@@ -227,7 +226,10 @@ const operations = [
     position: absolute;
     inset: 0;
   }
-  .ai-before img {
+  .ai-before img,
+  .ai-after img {
+    position: absolute;
+    inset: 0;
     display: block;
     width: 100%;
     height: 100%;
@@ -237,82 +239,14 @@ const operations = [
     clip-path: inset(0 0 0 var(--split));
     overflow: hidden;
   }
-  .ai-scene {
-    position: absolute;
-    inset: 0;
-    background: var(--ai-bg);
-    transition: background 0.6s var(--ease-out);
-  }
-  .ai-cut,
-  .ai-reflect {
-    position: absolute;
-    left: var(--ring-x);
-    top: var(--ring-y);
-    width: var(--ring-w);
-    transform-origin: 50% 100%;
-    transition: transform 0.6s var(--ease-spring), opacity 0.4s var(--ease-out), filter 0.4s var(--ease-out);
-  }
-  .ai-cut {
-    z-index: 2;
-    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.14));
-  }
-  .ai-reflect {
-    z-index: 1;
-    top: calc(var(--ring-y) + var(--ring-h) - 1%);
-    transform: scaleY(-1);
-    transform-origin: 50% 0;
+  .ai-after img {
     opacity: 0;
-    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.32), transparent 60%);
-    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.32), transparent 60%);
+    transition: opacity 0.55s var(--ease-out), filter 0.55s var(--ease-out), scale 0.7s var(--ease-out);
   }
-  .ai-shadow {
-    position: absolute;
-    z-index: 1;
-    left: calc(var(--ring-x) + var(--ring-w) * 0.1);
-    width: calc(var(--ring-w) * 0.8);
-    top: calc(var(--ring-y) + var(--ring-h) - 4%);
-    height: 7%;
-    border-radius: 50%;
-    background: radial-gradient(closest-side, rgba(0, 0, 0, 0.3), transparent);
-    transform-origin: 50% 0;
-    transition: transform 0.6s var(--ease-spring);
-  }
-  .ai-frame {
-    position: absolute;
-    z-index: 3;
-    left: 9%;
-    right: 9%;
-    top: 50%;
-    aspect-ratio: 1;
-    translate: 0 -50%;
-    border: 1.5px dashed rgba(10, 10, 11, 0.28);
-    border-radius: 12px;
-    opacity: 0;
-    transition: opacity 0.4s var(--ease-out);
-  }
-
-  /* Studio: soft key light from above and a floor reflection. */
-  .ai-after[data-op='studio'] .ai-scene {
-    background:
-      radial-gradient(90% 60% at 50% 18%, rgba(255, 255, 255, 0.7), transparent 70%),
-      linear-gradient(to top, rgba(0, 0, 0, 0.1), transparent 34%),
-      var(--ai-bg);
-  }
-  .ai-after[data-op='studio'] .ai-reflect {
+  .ai-after img.is-on {
     opacity: 1;
   }
-  .ai-after[data-op='studio'] .ai-shadow {
-    opacity: 0.6;
-  }
-  /* Catalog: centred, even margins. */
-  .ai-after[data-op='catalog_ready'] .ai-cut,
-  .ai-after[data-op='catalog_ready'] .ai-shadow {
-    transform: translateY(-6%) scale(1.06);
-  }
-  .ai-after[data-op='catalog_ready'] .ai-frame {
-    opacity: 1;
-  }
-  /* "Generating": a light sweep over the AI side. */
+  /* "Generating": a light sweep over the AI side while the new result fades in. */
   .ai-after::after {
     content: '';
     position: absolute;
@@ -325,10 +259,11 @@ const operations = [
   }
   .ai-after.is-busy::after {
     opacity: 1;
-    animation: ai-sweep 0.8s ease-in-out;
+    animation: ai-sweep 0.9s ease-in-out;
   }
-  .ai-after.is-busy .ai-cut {
-    filter: blur(6px) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.14));
+  .ai-after.is-busy img.is-on {
+    filter: blur(8px);
+    scale: 1.03;
   }
   @keyframes ai-sweep {
     from {
@@ -685,7 +620,7 @@ const operations = [
       grid-template-columns: minmax(0, 1fr);
     }
     .ai-stage .ai-compare {
-      width: min(100%, calc(var(--ai-h) * 248 / 316));
+      width: min(100%, calc(var(--ai-h) * 3 / 4));
     }
     .tools {
       grid-template-columns: repeat(2, minmax(0, 1fr));

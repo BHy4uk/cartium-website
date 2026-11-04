@@ -1,6 +1,6 @@
 ---
 import Logo from './Logo.astro';
-import { BOT_HANDLE, BOT_URL, CHANNEL_URL, DOCS_LINKS, DOCS_URL, LEGAL_LINKS } from '../config';
+import { SUPPORT_HANDLE, SUPPORT_URL, CHANNEL_URL, DOCS_LINKS, DOCS_URL, LEGAL_LINKS } from '../config';
 
 const year = new Date().getFullYear();
 type FooterLink = { href: string; label: string; ext?: boolean };
@@ -27,7 +27,7 @@ const cols: { title: string; links: FooterLink[] }[] = [
   {
     title: 'Звʼязок',
     links: [
-      { href: BOT_URL, label: `@${BOT_HANDLE}`, ext: true },
+      { href: SUPPORT_URL, label: `@${SUPPORT_HANDLE}`, ext: true },
       { href: CHANNEL_URL, label: 'Канал Cartium', ext: true },
     ],
   },
