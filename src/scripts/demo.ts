@@ -718,7 +718,11 @@ export function initDemo() {
       show('catalog');
     } else {
       setSheetOpen(false);
-      if (!quiet) say('Збережено. Так бачать покупці');
+      if (!quiet) {
+        say('Збережено. Так бачать покупці');
+        // Saving finishes step 1 even with nothing changed: the default look is a valid shop too.
+        flag('style');
+      }
     }
   };
 
