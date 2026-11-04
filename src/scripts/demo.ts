@@ -644,6 +644,7 @@ export function initDemo() {
   const selTag = q('[data-ed-sel-tag]');
   const narrow = window.matchMedia('(max-width: 760px)');
   const guide = q('[data-ed-guide]');
+  const guideRows = qa('[data-ed-guide] li');
   const ed = { editing: true, sec: 'none' as Sec, target: null as HTMLElement | null, touched: false, sheetOpen: false };
 
   const visible = (el: HTMLElement | null) => !!el && el.getClientRects().length > 0;
@@ -854,7 +855,7 @@ export function initDemo() {
     if (!flags.style) {
       if (!ed.editing) return [q<HTMLElement>('[data-ed-save]'), 'Поверніться до редагування'];
       if (!ed.touched || (narrow.matches && !ed.sheetOpen))
-        return [defaultTarget('header') ?? defaultTarget('template'), 'Натисніть на телефоні на шапку чи товар'];
+        return [defaultTarget('header') ?? defaultTarget('template'), narrow.matches ? 'Натисніть на шапку чи товар' : 'Натисніть на телефоні на шапку чи товар'];
       const pane = sections.find((el) => !el.hidden);
       if (ed.sec === 'header') return [nameInput, narrow.matches ? 'Впишіть назву у шторці' : 'Тепер оберіть тут: впишіть назву'];
       const option =
@@ -865,7 +866,10 @@ export function initDemo() {
     }
     if (!flags.buy) {
       if (ed.editing && ed.sheetOpen) return [q<HTMLElement>('[data-ed-done]'), 'Натисніть «Готово»'];
-      if (ed.editing) return [q<HTMLElement>('.ed-modes [data-ed-mode="view"]'), 'Перейдіть у «Перегляд» і замовте'];
+      if (ed.editing)
+        return narrow.matches
+          ? [q<HTMLElement>('.ed-modes [data-ed-mode="view"]'), 'Натисніть «Перегляд», щоб замовити']
+          : [q<HTMLElement>('[data-ed-save]'), 'Збережіть, щоб замовити як клієнт'];
       if (sheet.classList.contains('is-open')) return [q<HTMLElement>('[data-sheet-add]'), 'Додайте в кошик'];
       const at = phone.dataset.screen;
       if (at === 'catalog')
@@ -891,8 +895,15 @@ export function initDemo() {
     if (!studioVisible) return;
     requestAnimationFrame(placeCoach);
     placeSel();
-    const at = flags.style ? 'done' : ed.touched ? 'pick' : 'tap';
-    if (guide.dataset.at !== at) guide.dataset.at = at;
+    // The guide's current move: 0 tap, 1 choose, 2 save, 3 all done (the shop is in Перегляд).
+    const at = !ed.editing && flags.style ? 3 : flags.style ? 2 : ed.touched ? 1 : 0;
+    if (guide.dataset.at !== String(at)) {
+      guide.dataset.at = String(at);
+      guideRows.forEach((li, i) => {
+        li.classList.toggle('is-done', i < at);
+        li.classList.toggle('is-now', i === at);
+      });
+    }
     const [el, text] = nextStep();
     setHint(text);
     if (!el) return hideCoach();
@@ -913,16 +924,30 @@ export function initDemo() {
       coachRing.classList.remove('is-on');
       return;
     }
-    coach.classList.remove('is-on');
     // On the page but scrolled out of the phone's own screen: nothing sensible to ring.
     if (screen.contains(el)) {
       const box = screen.getBoundingClientRect();
-      if (r.top > box.bottom - r.height / 2 || r.bottom < box.top + r.height / 2) return coachRing.classList.remove('is-on');
+      if (r.top > box.bottom - r.height / 2 || r.bottom < box.top + r.height / 2) {
+        coach.classList.remove('is-on');
+        return coachRing.classList.remove('is-on');
+      }
     }
     coachRing.style.width = `${r.width + 10}px`;
     coachRing.style.height = `${r.height + 10}px`;
     coachRing.style.transform = `translate(${r.left - 5}px, ${r.top - 5}px)`;
     coachRing.classList.add('is-on');
+    // The words go right next to the control: under it, or over it when there is no room below.
+    if (coachText.textContent !== text) coachText.textContent = text;
+    coach.dataset.side = 'near';
+    const w = coach.offsetWidth;
+    const h = coach.offsetHeight;
+    const below = r.bottom + 14 + h < innerHeight - 90;
+    coach.dataset.place = below ? 'below' : 'above';
+    const x = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), innerWidth - w - 8);
+    const y = below ? r.bottom + 12 : r.top - h - 12;
+    coach.style.setProperty('--tip-x', `${Math.min(Math.max(14, r.left + r.width / 2 - x), w - 14)}px`);
+    coach.style.transform = `translate(${x}px, ${y}px)`;
+    coach.classList.add('is-on');
   };
   coach.addEventListener('click', () => {
     if (coach.dataset.side === 'edge') lastTarget?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });

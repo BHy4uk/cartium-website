@@ -112,8 +112,8 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
            phone and slides up over the shop, as in the app. -->
       <div class="studio-panel ed" data-ed>
         <!-- Two moves, always in view: tap on the phone, choose here. The current one lights up. -->
-        <ol class="ed-guide" data-ed-guide data-at="tap">
-          <li data-guide="tap">
+        <ol class="ed-guide" data-ed-guide>
+          <li data-guide="tap" class="is-now">
             <span class="ed-guide-num"><span>1</span><Icon name="check" /></span>
             <span class="ed-guide-text"><strong>Натисніть на телефоні</strong> <span class="ed-tip-wide">на шапку, банер чи товар</span><span class="ed-tip-narrow">нижче на шапку чи товар</span></span>
             <span class="ed-guide-arrow" aria-hidden="true"><Icon name="arrow-right" /></span>
@@ -121,6 +121,10 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
           <li data-guide="pick">
             <span class="ed-guide-num"><span>2</span><Icon name="check" /></span>
             <span class="ed-guide-text"><strong><span class="ed-tip-wide">Оберіть тут</span><span class="ed-tip-narrow">Оберіть у шторці</span></strong>, яким йому бути</span>
+          </li>
+          <li data-guide="save">
+            <span class="ed-guide-num"><span>3</span><Icon name="check" /></span>
+            <span class="ed-guide-text"><strong>Збережіть</strong> і замовте як ваш клієнт</span>
           </li>
         </ol>
 
@@ -298,7 +302,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
           <button type="button" class="sp-btn sp-btn--icon" data-demo-shuffle title="Перемішати"><Icon name="shuffle" /><span class="sr-only">Перемішати</span></button>
           <button type="button" class="sp-btn sp-btn--icon" data-demo-reset title="Скинути"><Icon name="arrow-counter-clockwise" /><span class="sr-only">Скинути</span></button>
           <button type="button" class="ed-save" data-ed-save>
-            <span class="ed-save-on"><Icon name="check" /> Зберегти</span>
+            <span class="ed-save-on"><Icon name="check" /> Зберегти і замовити</span>
             <span class="ed-save-off"><Icon name="pencil-simple" /> Редагувати</span>
           </button>
         </div>
@@ -741,6 +745,35 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     font-weight: 600;
     line-height: 1.3;
     box-shadow: 0 14px 30px -12px var(--accent-glow);
+  }
+  /* Next to its target: a small label with a pointer, above or below the control. */
+  .coach[data-side='near'] {
+    max-width: 230px;
+    padding: 7px 12px 7px 8px;
+    border-radius: 12px;
+    font-size: 0.82rem;
+  }
+  .coach[data-side='near'] .coach-hand {
+    width: 24px;
+    height: 24px;
+    font-size: 15px;
+  }
+  .coach[data-side='near']::before {
+    content: '';
+    position: absolute;
+    left: var(--tip-x, 50%);
+    width: 10px;
+    height: 10px;
+    margin-left: -5px;
+    border-radius: 2px;
+    background: var(--accent);
+    transform: rotate(45deg);
+  }
+  .coach[data-place='below']::before {
+    top: -4px;
+  }
+  .coach[data-place='above']::before {
+    bottom: -4px;
   }
   .coach[data-side='edge'] {
     pointer-events: auto;
@@ -1278,33 +1311,28 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     opacity: 0;
     transition: opacity 0.3s var(--ease-out);
   }
-  /* The move to make now: ultraviolet, as the next step. */
-  .ed-guide[data-at='tap'] [data-guide='tap'],
-  .ed-guide[data-at='pick'] [data-guide='pick'] {
+  /* The move to make now: ultraviolet, as the next step; the ones behind get a check. */
+  .ed-guide li.is-now {
     color: var(--ink);
   }
-  .ed-guide[data-at='tap'] [data-guide='tap'] .ed-guide-num,
-  .ed-guide[data-at='pick'] [data-guide='pick'] .ed-guide-num {
+  .ed-guide li.is-now .ed-guide-num {
     background: var(--accent);
     color: var(--on-accent);
     box-shadow: none;
   }
-  .ed-guide[data-at='tap'] .ed-guide-arrow {
+  .ed-guide li.is-now .ed-guide-arrow {
     opacity: 1;
     animation: guide-nudge 1.4s var(--ease-out) infinite;
   }
-  .ed-guide[data-at='pick'] [data-guide='tap'] .ed-guide-num,
-  .ed-guide[data-at='done'] .ed-guide-num {
+  .ed-guide li.is-done .ed-guide-num {
     background: var(--ink);
     color: var(--bg);
     box-shadow: none;
   }
-  .ed-guide[data-at='pick'] [data-guide='tap'] .ed-guide-num span,
-  .ed-guide[data-at='done'] .ed-guide-num span {
+  .ed-guide li.is-done .ed-guide-num span {
     display: none;
   }
-  .ed-guide[data-at='pick'] [data-guide='tap'] .ed-guide-num :global(.icon),
-  .ed-guide[data-at='done'] .ed-guide-num :global(.icon) {
+  .ed-guide li.is-done .ed-guide-num :global(.icon) {
     display: block;
   }
   @keyframes guide-nudge {
