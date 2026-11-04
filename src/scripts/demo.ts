@@ -887,6 +887,7 @@ export function initDemo() {
     if (!flags.ship) return [root.querySelector<HTMLElement>('[data-ttn]:not(:disabled)'), 'Натисніть «Створити ТТН»'];
     return [null, ''];
   };
+  let glowing: HTMLElement | null = null;
   const hideCoach = () => {
     coach.classList.remove('is-on');
     coachRing.classList.remove('is-on');
@@ -906,6 +907,12 @@ export function initDemo() {
     }
     const [el, text] = nextStep();
     setHint(text);
+    // The control itself glows too, so the next tap is obvious even inside the busy phone screen.
+    if (el !== glowing) {
+      glowing?.classList.remove('is-coached');
+      el?.classList.add('is-coached');
+      glowing = el;
+    }
     if (!el) return hideCoach();
     const r = el.getBoundingClientRect();
     if (!r.width) return hideCoach();

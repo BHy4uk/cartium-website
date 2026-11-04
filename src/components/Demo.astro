@@ -806,6 +806,31 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
         0 0 0 12px color-mix(in srgb, var(--accent) 0%, transparent);
     }
   }
+  /* The next control inside the demo pulses in ultraviolet (the coach's next step). */
+  .studio :global(.is-coached) {
+    animation: coached 1.4s var(--ease-out) infinite;
+  }
+  .studio :global(.ds-btn.is-coached),
+  .studio :global(.ds-add.is-coached),
+  .studio :global(.bmsg-btn.is-coached),
+  .studio :global(.ed-save.is-coached) {
+    background: var(--accent);
+    color: var(--on-accent);
+    border-color: transparent;
+  }
+  .studio :global(.ds-tab.is-coached) {
+    border-radius: 16px;
+    color: var(--accent-text);
+  }
+  @keyframes coached {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);
+    }
+    60% {
+      box-shadow: 0 0 0 10px color-mix(in srgb, var(--accent) 0%, transparent);
+    }
+  }
   @keyframes coach-tap {
     0%,
     60%,
@@ -819,6 +844,7 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
   @media (prefers-reduced-motion: reduce) {
     .coach-ring,
     .coach-hand,
+    .studio :global(.is-coached),
     .live-dot::after {
       animation: none;
     }
