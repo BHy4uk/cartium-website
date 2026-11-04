@@ -621,7 +621,7 @@ function aiPhoto() {
   const imgs = Array.from(after.querySelectorAll<HTMLImageElement>('[data-ai-img]'));
   const bgs = $('[data-ai-bgs]', tile)!;
   let op = 'replace_background';
-  let bg = 'beige';
+  let bg = 'violet';
   const show = () => {
     const key = op === 'replace_background' ? `${op}:${bg}` : op;
     for (const img of imgs) {

@@ -3,12 +3,12 @@ import { getImage } from 'astro:assets';
 import Icon from './Icon.astro';
 // A real catalog product (the Cartium demo tee). Every choice shows a prepared result, so the
 // photo visibly changes: «Замінити фон» keeps the tee in place on the chosen backdrop, the
-// creative ones are real AI drafts of the same tee (seedream via Fish, 2026-11-04).
+// creative ones are AI drafts of the same tee (seedream via Fish, 2026-11-04), with the
+// backdrop of «На вішаку» and «Преміум-реклама» redrawn around the cut-out tee.
 import teeOriginal from '../assets/products/tee-ai/original.jpg';
-import bgWhite from '../assets/products/tee-ai/bg-white.jpg';
+import bgViolet from '../assets/products/tee-ai/bg-violet.jpg';
 import bgGray from '../assets/products/tee-ai/bg-light_gray.jpg';
 import bgBeige from '../assets/products/tee-ai/bg-beige.jpg';
-import bgGradient from '../assets/products/tee-ai/bg-gradient.jpg';
 // The AI drafts are optional files: an action shows up only once its picture is in the folder.
 const drafts = import.meta.glob<{ default: ImageMetadata }>('../assets/products/tee-ai/{ghost_mannequin,on_hanger,premium}.jpg', { eager: true });
 const draft = (id: string) => drafts[`../assets/products/tee-ai/${id}.jpg`]?.default;
@@ -18,14 +18,13 @@ const webp = async (src: ImageMetadata, width: number) =>
 
 // Labels, hints and backdrops are the product's own (application/ai_image_operations.py).
 const backgrounds = [
+  { id: 'violet', label: 'Фіолетовий', swatch: 'linear-gradient(180deg,#b2a4ff,#765ce8)', img: bgViolet },
   { id: 'beige', label: 'Бежевий', swatch: '#ece3d6', img: bgBeige },
-  { id: 'white', label: 'Білий', swatch: '#ffffff', img: bgWhite },
   { id: 'light_gray', label: 'Світло-сірий', swatch: '#e6e6e6', img: bgGray },
-  { id: 'gradient', label: 'Градієнт', swatch: 'linear-gradient(180deg,#f3f3f3,#d9d9d9)', img: bgGradient },
 ];
 const operations = await Promise.all(
   [
-    { id: 'replace_background', label: 'Замінити фон', hint: 'Товар без змін, новий фон', img: bgBeige },
+    { id: 'replace_background', label: 'Замінити фон', hint: 'Товар без змін, новий фон', img: bgViolet },
     { id: 'ghost_mannequin', label: 'Без манекена', hint: 'Ефект «невидимого манекена»', img: draft('ghost_mannequin') },
     { id: 'on_hanger', label: 'На вішаку', hint: 'Річ висить на плічках', img: draft('on_hanger') },
     { id: 'premium', label: 'Преміум-реклама', hint: 'Ефектне рекламне фото', img: draft('premium') },
@@ -38,7 +37,7 @@ const results = await Promise.all(
   [
     ...backgrounds.map((b) => ({ key: `replace_background:${b.id}`, img: b.img, alt: `футболка на фоні «${b.label}»` })),
     { key: 'ghost_mannequin', img: draft('ghost_mannequin'), alt: 'футболка з ефектом невидимого манекена' },
-    { key: 'on_hanger', img: draft('on_hanger'), alt: 'футболка на деревʼяному вішаку' },
+    { key: 'on_hanger', img: draft('on_hanger'), alt: 'футболка на деревʼяному вішаку біля бетонної стіни' },
     { key: 'premium', img: draft('premium'), alt: 'рекламне фото футболки' },
   ]
     .filter((r): r is typeof r & { img: ImageMetadata } => !!r.img)
