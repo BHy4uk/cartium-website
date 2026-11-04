@@ -16,6 +16,7 @@ type Line = { id: string; size: string; qty: number };
 type Pay = 'liqpay' | 'mono' | 'cod';
 type Look = {
   template: string;
+  bg: string;
   mode: string;
   accent: string;
   buttons: string;
@@ -29,6 +30,7 @@ const PAY_NAMES: Record<Pay, string> = { liqpay: 'LiqPay', mono: 'plata by mono'
 const FIRST_ORDER = 58; // continues the demo data on the documentation screenshots
 const DEFAULT_LOOK: Look = {
   template: 'classic',
+  bg: 'mist',
   mode: 'light',
   accent: 'auto',
   buttons: 'filled',
@@ -52,6 +54,21 @@ const RADIUS: Record<string, [string, string, string]> = {
 };
 const WEB_FONTS =
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap';
+
+type Sec = 'none' | 'header' | 'template' | 'cards' | 'colors' | 'bg' | 'font' | 'promo';
+type Bg = { id: string; label: string; bg: string; card: string };
+// What the selection tag on the phone calls each editable element.
+const SEC_TAG: Record<Sec, string> = {
+  none: '',
+  header: 'Шапка',
+  template: 'Банер',
+  cards: 'Картка товару',
+  colors: 'Кольори',
+  bg: 'Фон',
+  font: 'Шрифт',
+  promo: 'Верхній рядок',
+};
+const DARK_BGS = new Set(['graphite', 'black']);
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')} грн`;
@@ -201,33 +218,13 @@ export function initDemo() {
     showFinale(false);
   };
 
-  /* ----- Tabs ----- */
-  const tabs = qa<HTMLButtonElement>('[role="tab"]');
-  const selectTab = (tab: HTMLButtonElement, focus = false) => {
-    tabs.forEach((t) => {
-      const on = t === tab;
-      t.setAttribute('aria-selected', String(on));
-      t.tabIndex = on ? 0 : -1;
-      const pane = root.querySelector<HTMLElement>(`[data-pane="${t.dataset.tab}"]`);
-      if (pane) pane.hidden = !on;
-    });
-    if (tab.dataset.tab === 'font') loadWebFonts();
-    if (focus) tab.focus();
-  };
-  tabs.forEach((t, i) => {
-    t.addEventListener('click', () => selectTab(t));
-    t.addEventListener('keydown', (e) => {
-      const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
-      if (!step) return;
-      e.preventDefault();
-      selectTab(tabs[(i + step + tabs.length) % tabs.length], true);
-    });
-  });
-
   /* ----- Applying the look ----- */
   const customColor = q<HTMLInputElement>('[data-demo-color]');
   const customSwatch = customColor.closest('.sw')!;
+  const backgrounds: Bg[] = JSON.parse(q('[data-demo-backgrounds]').textContent || '[]');
+  const bgById = new Map(backgrounds.map((b) => [b.id, b]));
   const applyLook = () => {
+    look.mode = DARK_BGS.has(look.bg) ? 'dark' : 'light';
     phone.dataset.template = look.template;
     phone.dataset.promo = look.promo;
     screen.classList.toggle('is-dark', look.mode === 'dark');
@@ -238,6 +235,11 @@ export function initDemo() {
     screen.style.setProperty('--ds-r-ctrl', rctrl);
     screen.style.setProperty('--ds-r-pill', rpill);
     screen.style.setProperty('--ds-font', FONT_STACKS[look.font]);
+    const bg = bgById.get(look.bg);
+    if (bg) {
+      screen.style.setProperty('--ds-bg', bg.bg);
+      screen.style.setProperty('--ds-card', bg.card);
+    }
 
     // Accent, as theme.js resolves it: the fill, the text on it, and a version that reads as text.
     const fill = look.accent === 'auto' ? DEFAULT_ACCENT[look.mode] : look.accent;
@@ -356,7 +358,7 @@ export function initDemo() {
   q('[data-demo-shuffle]').addEventListener('click', () => {
     const accents = qa('[data-set="accent"]').map((el) => el.dataset.value!);
     look.template = pick(qa('[data-set="template"]').map((el) => el.dataset.value!).filter((t) => t !== look.template));
-    look.mode = pick(['light', 'dark']);
+    look.bg = pick(backgrounds.map((b) => b.id));
     look.accent = pick(accents);
     look.buttons = pick(['filled', 'outline']);
     look.radius = pick(['rounded', 'medium', 'sharp']);
@@ -627,6 +629,181 @@ export function initDemo() {
     q('[data-dchat]').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
   });
 
+  /* ----- Live editor: tap the shop, edit it in the panel (Редагування / Перегляд) ----- */
+  // As in the real Вигляд: the preview is the shop itself. In Редагування every editable element
+  // wears a dashed frame; a tap selects it and opens its settings (the side panel on wide screens,
+  // a sheet over the shop on phones). Зберегти switches to Перегляд, where the shop works for buyers.
+  const panel = q('[data-ed]');
+  const edSheet = q('[data-ed-sheet]');
+  const edSheetHome = edSheet.parentElement!;
+  const edSheetNext = edSheet.nextElementSibling;
+  const sections = qa<HTMLElement>('[data-sec]');
+  const dockBtns = qa<HTMLButtonElement>('[data-ed-dock-sec]');
+  const modeBtns = qa<HTMLButtonElement>('.ed-modes [data-ed-mode]');
+  const sel = q('[data-ed-sel]');
+  const selTag = q('[data-ed-sel-tag]');
+  const narrow = window.matchMedia('(max-width: 760px)');
+  const guide = q('[data-ed-guide]');
+  const guideRows = qa('[data-ed-guide] li');
+  const ed = { editing: true, sec: 'none' as Sec, target: null as HTMLElement | null, touched: false, sheetOpen: false };
+
+  const visible = (el: HTMLElement | null) => !!el && el.getClientRects().length > 0;
+  const defaultTarget = (sec: Sec) =>
+    qa<HTMLElement>(`[data-ed-target="${sec}"]`).find((el) => visible(el)) ?? null;
+  const setSheetOpen = (on: boolean) => {
+    ed.sheetOpen = on && narrow.matches;
+    phone.dataset.sheetOpen = String(ed.sheetOpen);
+    // A closed sheet on a phone sits below the screen: keep it out of the tab order.
+    edSheet.inert = narrow.matches && !ed.sheetOpen;
+  };
+  const placeSheet = () => {
+    if (narrow.matches) {
+      if (edSheet.parentElement !== screen) screen.append(edSheet);
+      setSheetOpen(ed.sheetOpen);
+    } else if (edSheet.parentElement !== edSheetHome) {
+      edSheetHome.insertBefore(edSheet, edSheetNext);
+      setSheetOpen(false);
+    }
+  };
+  narrow.addEventListener('change', placeSheet);
+
+  const selectSec = (sec: Sec, target: HTMLElement | null = null, open = true) => {
+    const changed = sec !== ed.sec;
+    ed.sec = sec;
+    ed.target = target ?? defaultTarget(sec);
+    sections.forEach((el) => {
+      const on = el.dataset.sec === sec;
+      if (el.hidden === !on) return;
+      el.hidden = !on;
+      if (on) el.scrollTop = 0;
+    });
+    dockBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.edDockSec === sec)));
+    if (sec === 'font') loadWebFonts();
+    if (open) setSheetOpen(true);
+    // The sheet rises from the phone's bottom edge: make sure that edge is on screen.
+    if (ed.sheetOpen) {
+      const over = phone.getBoundingClientRect().bottom - (window.innerHeight - 88);
+      if (over > 0) window.scrollBy({ top: over, behavior: reduceMotion ? 'auto' : 'smooth' });
+    }
+    // On a phone the sheet covers the lower part: bring the element into the part above it.
+    if (ed.sheetOpen && ed.target && catalogScreen.contains(ed.target)) {
+      const top = ed.target.getBoundingClientRect().top - catalogScreen.getBoundingClientRect().top + catalogScreen.scrollTop;
+      catalogScreen.scrollTo({ top: Math.max(0, top - 12), behavior: reduceMotion ? 'auto' : 'smooth' });
+    }
+    if (!changed || reduceMotion) return;
+    sel.animate([{ scale: '1.04' }, { scale: '1' }], { duration: 420, easing: 'cubic-bezier(.16,1,.3,1)' });
+  };
+
+  const targets = qa<HTMLElement>('[data-ed-target]');
+  const setEditing = (on: boolean, quiet = false) => {
+    ed.editing = on;
+    phone.dataset.editing = String(on);
+    panel.classList.toggle('is-viewing', !on);
+    modeBtns.forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.edMode === 'edit') === on)));
+    // Elements that are not buttons become reachable from the keyboard while editing.
+    targets.forEach((el) => {
+      if (el.matches('button, li')) return;
+      if (on) {
+        el.tabIndex = 0;
+        el.setAttribute('role', 'button');
+        el.setAttribute('aria-label', `Змінити: ${SEC_TAG[el.dataset.edTarget as Sec]}`);
+      } else {
+        el.removeAttribute('tabindex');
+        el.removeAttribute('role');
+        el.removeAttribute('aria-label');
+      }
+    });
+    if (on) {
+      closeSheet();
+      show('catalog');
+    } else {
+      setSheetOpen(false);
+      if (!quiet) {
+        say('Збережено. Так бачать покупці');
+        // Saving finishes step 1 even with nothing changed: the default look is a valid shop too.
+        flag('style');
+      }
+    }
+  };
+
+  // In Редагування a tap on the shop selects, it never buys: catch it before the shop's own handlers.
+  screen.addEventListener(
+    'click',
+    (e) => {
+      if (!ed.editing) return;
+      const t = e.target as Element;
+      if (t.closest('.ed-bar, .ed-dock, [data-ed-sheet], .ds-chips')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const hit = t.closest<HTMLElement>('[data-ed-target]');
+      if (!hit) return;
+      ed.touched = true;
+      selectSec(hit.dataset.edTarget as Sec, hit);
+    },
+    true,
+  );
+  screen.addEventListener('keydown', (e) => {
+    const el = e.target as HTMLElement;
+    if (!ed.editing || !el.matches?.('[data-ed-target][role="button"]')) return;
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    el.click();
+  });
+  dockBtns.forEach((b) =>
+    b.addEventListener('click', () => {
+      ed.touched = true;
+      selectSec(b.dataset.edDockSec as Sec);
+    }),
+  );
+  qa<HTMLButtonElement>('[data-ed-mode]').forEach((b) => b.addEventListener('click', () => setEditing(b.dataset.edMode === 'edit')));
+  q('[data-ed-done]').addEventListener('click', () => setSheetOpen(false));
+  q('[data-ed-save]').addEventListener('click', () => setEditing(!ed.editing));
+
+  // Header buttons (Кнопки в шапці): search and filters can be switched off.
+  const toggles = qa<HTMLButtonElement>('[data-ed-toggle]');
+  toggles.forEach((b) =>
+    b.addEventListener('click', () => {
+      const on = b.getAttribute('aria-checked') !== 'true';
+      b.setAttribute('aria-checked', String(on));
+      phone.dataset[b.dataset.edToggle!] = on ? 'on' : 'off';
+      flag('style');
+    }),
+  );
+  const resetToggles = () =>
+    toggles.forEach((b) => {
+      b.setAttribute('aria-checked', 'true');
+      phone.dataset[b.dataset.edToggle!] = 'on';
+    });
+
+  // The selection frame follows its element: through scrolling, template changes and resizes.
+  const placeSel = () => {
+    if (!ed.editing || phone.dataset.screen !== 'catalog') return sel.classList.remove('is-on');
+    if (!visible(ed.target)) ed.target = defaultTarget(ed.sec);
+    const el = ed.target;
+    if (!el) return sel.classList.remove('is-on');
+    const s = screen.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    let top = r.top;
+    let bottom = r.bottom;
+    if (catalogScreen.contains(el)) {
+      const c = catalogScreen.getBoundingClientRect();
+      top = Math.max(top, c.top);
+      bottom = Math.min(bottom, c.bottom);
+    }
+    if (bottom - top < 14) return sel.classList.remove('is-on');
+    const tag = SEC_TAG[(el.dataset.edTarget as Sec) ?? ed.sec];
+    if (selTag.textContent !== tag) selTag.textContent = tag;
+    // The tag sits above the frame, unless that would cover the bar above it: then inside (or under the promo bar).
+    const isPromo = el.dataset.edTarget === 'promo';
+    sel.classList.toggle('is-below', isPromo);
+    sel.classList.toggle('is-low', !isPromo && top - 24 < catalogScreen.getBoundingClientRect().top);
+    sel.style.transform = `translate(${r.left - s.left}px, ${top - s.top}px)`;
+    sel.style.width = `${r.width}px`;
+    sel.style.height = `${bottom - top}px`;
+    sel.style.borderRadius = getComputedStyle(el).borderRadius === '0px' ? '4px' : getComputedStyle(el).borderRadius;
+    sel.classList.add('is-on');
+  };
+
   /* ----- Reset ----- */
   const reset = () => {
     Object.assign(look, DEFAULT_LOOK);
@@ -651,7 +828,11 @@ export function initDemo() {
     statRevenue.textContent = fmt(0);
     stats.hidden = true;
     filter('all');
-    show('catalog');
+    resetToggles();
+    setEditing(true, true);
+    ed.touched = false;
+    selectSec('none', null, false);
+    catalogScreen.scrollTo({ top: 0 });
     resetFlags();
     resetClock();
   };
@@ -676,14 +857,23 @@ export function initDemo() {
   let lastTarget: HTMLElement | null = null;
   const nextStep = (): [HTMLElement | null, string] => {
     if (!flags.style) {
-      const pane = qa('[data-pane]').find((el) => !el.hidden);
+      if (!ed.editing) return [q<HTMLElement>('[data-ed-save]'), 'Поверніться до редагування'];
+      if (!ed.touched || (narrow.matches && !ed.sheetOpen))
+        return [defaultTarget('header') ?? defaultTarget('template'), narrow.matches ? 'Натисніть на шапку чи товар' : 'Натисніть на телефоні на шапку чи товар'];
+      const pane = sections.find((el) => !el.hidden);
+      if (ed.sec === 'header') return [nameInput, narrow.matches ? 'Впишіть назву у шторці' : 'Тепер оберіть тут: впишіть назву'];
       const option =
-        pane?.dataset.pane === 'tpl'
+        ed.sec === 'template'
           ? root.querySelector<HTMLElement>(`[data-set="template"]:not([data-value="${look.template}"])`)
-          : pane?.querySelector<HTMLElement>('[data-set][aria-checked="false"]');
-      return [option ?? null, 'Натисніть шаблон, колір чи шрифт'];
+          : pane?.querySelector<HTMLElement>('[data-set][aria-checked="false"], [data-ed-toggle]');
+      return [option ?? null, narrow.matches ? 'Оберіть варіант у шторці' : 'Тепер оберіть варіант тут'];
     }
     if (!flags.buy) {
+      if (ed.editing && ed.sheetOpen) return [q<HTMLElement>('[data-ed-done]'), 'Натисніть «Готово»'];
+      if (ed.editing)
+        return narrow.matches
+          ? [q<HTMLElement>('.ed-modes [data-ed-mode="view"]'), 'Натисніть «Перегляд», щоб замовити']
+          : [q<HTMLElement>('[data-ed-save]'), 'Збережіть, щоб замовити як клієнт'];
       if (sheet.classList.contains('is-open')) return [q<HTMLElement>('[data-sheet-add]'), 'Додайте в кошик'];
       const at = phone.dataset.screen;
       if (at === 'catalog')
@@ -694,13 +884,14 @@ export function initDemo() {
         return state.cart.length
           ? [q<HTMLElement>('[data-cart-footer] [data-go="checkout"]'), 'Оформіть замовлення']
           : [q<HTMLElement>('.ds-tab[data-tab-id="catalog"]'), 'Поверніться в каталог'];
-      if (at === 'checkout') return [q<HTMLElement>('[data-pay-submit]'), 'Оберіть оплату й оплатіть'];
+      if (at === 'checkout') return [q<HTMLElement>('[data-pay-submit]'), 'Оберіть оплату й оформіть'];
       if (at === 'done') return [null, 'Замовлення вже летить вам у бот'];
       return [null, ''];
     }
     if (!flags.ship) return [root.querySelector<HTMLElement>('[data-ttn]:not(:disabled)'), 'Натисніть «Створити ТТН»'];
     return [null, ''];
   };
+  let glowing: HTMLElement | null = null;
   const hideCoach = () => {
     coach.classList.remove('is-on');
     coachRing.classList.remove('is-on');
@@ -708,8 +899,24 @@ export function initDemo() {
   const placeCoach = () => {
     if (!studioVisible) return;
     requestAnimationFrame(placeCoach);
+    placeSel();
+    // The guide's current move: 0 tap, 1 choose, 2 save, 3 all done (the shop is in Перегляд).
+    const at = !ed.editing && flags.style ? 3 : flags.style ? 2 : ed.touched ? 1 : 0;
+    if (guide.dataset.at !== String(at)) {
+      guide.dataset.at = String(at);
+      guideRows.forEach((li, i) => {
+        li.classList.toggle('is-done', i < at);
+        li.classList.toggle('is-now', i === at);
+      });
+    }
     const [el, text] = nextStep();
     setHint(text);
+    // The control itself glows too, so the next tap is obvious even inside the busy phone screen.
+    if (el !== glowing) {
+      glowing?.classList.remove('is-coached');
+      el?.classList.add('is-coached');
+      glowing = el;
+    }
     if (!el) return hideCoach();
     const r = el.getBoundingClientRect();
     if (!r.width) return hideCoach();
@@ -728,16 +935,30 @@ export function initDemo() {
       coachRing.classList.remove('is-on');
       return;
     }
-    coach.classList.remove('is-on');
     // On the page but scrolled out of the phone's own screen: nothing sensible to ring.
     if (screen.contains(el)) {
       const box = screen.getBoundingClientRect();
-      if (r.top > box.bottom - r.height / 2 || r.bottom < box.top + r.height / 2) return coachRing.classList.remove('is-on');
+      if (r.top > box.bottom - r.height / 2 || r.bottom < box.top + r.height / 2) {
+        coach.classList.remove('is-on');
+        return coachRing.classList.remove('is-on');
+      }
     }
     coachRing.style.width = `${r.width + 10}px`;
     coachRing.style.height = `${r.height + 10}px`;
     coachRing.style.transform = `translate(${r.left - 5}px, ${r.top - 5}px)`;
     coachRing.classList.add('is-on');
+    // The words go right next to the control: under it, or over it when there is no room below.
+    if (coachText.textContent !== text) coachText.textContent = text;
+    coach.dataset.side = 'near';
+    const w = coach.offsetWidth;
+    const h = coach.offsetHeight;
+    const below = r.bottom + 14 + h < innerHeight - 90;
+    coach.dataset.place = below ? 'below' : 'above';
+    const x = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), innerWidth - w - 8);
+    const y = below ? r.bottom + 12 : r.top - h - 12;
+    coach.style.setProperty('--tip-x', `${Math.min(Math.max(14, r.left + r.width / 2 - x), w - 14)}px`);
+    coach.style.transform = `translate(${x}px, ${y}px)`;
+    coach.classList.add('is-on');
   };
   coach.addEventListener('click', () => {
     if (coach.dataset.side === 'edge') lastTarget?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
@@ -758,6 +979,10 @@ export function initDemo() {
   updateBadge();
   renderCart();
   markCurrent();
+  resetToggles();
+  placeSheet();
+  setEditing(true, true);
+  selectSec('none', null, false);
   // Font samples in the panel use the stacks they describe.
   qa('[data-font-sample]').forEach((el) => (el.style.fontFamily = FONT_STACKS[el.dataset.fontSample!]));
 }
