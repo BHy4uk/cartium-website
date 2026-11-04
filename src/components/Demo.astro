@@ -73,9 +73,9 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
   <div class="container">
     <div class="studio-head">
       <div class="studio-intro">
-        <h2 id="demo-title" class="display h2">Зберіть магазин. Потім купіть у&nbsp;ньому.</h2>
+        <h2 id="demo-title" class="display h2">Спробуйте свій магазин з&nbsp;обох боків.</h2>
         <p class="lead" data-fill>
-          Оформіть вітрину, купіть як покупець і прийміть замовлення як власник. Кожен перемикач тут є у&nbsp;справжньому Cartium.
+          Налаштуйте вітрину під свій бренд, подивіться, як у ній замовляють ваші клієнти, і отримайте замовлення в бот. Усе працює, як у&nbsp;справжньому Cartium.
         </p>
       </div>
 
@@ -103,25 +103,46 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
       <header class="step-head" data-step-flag="style">
         <span class="sf-dot"><span class="sf-num">1</span><Icon name="check" /></span>
         <span class="step-copy">
-          <span class="step-title">Оформіть вітрину</span>
-          <span class="step-hint" data-step-hint data-idle="Як у редакторі «Вигляд» вашого магазину">Як у редакторі «Вигляд» вашого магазину</span>
+          <span class="step-title">Налаштуйте вітрину</span>
+          <span class="step-hint" data-step-hint data-idle="Натискайте на телефоні, обирайте тут">Натискайте на телефоні, обирайте тут</span>
         </span>
       </header>
       <!-- The editor's side panel, as Вигляд shows it on a wide screen: tap an element of the shop
            (or a dock button) and its settings open here. On phones the same sheet moves into the
            phone and slides up over the shop, as in the app. -->
       <div class="studio-panel ed" data-ed>
-        <p class="ed-tip">
-          <span class="ed-tip-icon" aria-hidden="true"><Icon name="hand-tap" /></span>
-          <span class="ed-tip-wide">Натисніть на будь-який елемент вітрини, і тут відкриються його налаштування.</span>
-          <span class="ed-tip-narrow">Натисніть на будь-який елемент вітрини нижче, і його налаштування відкриються знизу.</span>
-        </p>
+        <!-- Two moves, always in view: tap on the phone, choose here. The current one lights up. -->
+        <ol class="ed-guide" data-ed-guide data-at="tap">
+          <li data-guide="tap">
+            <span class="ed-guide-num"><span>1</span><Icon name="check" /></span>
+            <span class="ed-guide-text"><strong>Натисніть на телефоні</strong> <span class="ed-tip-wide">на шапку, банер чи товар</span><span class="ed-tip-narrow">нижче на шапку чи товар</span></span>
+            <span class="ed-guide-arrow" aria-hidden="true"><Icon name="arrow-right" /></span>
+          </li>
+          <li data-guide="pick">
+            <span class="ed-guide-num"><span>2</span><Icon name="check" /></span>
+            <span class="ed-guide-text"><strong><span class="ed-tip-wide">Оберіть тут</span><span class="ed-tip-narrow">Оберіть у шторці</span></strong>, яким йому бути</span>
+          </li>
+        </ol>
 
         <div class="ed-sheet" data-ed-sheet role="region" aria-label="Налаштування елемента">
           <span class="ed-grip" aria-hidden="true"></span>
           <button type="button" class="ed-done" data-ed-done>Готово</button>
 
-          <section class="ed-sec" data-sec="header" aria-labelledby="ed-h-header">
+          <!-- Before the first tap: a small animated hint of what to do, pointing at the phone. -->
+          <section class="ed-sec ed-empty" data-sec="none" aria-label="Підказка">
+            <div class="ed-empty-art" aria-hidden="true">
+              <span class="ea-row ea-promo"></span>
+              <span class="ea-row ea-banner"></span>
+              <span class="ea-card ea-card--1"></span>
+              <span class="ea-card ea-card--2"></span>
+              <span class="ea-hand"><Icon name="hand-pointing" /></span>
+            </div>
+            <p class="ed-empty-title">Натисніть на телефоні на те, що хочете змінити</p>
+            <p class="ed-empty-sub">Шапку, банер, рядок угорі чи товар. Його налаштування з'являться тут. Шаблон, шрифт, кольори й фон є в панелі внизу телефона.</p>
+            <span class="ed-empty-arrow" aria-hidden="true"><Icon name="arrow-right" /></span>
+          </section>
+
+          <section class="ed-sec" data-sec="header" aria-labelledby="ed-h-header" hidden>
             <header class="ed-sec-head">
               <span class="ed-sec-icon" aria-hidden="true"><Icon name="browser" /></span>
               <span><span class="ed-sec-title" id="ed-h-header">Шапка</span><span class="ed-sec-sub">Назва, логотип і кнопки</span></span>
@@ -289,8 +310,8 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
         <header class="step-head" data-step-flag="buy">
           <span class="sf-dot"><span class="sf-num">2</span><Icon name="check" /></span>
           <span class="step-copy">
-            <span class="step-title">Купіть як покупець</span>
-            <span class="step-hint" data-step-hint data-idle="Так вітрину бачать у Telegram">Так вітрину бачать у Telegram</span>
+            <span class="step-title">Замовте як ваш клієнт</span>
+            <span class="step-hint" data-step-hint data-idle="Так клієнти купують у вас у Telegram">Так клієнти купують у вас у Telegram</span>
           </span>
         </header>
         <div class="dphone iphone" data-dphone data-screen="catalog" data-template="classic" data-promo="continuous" data-editing="true">
@@ -500,8 +521,8 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
         <header class="step-head" data-step-flag="ship">
           <span class="sf-dot"><span class="sf-num">3</span><Icon name="check" /></span>
           <span class="step-copy">
-            <span class="step-title">Прийміть замовлення</span>
-            <span class="step-hint" data-step-hint data-idle="Так його отримуєте ви, у боті магазину">Так його отримуєте ви, у боті магазину</span>
+            <span class="step-title">Отримайте замовлення</span>
+            <span class="step-hint" data-step-hint data-idle="Так воно приходить вам у бот магазину">Так воно приходить вам у бот магазину</span>
           </span>
         </header>
         <div class="dchat" id="demo-owner" data-dchat>
@@ -1212,27 +1233,207 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
   .ed {
     gap: 14px;
   }
-  .ed-tip {
-    display: flex;
+  .ed-tip-narrow {
+    display: none;
+  }
+  /* The two-move guide: 1 tap on the phone, 2 choose here. */
+  .ed-guide {
+    display: grid;
+    gap: 6px;
+    counter-reset: none;
+  }
+  .ed-guide li {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr) auto;
     align-items: center;
     gap: 10px;
     color: var(--muted);
-    font-size: 0.84rem;
-    line-height: 1.4;
+    font-size: 0.86rem;
+    line-height: 1.35;
+    transition: color 0.3s var(--ease-out);
   }
-  .ed-tip-icon {
-    flex: none;
+  .ed-guide strong {
+    font-weight: 600;
+  }
+  .ed-guide-num {
     display: grid;
     place-items: center;
-    width: 30px;
-    height: 30px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    background: var(--surface-3);
-    color: var(--ink);
-    font-size: 16px;
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    font-size: 0.78rem;
+    font-weight: 700;
+    transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
   }
-  .ed-tip-narrow {
+  .ed-guide-num :global(.icon) {
     display: none;
+    font-size: 14px;
+  }
+  .ed-guide-arrow {
+    display: grid;
+    place-items: center;
+    color: var(--accent-text);
+    font-size: 18px;
+    opacity: 0;
+    transition: opacity 0.3s var(--ease-out);
+  }
+  /* The move to make now: ultraviolet, as the next step. */
+  .ed-guide[data-at='tap'] [data-guide='tap'],
+  .ed-guide[data-at='pick'] [data-guide='pick'] {
+    color: var(--ink);
+  }
+  .ed-guide[data-at='tap'] [data-guide='tap'] .ed-guide-num,
+  .ed-guide[data-at='pick'] [data-guide='pick'] .ed-guide-num {
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: none;
+  }
+  .ed-guide[data-at='tap'] .ed-guide-arrow {
+    opacity: 1;
+    animation: guide-nudge 1.4s var(--ease-out) infinite;
+  }
+  .ed-guide[data-at='pick'] [data-guide='tap'] .ed-guide-num,
+  .ed-guide[data-at='done'] .ed-guide-num {
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: none;
+  }
+  .ed-guide[data-at='pick'] [data-guide='tap'] .ed-guide-num span,
+  .ed-guide[data-at='done'] .ed-guide-num span {
+    display: none;
+  }
+  .ed-guide[data-at='pick'] [data-guide='tap'] .ed-guide-num :global(.icon),
+  .ed-guide[data-at='done'] .ed-guide-num :global(.icon) {
+    display: block;
+  }
+  @keyframes guide-nudge {
+    0%,
+    100% {
+      transform: none;
+    }
+    50% {
+      transform: translateX(5px);
+    }
+  }
+
+  /* Empty state: a tiny shop whose parts light up under a tapping finger. */
+  .ed-empty {
+    position: relative;
+    justify-items: center;
+    align-content: center;
+    text-align: center;
+    flex: 1;
+    padding-bottom: 20px;
+  }
+  .ed-empty-art {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 12px 40px 58px;
+    gap: 6px;
+    width: 132px;
+    padding: 10px;
+    border-radius: 20px;
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .ea-row,
+  .ea-card {
+    border-radius: 6px;
+    background: var(--surface-3);
+    outline: 1.5px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+    outline-offset: -1px;
+    animation: ea-hit 6s var(--ease-out) infinite;
+  }
+  .ea-row {
+    grid-column: 1 / -1;
+  }
+  .ea-banner {
+    animation-delay: 1.5s;
+  }
+  .ea-card--1 {
+    animation-delay: 3s;
+  }
+  .ea-card--2 {
+    animation-delay: 4.5s;
+  }
+  @keyframes ea-hit {
+    0%,
+    4% {
+      background: var(--surface-3);
+      outline-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    }
+    8%,
+    22% {
+      background: var(--accent-soft);
+      outline: 2px solid var(--accent);
+    }
+    28%,
+    100% {
+      background: var(--surface-3);
+      outline-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    }
+  }
+  .ea-hand {
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--ink);
+    font-size: 26px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
+    animation: ea-hand 6s var(--ease-out) infinite;
+  }
+  @keyframes ea-hand {
+    0%,
+    20% {
+      transform: translate(80px, 12px);
+    }
+    25%,
+    45% {
+      transform: translate(60px, 44px);
+    }
+    50%,
+    70% {
+      transform: translate(30px, 100px);
+    }
+    75%,
+    95% {
+      transform: translate(96px, 100px);
+    }
+    100% {
+      transform: translate(80px, 12px);
+    }
+  }
+  .ed-empty-title {
+    max-width: 21ch;
+    margin-top: 6px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.12rem;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+  .ed-empty-sub {
+    max-width: 34ch;
+    color: var(--muted);
+    font-size: 0.84rem;
+    line-height: 1.45;
+  }
+  .ed-empty-arrow {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    margin-top: -18px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 18px;
+    animation: guide-nudge 1.4s var(--ease-out) infinite;
   }
   .ed-sheet {
     position: relative;
@@ -2972,6 +3173,13 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     .studio-col--panel {
       grid-column: 1 / -1;
     }
+    /* The phone is below the panel here: the arrows point down to it. */
+    .ed-guide-arrow {
+      rotate: 90deg;
+    }
+    .ed-empty-arrow {
+      display: none;
+    }
     .tpl-grid {
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
@@ -3011,8 +3219,13 @@ const fmt = (n: number) => `${n.toLocaleString('uk-UA').replace(/[  ]/g, ' ')
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .ed-sec {
-      animation: none;
+    .ed-sec,
+    .ea-row,
+    .ea-card,
+    .ea-hand,
+    .ed-empty-arrow,
+    .ed-guide-arrow {
+      animation: none !important;
     }
     .ds-spinner,
     .ds-promo-track {

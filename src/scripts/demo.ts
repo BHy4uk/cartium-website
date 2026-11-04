@@ -55,10 +55,11 @@ const RADIUS: Record<string, [string, string, string]> = {
 const WEB_FONTS =
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap';
 
-type Sec = 'header' | 'template' | 'cards' | 'colors' | 'bg' | 'font' | 'promo';
+type Sec = 'none' | 'header' | 'template' | 'cards' | 'colors' | 'bg' | 'font' | 'promo';
 type Bg = { id: string; label: string; bg: string; card: string };
 // What the selection tag on the phone calls each editable element.
 const SEC_TAG: Record<Sec, string> = {
+  none: '',
   header: 'Шапка',
   template: 'Банер',
   cards: 'Картка товару',
@@ -642,7 +643,8 @@ export function initDemo() {
   const sel = q('[data-ed-sel]');
   const selTag = q('[data-ed-sel-tag]');
   const narrow = window.matchMedia('(max-width: 760px)');
-  const ed = { editing: true, sec: 'header' as Sec, target: null as HTMLElement | null, touched: false, sheetOpen: false };
+  const guide = q('[data-ed-guide]');
+  const ed = { editing: true, sec: 'none' as Sec, target: null as HTMLElement | null, touched: false, sheetOpen: false };
 
   const visible = (el: HTMLElement | null) => !!el && el.getClientRects().length > 0;
   const defaultTarget = (sec: Sec) =>
@@ -824,7 +826,7 @@ export function initDemo() {
     resetToggles();
     setEditing(true, true);
     ed.touched = false;
-    selectSec('header', null, false);
+    selectSec('none', null, false);
     catalogScreen.scrollTo({ top: 0 });
     resetFlags();
     resetClock();
@@ -851,19 +853,19 @@ export function initDemo() {
   const nextStep = (): [HTMLElement | null, string] => {
     if (!flags.style) {
       if (!ed.editing) return [q<HTMLElement>('[data-ed-save]'), 'Поверніться до редагування'];
-      if (narrow.matches && !ed.sheetOpen)
-        return [defaultTarget('header') ?? defaultTarget('template'), 'Натисніть на елемент вітрини'];
+      if (!ed.touched || (narrow.matches && !ed.sheetOpen))
+        return [defaultTarget('header') ?? defaultTarget('template'), 'Натисніть на телефоні на шапку чи товар'];
       const pane = sections.find((el) => !el.hidden);
-      if (ed.sec === 'header' && !ed.touched) return [nameInput, 'Впишіть назву або натисніть на вітрину'];
+      if (ed.sec === 'header') return [nameInput, narrow.matches ? 'Впишіть назву у шторці' : 'Тепер оберіть тут: впишіть назву'];
       const option =
         ed.sec === 'template'
           ? root.querySelector<HTMLElement>(`[data-set="template"]:not([data-value="${look.template}"])`)
           : pane?.querySelector<HTMLElement>('[data-set][aria-checked="false"], [data-ed-toggle]');
-      return [option ?? null, 'Оберіть варіант, вітрина зміниться одразу'];
+      return [option ?? null, narrow.matches ? 'Оберіть варіант у шторці' : 'Тепер оберіть варіант тут'];
     }
     if (!flags.buy) {
       if (ed.editing && ed.sheetOpen) return [q<HTMLElement>('[data-ed-done]'), 'Натисніть «Готово»'];
-      if (ed.editing) return [q<HTMLElement>('.ed-modes [data-ed-mode="view"]'), 'Перейдіть у «Перегляд» і купіть'];
+      if (ed.editing) return [q<HTMLElement>('.ed-modes [data-ed-mode="view"]'), 'Перейдіть у «Перегляд» і замовте'];
       if (sheet.classList.contains('is-open')) return [q<HTMLElement>('[data-sheet-add]'), 'Додайте в кошик'];
       const at = phone.dataset.screen;
       if (at === 'catalog')
@@ -874,7 +876,7 @@ export function initDemo() {
         return state.cart.length
           ? [q<HTMLElement>('[data-cart-footer] [data-go="checkout"]'), 'Оформіть замовлення']
           : [q<HTMLElement>('.ds-tab[data-tab-id="catalog"]'), 'Поверніться в каталог'];
-      if (at === 'checkout') return [q<HTMLElement>('[data-pay-submit]'), 'Оберіть оплату й оплатіть'];
+      if (at === 'checkout') return [q<HTMLElement>('[data-pay-submit]'), 'Оберіть оплату й оформіть'];
       if (at === 'done') return [null, 'Замовлення вже летить вам у бот'];
       return [null, ''];
     }
@@ -889,6 +891,8 @@ export function initDemo() {
     if (!studioVisible) return;
     requestAnimationFrame(placeCoach);
     placeSel();
+    const at = flags.style ? 'done' : ed.touched ? 'pick' : 'tap';
+    if (guide.dataset.at !== at) guide.dataset.at = at;
     const [el, text] = nextStep();
     setHint(text);
     if (!el) return hideCoach();
@@ -942,7 +946,7 @@ export function initDemo() {
   resetToggles();
   placeSheet();
   setEditing(true, true);
-  selectSec('header', null, false);
+  selectSec('none', null, false);
   // Font samples in the panel use the stacks they describe.
   qa('[data-font-sample]').forEach((el) => (el.style.fontFamily = FONT_STACKS[el.dataset.fontSample!]));
 }
